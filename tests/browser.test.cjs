@@ -318,6 +318,7 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
             return window.bccServiceEvents;
           });
           assert.deepEqual(events,['grant','revoke']);
+          await page.waitForFunction(()=>!document.cookie.includes('bcc_test_analytics_a='),null,{timeout:5000});
           const cookies=await page.evaluate(()=>document.cookie);
           assert.ok(!cookies.includes('bcc_test_analytics_a='));
           assert.ok(cookies.includes('bcc_test_analytics_b='));
@@ -326,6 +327,8 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
           assert.equal(await page.locator('#a-frame').getAttribute('src'),null);
           assert.ok((await page.locator('#b-frame').getAttribute('src')).includes('/demo/configurator.html'));
           await page.evaluate(()=>BrendigoCookieConsent.setConsent({}));
+          await page.waitForFunction(()=>!document.cookie.includes('bcc_test_analytics_b=') &&
+            !document.cookie.includes('bcc_test_global_one='),null,{timeout:5000});
           const after=await page.evaluate(()=>document.cookie);
           assert.ok(!after.includes('bcc_test_analytics_b='));
           assert.ok(!after.includes('bcc_test_global_one='));
@@ -342,6 +345,7 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
             document.cookie='bcc_test_analytics_a=1; Path=/; SameSite=Lax';
             BrendigoCookieConsent.setConsent({});
           });
+          await page.waitForFunction(()=>!document.cookie.includes('bcc_test_analytics_a='),null,{timeout:5000});
           const after=await page.evaluate(()=>document.cookie);
           assert.ok(!after.includes('bcc_test_analytics_a='));
           assert.ok(after.includes('bcc_consent='));
