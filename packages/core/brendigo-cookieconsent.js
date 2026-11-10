@@ -878,6 +878,145 @@
       listenersAttached = true;
     }
   }
+
+  /**
+   * Safe standalone JSON import: no callbacks, code, unknown keys or remote
+   * calls can be loaded from a file. This does NOT import consent decisions.
+   */
+  function parseConfigurationJSON(source) {
+    if (typeof source !== 'string' || source.length > 65536) return null;
+    var envelope;
+    try { envelope = JSON.parse(source); }
+    catch (_) { return null; }
+    if (!envelope || Array.isArray(envelope) ||
+        envelope.schema !== 'brendigo-cookieconsent-standalone-v1' ||
+        !envelope.config || typeof envelope.config !== 'object' ||
+        Array.isArray(envelope.config)) return null;
+    var input = envelope.config, output = Object.create(null);
+    var strings = ['language','direction','position','bannerStyle','theme',
+      'preferencesPosition','accentColor','surfaceColor','textColor','revision','policyUrl'];
+    strings.forEach(function (key) {
+      if (typeof input[key] === 'string' && input[key].length <= 500) {
+        output[key] = input[key];
+      }
+    });
+    if (output.language && ['auto','hr','en','de','it','es','fr','ar'].indexOf(output.language) < 0)
+      output.language = 'auto';
+    if (output.direction) output.direction = sanitizeDirection(output.direction);
+    if (output.position) output.position = sanitizePosition(output.position);
+    if (output.bannerStyle) output.bannerStyle = sanitizeStyle(output.bannerStyle);
+    if (output.theme) output.theme = sanitizeTheme(output.theme);
+    if (output.preferencesPosition) output.preferencesPosition = sanitizePreferencesPosition(output.preferencesPosition);
+    ['accentColor','surfaceColor','textColor'].forEach(function (key) {
+      if (output[key] && !/^#[0-9a-fA-F]{6}$/.test(output[key])) delete output[key];
+    });
+    if (output.policyUrl && !/^(https?:\/\/|\/(?!\/))/.test(output.policyUrl)) delete output.policyUrl;
+    if (output.revision) output.revision = output.revision.slice(0,40);
+    ['flipButtons','equalWeightButtons','disableAnimations'].forEach(function (key) {
+      if (typeof input[key] === 'boolean') output[key] = input[key];
+    });
+    if (Number.isInteger(input.consentDays)) {
+      output.consentDays = Math.max(1, Math.min(365,input.consentDays));
+    }
+    if (Array.isArray(input.services)) output.services = normalizeServices(input.services);
+    if (Array.isArray(input.cookieCleanupRules))
+      output.cookieCleanupRules = normalizeCleanupRules(input.cookieCleanupRules);
+    if (input.translations && typeof input.translations === 'object' && !Array.isArray(input.translations)) {
+      var labels = ['heading','intro','accept','reject','settings','headingPrefs','descriptionPrefs',
+        'save','close','policy','necessary','preferences','analytics','marketing',
+        'necessaryDesc','preferencesDesc','analyticsDesc','marketingDesc',
+        'gpc','reopen','servicesHeading','providerPolicy','receipt'];
+      output.translations = Object.create(null);
+      ['hr','en','de','it','es','fr','ar'].forEach(function (lang) {
+        if (!input.translations[lang] || typeof input.translations[lang] !== 'object' ||
+            Array.isArray(input.translations[lang])) return;
+        var values = Object.create(null);
+        labels.forEach(function (key) {
+          var text = input.translations[lang][key];
+          if (typeof text === 'string' && text.trim().length <= 700 && text.trim()) {
+            values[key] = text.trim();
+          }
+        });
+        if (Object.keys(values).length) output.translations[lang] = values;
+      });
+    }
+    return output;
+  }
+  function initFromJSON(raw) {
+    if (config) throw new Error('CookieConsent is already initialized. Reload before importing configuration.');
+    var parsed = parseConfigurationJSON(raw);
+    if (!parsed) throw new TypeError('Invalid Brendigo CookieConsent configuration JSON');
+    return init(parsed);
+  }
+  /**
+   * Passive local resource inventory, never transmits or auto-classifies data.
+   * Unknown elements may be first-party essential files: a human must inspect.
+   */
+  function scanLocalResources() {
+    var snapshot = auditLocal();
+    return {
+      schema: 'brendigo-local-audit-v1',
+      collectedAt: new Date().toISOString(),
+      visibility: 'same-origin browser-visible only; HttpOnly, cross-origin and server events excluded',
+      cookies: snapshot.cookies,
+      localStorage: snapshot.localStorage,
+      sessionStorage: snapshot.sessionStorage,
+      markedScripts: snapshot.scripts.filter(function (r) { return r.marked; }),
+      unclassifiedScripts: snapshot.scripts.filter(function (r) { return !r.marked; }),
+      markedIframes: snapshot.iframes.filter(function (r) { return r.marked; }),
+      unclassifiedIframes: snapshot.iframes.filter(function (r) { return !r.marked; })
+    };
+  }
+  /**
+   * Sanitized catalogue; it does not authorize any tracking or network requests.
+   */
+  function getCatalog() {
+    return config ? config.services.map(function (service) {
+      return Object.assign({}, service);
+    }) : [];
+  }
+  function renderCatalog(target) {
+    if (!config || !root.document) return false;
+    var host = typeof target === 'string' ? root.document.querySelector(target) : target;
+    if (!host || typeof host.appendChild !== 'function') return false;
+    var translated = {
+      hr:['Katalog kolačića i usluga','Kategorija','Pružatelj','Svrha','Kolačići','Trajanje','Politika'],
+      en:['Cookie and service catalogue','Category','Provider','Purpose','Cookies','Duration','Privacy policy'],
+      de:['Cookie- und Dienstekatalog','Kategorie','Anbieter','Zweck','Cookies','Dauer','Datenschutz'],
+      it:['Catalogo cookie e servizi','Categoria','Fornitore','Scopo','Cookie','Durata','Privacy'],
+      es:['Catálogo de cookies y servicios','Categoría','Proveedor','Finalidad','Cookies','Duración','Privacidad'],
+      fr:['Catalogue des cookies et services','Catégorie','Fournisseur','Finalité','Cookies','Durée','Confidentialité'],
+      ar:['كتالوج ملفات تعريف الارتباط والخدمات','الفئة','المزود','الغرض','الكوكيز','المدة','الخصوصية']
+    };
+    var labels = translated[getLanguage()] || translated.en;
+    var table = element('table', 'bcc-catalog');
+    var caption = element('caption','',labels[0]);
+    table.appendChild(caption);
+    var header=element('thead'), headings=element('tr'), body=element('tbody');
+    labels.slice(1).forEach(function (name) {
+      var th=element('th','',name);
+      th.scope='col'; headings.appendChild(th);
+    });
+    header.appendChild(headings); table.appendChild(header);
+    getCatalog().forEach(function (service) {
+      var row = element('tr');
+      [service.category,service.name,service.purpose,service.cookies,service.duration].forEach(function (value) {
+        row.appendChild(element('td','',value || '—'));
+      });
+      var policy = element('td');
+      var url = safeHttpUrl(service.privacyUrl);
+      if (url) {
+        var link=element('a','',labels[6]);
+        link.href=url;link.rel='noopener noreferrer';link.target='_blank';
+        policy.appendChild(link);
+      } else policy.textContent='—';
+      row.appendChild(policy); body.appendChild(row);
+    });
+    table.appendChild(body);
+    host.appendChild(table);
+    return true;
+  }
+
   function init(options) {
     if (!root.document) return api;
     if (config) return api;
@@ -919,13 +1058,14 @@
   }
   var api = {
     version: VERSION,
-    init: init, getConsent: getConsent, getConsentReceipt: getConsentReceipt,
+    init: init, initFromJSON: initFromJSON, getConsent: getConsent, getConsentReceipt: getConsentReceipt,
     downloadConsentReceipt: downloadConsentReceipt, hasConsent: hasConsent,
     setConsent: setConsent, setDetailedConsent: setDetailedConsent,
     getServiceConsent: getServiceConsent, hasServiceConsent: hasServiceConsent,
     reset: reset, openPreferences: openPreferences,
     registerProvider: registerProvider,
-    refresh: applyGatedResources, auditLocal: auditLocal,
+    refresh: applyGatedResources, auditLocal: auditLocal, scanLocalResources: scanLocalResources,
+    getCatalog: getCatalog, renderCatalog: renderCatalog,
     utils: {
       normalizeConsent: normalizeConsent, encodeRecord: encodeRecord, parseRecord: parseRecord,
       sanitizePosition: sanitizePosition, sanitizeStyle: sanitizeStyle,
@@ -933,7 +1073,8 @@
       sanitizeDirection: sanitizeDirection, sanitizeColor: sanitizeColor,
       contrastRatio: contrastRatio, accessibleText: accessibleText,
       normalizeServices: normalizeServices,
-      normalizeCleanupRules: normalizeCleanupRules, parseServiceRecord: parseServiceRecord
+      normalizeCleanupRules: normalizeCleanupRules, parseServiceRecord: parseServiceRecord,
+      parseConfigurationJSON: parseConfigurationJSON
     }
   };
   return api;

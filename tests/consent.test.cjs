@@ -127,3 +127,40 @@ test('receipt API returns null when visitor has not made a choice',()=>{
   assert.equal(consent.getConsentReceipt(),null);
   assert.equal(consent.downloadConsentReceipt(),false);
 });
+
+test('standalone JSON import verifies schema, limits and sanitizes untrusted fields', () => {
+ const parse=consent.utils.parseConfigurationJSON;
+ assert.equal(parse('{}'),null);
+ assert.equal(parse('garbage'),null);
+ assert.equal(parse('x'.repeat(65537)),null);
+ const result=parse(JSON.stringify({
+  schema:'brendigo-cookieconsent-standalone-v1',
+  config:{
+   language:'hr',position:'top-left',theme:'dark',consentDays:900,
+   flipButtons:true,unknownField:'bad',policyUrl:'javascript:alert(1)',
+   services:[{category:'analytics',name:'Test',id:'stat',toggleable:true}],
+   translations:{hr:{heading:'Poštuj privatnost',evil:'<img>'},
+     xx:{heading:'Unknown'}},cookieCleanupRules:[{category:'marketing',name:'_pixel'}]
+  }
+ }));
+ assert.equal(result.language,'hr');
+ assert.equal(result.position,'top-left');
+ assert.equal(result.theme,'dark');
+ assert.equal(result.consentDays,365);
+ assert.equal(result.flipButtons,true);
+ assert.equal(result.policyUrl,undefined);
+ assert.equal(result.unknownField,undefined);
+ assert.equal(result.services.length,1);
+ assert.equal(result.translations.hr.heading,'Poštuj privatnost');
+ assert.equal(result.translations.hr.evil,undefined);
+ assert.equal(result.translations.xx,undefined);
+ assert.equal(result.cookieCleanupRules.length,1);
+});
+test('local passive scanner provides report without DOM or network',()=>{
+ const scan=consent.scanLocalResources();
+ assert.equal(scan.schema,'brendigo-local-audit-v1');
+ assert.deepEqual(scan.unclassifiedScripts,[]);
+ assert.deepEqual(scan.cookies,[]);
+ assert.equal(consent.renderCatalog('#inventory'),false);
+ assert.deepEqual(consent.getCatalog(),[]);
+});
