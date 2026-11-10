@@ -38,7 +38,7 @@ Yes. All runtime assets are hosted locally.
 * Optional versioned CDN hosting and Google Consent Mode Basic adapter.
 * Provider inventory, DE/IT translations and consent lifecycle hooks.
 
-== v0.5.0 ==
+== v0.6.0 ==
 * Three banner styles and enhanced HTTP(S) URL gating.
 * Admin-only JSON settings export and sanitized import with nonce validation.
 * Local browser storage and tagged-resource audit API.
