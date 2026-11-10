@@ -140,6 +140,11 @@
       var keys=['position','style','language','theme','prefs','accent','surface','text','heading','intro','accept','reject','settings'];
       var controls={};
       var imported={};
+      var refreshTimer=null;
+      function scheduleRefresh(){
+        if(refreshTimer!==null)clearTimeout(refreshTimer);
+        refreshTimer=setTimeout(function(){refreshTimer=null;refresh();},150);
+      }
       keys.forEach(function(key){controls[key]=document.getElementById(key);});
       function values(){
         var o={};
@@ -158,15 +163,18 @@
           policyUrl:imported.policyUrl || '/politika-kolacica',
           revision:imported.revision || '1'
         });
-        if(o.heading.trim()){
+        if(['heading','intro','accept','reject','settings'].some(function(key){return o[key].trim();})){
           payload.translations=Object.assign({},payload.translations || {});
           payload.translations[o.language]=Object.assign({},
             payload.translations[o.language] || {},{
-            heading:o.heading.slice(0,100),
-            intro:o.intro.slice(0,550) || 'Vaše postavke privatnosti.',
-            accept:o.accept.slice(0,80) || 'Prihvati sve',
-            reject:o.reject.slice(0,80) || 'Odbij sve',
-            settings:o.settings.slice(0,80) || 'Postavke'
+            heading:o.heading.slice(0,100) || undefined,
+            intro:o.intro.slice(0,550) || undefined,
+            accept:o.accept.slice(0,80) || undefined,
+            reject:o.reject.slice(0,80) || undefined,
+            settings:o.settings.slice(0,80) || undefined
+          });
+          Object.keys(payload.translations[o.language]).forEach(function(key){
+            if(payload.translations[o.language][key]===undefined)delete payload.translations[o.language][key];
           });
         }
         return payload;
@@ -180,13 +188,16 @@
         document.getElementById('snippet').value =
           'window.BCC_SITE_CONFIG = '+JSON.stringify(buildConfig(o),null,2)+';';
       }
-      document.getElementById('refresh').addEventListener('click',refresh);
+      document.getElementById('refresh').addEventListener('click',function(){
+        if(refreshTimer!==null){clearTimeout(refreshTimer);refreshTimer=null;}
+        refresh();
+      });
       keys.forEach(function(key){controls[key].addEventListener('change',refresh);});
       ['flip','equal','reducedMotion'].forEach(function(key){
         document.getElementById(key).addEventListener('change',refresh);
       });
       ['heading','intro','accept','reject','settings'].forEach(function(key){
-        controls[key].addEventListener('input',refresh);
+        controls[key].addEventListener('input',scheduleRefresh);
       });
       document.getElementById('download').addEventListener('click',function(){
         var bytes=JSON.stringify({schema:'brendigo-cookieconsent-standalone-v1',
