@@ -63,8 +63,14 @@ jobs:
             dist/brendigo-cookieconsent-wordpress-org.zip \
             dist/brendigo-cookieconsent-cdn.zip \
             dist/cookieconsent-brendigo-website.zip \
+            dist/brendigo-cookieconsent-joomla.zip \
+            dist/brendigo-cookieconsent-drupal.zip \
+            dist/brendigo-cookieconsent-shopify-extension.zip \
+            dist/brendigo-cookieconsent-magento.zip \
+            dist/brendigo_cookieconsent.ocmod.zip \
+            dist/brendigocookieconsent-prestashop.zip \
             --repo "$GITHUB_REPOSITORY" \
             --target "$VERIFIED_SHA" \
             --title "CookieConsent by Brendigo $RELEASE_TAG" \
-            --notes "Tested beta prerelease: vanilla JS/CSS, WordPress plugin, complete static website and versioned CDN bundle. Includes consent controls, provider catalog, visual preferences, WooCommerce safeguards, reproducible ZIPs and browser/PHP CI. Read docs/GO-LIVE.hr.md before production use. Not a certified CMP, legal guarantee or live CDN deployment." \
+            --notes "Tested beta prerelease: vanilla JS/CSS, WordPress plugin, Joomla, Drupal, Shopify extension source, Magento, OpenCart, PrestaShop, complete static website and versioned CDN bundle. Includes consent controls, provider catalog, visual preferences, WooCommerce safeguards, reproducible ZIPs and browser/PHP CI. Read docs/GO-LIVE.hr.md before production use. Not a certified CMP, legal guarantee or live CDN deployment." \
             --prerelease

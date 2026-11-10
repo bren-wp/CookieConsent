@@ -41,6 +41,14 @@ def directory_members(source: Path, prefix: str) -> dict[str, bytes]:
     }
 
 
+def root_members(source: Path) -> dict[str, bytes]:
+    """ZIP entries relative to the CMS installer root, without wrapper folders."""
+    return {
+        p.relative_to(source).as_posix(): p.read_bytes()
+        for p in source.rglob("*") if p.is_file() and not p.is_symlink()
+    }
+
+
 def planned_archives() -> dict[str, dict[str, bytes]]:
     standalone = {
         f"standalone/{name}": (ROOT / "packages/core" / name).read_bytes()
@@ -75,12 +83,46 @@ def planned_archives() -> dict[str, dict[str, bytes]]:
     website["LICENSE"] = (ROOT / "LICENSE").read_bytes()
     if not website:
         raise RuntimeError("Website source is missing")
+    # Six independent installers, based on bundled local copies of the core.
+    joomla = root_members(ROOT / "joomla")
+    joomla["LICENSE"] = (ROOT / "LICENSE").read_bytes()
+
+    drupal = directory_members(ROOT / "drupal", "brendigo_cookieconsent")
+    drupal["brendigo_cookieconsent/LICENSE"] = (ROOT / "LICENSE").read_bytes()
+
+    # Shopify is a theme app extension SOURCE bundle, NOT an app-store install ZIP.
+    shopify = root_members(ROOT / "shopify")
+    shopify["extensions/brendigo-cookieconsent/LICENSE"] = (ROOT / "LICENSE").read_bytes()
+
+    magento = directory_members(
+        ROOT / "magento", "app/code/Brendigo/CookieConsent"
+    )
+    magento["app/code/Brendigo/CookieConsent/LICENSE"] = (ROOT / "LICENSE").read_bytes()
+
+    opencart = root_members(ROOT / "opencart")
+    opencart["LICENSE"] = (ROOT / "LICENSE").read_bytes()
+
+    prestashop = directory_members(ROOT / "prestashop", "brendigocookieconsent")
+    prestashop["brendigocookieconsent/LICENSE"] = (ROOT / "LICENSE").read_bytes()
+
+    for label, archive in [
+        ("Joomla", joomla), ("Drupal", drupal), ("Shopify", shopify),
+        ("Magento", magento), ("OpenCart", opencart), ("PrestaShop", prestashop)
+    ]:
+        if len(archive) < 4:
+            raise RuntimeError(f"Missing {label} integration sources")
     return {
         "cookieconsent-brendigo-standalone.zip": standalone,
         "brendigo-cookieconsent-wordpress.zip": plugin,
         "brendigo-cookieconsent-wordpress-org.zip": wporg,
         "brendigo-cookieconsent-cdn.zip": cdn,
         "cookieconsent-brendigo-website.zip": website,
+        "brendigo-cookieconsent-joomla.zip": joomla,
+        "brendigo-cookieconsent-drupal.zip": drupal,
+        "brendigo-cookieconsent-shopify-extension.zip": shopify,
+        "brendigo-cookieconsent-magento.zip": magento,
+        "brendigo_cookieconsent.ocmod.zip": opencart,
+        "brendigocookieconsent-prestashop.zip": prestashop,
     }
 
 

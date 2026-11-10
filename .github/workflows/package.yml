@@ -34,6 +34,13 @@ jobs:
           path: |
             dist/cookieconsent-brendigo-standalone.zip
             dist/brendigo-cookieconsent-wordpress.zip
+            dist/brendigo-cookieconsent-wordpress-org.zip
+            dist/brendigo-cookieconsent-joomla.zip
+            dist/brendigo-cookieconsent-drupal.zip
+            dist/brendigo-cookieconsent-shopify-extension.zip
+            dist/brendigo-cookieconsent-magento.zip
+            dist/brendigo_cookieconsent.ocmod.zip
+            dist/brendigocookieconsent-prestashop.zip
             dist/brendigo-cookieconsent-cdn.zip
             dist/cookieconsent-brendigo-website.zip
           retention-days: 14

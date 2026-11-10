@@ -26,7 +26,13 @@ const required=[
  ['docs/ROADMAP.md',version],
  ['.github/workflows/ci.yml','dist/cdn/v'+version+'/manifest.json'],
  ['.github/workflows/package.yml','dist/cdn/v'+version+'/manifest.json'],
- ['tests/consent.test.cjs',"consent.version, '"+version+"'"]
+ ['tests/consent.test.cjs',"consent.version, '"+version+"'"],
+ ['joomla/brendigocookieconsent.xml','<version>'+version+'</version>'],
+ ['drupal/brendigo_cookieconsent.info.yml',"version: '"+version+"'"],
+ ['shopify/extensions/brendigo-cookieconsent/blocks/consent-banner.liquid','compliance_head'],
+ ['magento/composer.json','"version": "'+version+'"'],
+ ['opencart/install.json','"version": "'+version+'"'],
+ ['prestashop/brendigocookieconsent.php',"$this->version = '"+version+"'"],
 ];
 const errors=[];
 for(const [filename,expected] of required){
@@ -37,6 +43,24 @@ for(const ext of ['js','css']){
  const a=fs.readFileSync(path.join(root,'packages/core/brendigo-cookieconsent.'+ext));
  const b=fs.readFileSync(path.join(root,'wordpress/brendigo-cookieconsent/assets/brendigo-cookieconsent.'+ext));
  if(!a.equals(b))errors.push('Core and WordPress '+ext+' differ');
+}
+for(const platform of [
+  ['joomla/media/js/brendigo-cookieconsent.js','joomla/media/css/brendigo-cookieconsent.css'],
+  ['drupal/js/brendigo-cookieconsent.js','drupal/css/brendigo-cookieconsent.css'],
+  ['shopify/extensions/brendigo-cookieconsent/assets/brendigo-cookieconsent.js',
+   'shopify/extensions/brendigo-cookieconsent/assets/brendigo-cookieconsent.css'],
+  ['magento/view/frontend/web/js/brendigo-cookieconsent.js',
+   'magento/view/frontend/web/css/brendigo-cookieconsent.css'],
+  ['opencart/catalog/view/javascript/brendigo-cookieconsent.js',
+   'opencart/catalog/view/javascript/brendigo-cookieconsent.css'],
+  ['prestashop/views/js/brendigo-cookieconsent.js',
+   'prestashop/views/css/brendigo-cookieconsent.css']
+]){
+  for(const [i,ext] of ['js','css'].entries()){
+    const a=fs.readFileSync(path.join(root,'packages/core/brendigo-cookieconsent.'+ext));
+    const b=fs.readFileSync(path.join(root,platform[i]));
+    if(!a.equals(b))errors.push('Shared '+ext+' differs from '+platform[i]);
+  }
 }
 if(errors.length){errors.forEach(x=>process.stderr.write('FAIL '+x+'\n'));process.exit(1);}
 process.stdout.write('Version consistency OK: v'+version+'\n');
