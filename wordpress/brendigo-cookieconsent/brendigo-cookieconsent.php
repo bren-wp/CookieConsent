@@ -182,6 +182,14 @@ function import_settings(): void {
 }
 add_action('admin_post_bcc_import_settings', __NAMESPACE__ . '\\import_settings');
 
+function enqueue_admin_preview(string $hook): void {
+    if ($hook !== 'settings_page_brendigo-cookieconsent') return;
+    $base = plugin_dir_url(__FILE__) . 'assets/';
+    wp_enqueue_style('brendigo-cookieconsent-admin-preview', $base . 'admin-preview.css', [], VERSION);
+    wp_enqueue_script('brendigo-cookieconsent-admin-preview', $base . 'admin-preview.js', [], VERSION, true);
+}
+add_action('admin_enqueue_scripts', __NAMESPACE__ . '\\enqueue_admin_preview');
+
 function render_settings(): void {
     if (!current_user_can('manage_options')) {
         wp_die(esc_html__('You do not have permission to view this page.', 'brendigo-cookieconsent'));
@@ -290,6 +298,23 @@ function render_settings(): void {
             </table>
             <?php submit_button(); ?>
         </form>
+        <h2><?php esc_html_e('Visual preview', 'brendigo-cookieconsent'); ?></h2>
+        <p><?php esc_html_e('Updates while you edit the controls above. This preview is illustrative; save settings to apply them publicly.', 'brendigo-cookieconsent'); ?></p>
+        <div id="bcc-admin-preview" class="bcc-preview" data-position="bottom-center" data-style="standard" aria-label="<?php esc_attr_e('Illustrative consent banner preview', 'brendigo-cookieconsent'); ?>">
+            <div class="bcc-preview-banner">
+                <div class="bcc-preview-content">
+                    <span class="bcc-preview-eyebrow">COOKIECONSENT</span>
+                    <strong id="bcc-preview-heading"><?php esc_html_e('Your privacy, your choice', 'brendigo-cookieconsent'); ?></strong>
+                    <span id="bcc-preview-intro"><?php esc_html_e('Optional technologies are used only with consent.', 'brendigo-cookieconsent'); ?></span>
+                    <small class="bcc-preview-credit">by Brendigo</small>
+                </div>
+                <div class="bcc-preview-actions" aria-hidden="true">
+                    <span id="bcc-preview-reject"><?php esc_html_e('Reject all', 'brendigo-cookieconsent'); ?></span>
+                    <span id="bcc-preview-settings"><?php esc_html_e('Customize', 'brendigo-cookieconsent'); ?></span>
+                    <span id="bcc-preview-accept"><?php esc_html_e('Accept all', 'brendigo-cookieconsent'); ?></span>
+                </div>
+            </div>
+        </div>
         <hr>
         <h2><?php esc_html_e('Export / import settings', 'brendigo-cookieconsent'); ?></h2>
         <p><?php esc_html_e('Download a JSON backup or paste a previously exported configuration. Imports are validated and sanitized before saving.', 'brendigo-cookieconsent'); ?></p>
