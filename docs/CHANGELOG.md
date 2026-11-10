@@ -1,5 +1,14 @@
 # Povijest promjena — CookieConsent by Brendigo
 
+## 0.11.1 — testna zakrpa
+
+- Sinkronizacija privole poboljšana je pri povratku na karticu (focus/pageshow/visibilitychange).
+- Uz BroadcastChannel koristi se i storage događaj s isključivo tehničkim signalom, bez vrijednosti korisnikove privole.
+- Stabilizirani su browser testovi za Safari/WebKit fallback, te su ažurirane kopije jezgre svih CMS dodataka.
+- Ponovno je reproducibilno pakirano svih 11 izdanja.
+
+
+
 ## 0.11.0 — testno izdanje
 
 - Joomla 5 system plugin s administratorskim poljima i lokalnim resursima.

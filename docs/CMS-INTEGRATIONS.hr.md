@@ -1,6 +1,6 @@
 # CMS i webshop integracije — CookieConsent by Brendigo
 
-**Verzija izvornog koda:** 0.11.0 · Autor: **Brendigo** · Web: [brendigo.com](https://brendigo.com) · Projekt: [cookie.brendigo.com](https://cookie.brendigo.com)
+**Aktualna verzija izvornog koda:** 0.11.1 · Autor: **Brendigo** · Web: [brendigo.com](https://brendigo.com) · Projekt: [cookie.brendigo.com](https://cookie.brendigo.com)
 
 Projekt nudi **šest zasebnih integracija**, uz postojeće izdanje za WordPress i samostalnu JS/CSS jezgru. Sve uključuju lokalnu kopiju jezgre CookieConsent by Brendigo; njezin naziv, ponašanje i zasluge ostaju usklađeni. Integracije nisu centralni SaaS, ne šalju odluke o privoli Brendigu i nisu univerzalni blokator svih third-party tehnologija.
 

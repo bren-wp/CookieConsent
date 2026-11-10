@@ -1,6 +1,6 @@
 # WordPress vodič — CookieConsent by Brendigo
 
-**Zahtjevi:** WordPress 6.2+, PHP 7.4+ · **Izdanje:** 0.10.0
+**Zahtjevi:** WordPress 6.2+, PHP 7.4+ · **Izdanje:** 0.11.1
 
 ## Instalacija
 

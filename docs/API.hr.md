@@ -110,3 +110,5 @@ To je korisnikova **lokalna, nekriptografska** kopija, a ne serverski ili pravno
 ### Fallback kada BroadcastChannel nije podržan
 
 Uz `BroadcastChannel`, jezgra koristi i standardni `storage` događaj za isti origin. U `localStorage` se zapisuje samo tehnički signal `bcc-consent-update:<cookieName>` s revizijom politike, vremenom i lokalnim brojačem **bez sadržaja privole ili identifikatora korisnika**. Prijemna kartica ponovno čita vlastiti first-party cookie. Ako su obje mogućnosti blokirane, promjena postaje vidljiva pri ponovnom učitavanju.
+
+**Ponašanje povratka na karticu:** dostupno je ponovno usklađivanje lokalne odluke pri `focus`, `pageshow` i povratku vidljivosti, uz `BroadcastChannel`/`StorageEvent` kada ih preglednik podržava. Dodatno brisanje opcionalnih third-party resursa mora implementirati vlasnik integracije.

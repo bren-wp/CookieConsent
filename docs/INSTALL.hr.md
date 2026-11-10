@@ -1,6 +1,6 @@
 # Instalacija i prvi koraci — CookieConsent by Brendigo
 
-**Verzija:** 0.10.0 · [README](../README.md) · [Dokumentacijski indeks](README.md)
+**Verzija:** 0.11.1 · [README](../README.md) · [Dokumentacijski indeks](README.md)
 
 ## 1. Samostalna HTML/PHP instalacija
 
