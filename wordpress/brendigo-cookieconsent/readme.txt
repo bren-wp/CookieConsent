@@ -3,7 +3,7 @@ Contributors: bren-wp
 Tags: cookie, consent, gdpr, privacy, banner
 Requires at least: 6.2
 Requires PHP: 7.4
-Stable tag: 0.3.0
+Stable tag: 0.4.0
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
@@ -32,8 +32,14 @@ No. It is an early standalone development release.
 Yes. All runtime assets are hosted locally.
 
 == Changelog ==
-= 0.3.0 =
+= 0.4.0 =
 * 9 banner positions and configurable background, text and accent colors.
 * Mandatory visible by Brendigo attribution in distributed source.
 * Optional versioned CDN hosting and Google Consent Mode Basic adapter.
 * Provider inventory, DE/IT translations and consent lifecycle hooks.
+
+== v0.4.0 ==
+* Three banner styles and enhanced HTTP(S) URL gating.
+* Admin-only JSON settings export and sanitized import with nonce validation.
+* Local browser storage and tagged-resource audit API.
+* Automated Chromium browser tests in CI.

@@ -14,6 +14,7 @@
 | `accentColor` | `#4357e8` | Hex boja |
 | `revision` | `1` | Promjena zahtijeva novu privolu |
 | `position` | `bottom-center` | Jedna od 9 pozicija |
+| `bannerStyle` | `standard` | Standardni, kompaktni (`compact`) ili minimalistički (`minimal`) |
 | `surfaceColor` | `#ffffff` | Boja pozadine bannera |
 | `textColor` | `#17223e` | Boja teksta; nizak kontrast automatski se ispravlja |
 | `by Brendigo` | uvijek vidljivo | Nema opcije skrivanja potpisa u UI-u ni API-ju |
@@ -104,3 +105,11 @@ BrendigoCookieConsent.registerProvider({
 ## Vizualni konfigurator
 
 Otvorite `demo/configurator.html` putem lokalnog HTTP poslužitelja (`python3 -m http.server 8000`) i zatim adresu `http://localhost:8000/demo/configurator.html`. Promjenom pozicije, jezika i boja osvježava se izolirani prikaz bannera. Konfiguracijski isječak dostupan je za kopiranje. To je **demonstracijski alat**, ne automatski generator zakonski ispravne politike kolačića.
+
+## Izvoz i uvoz WordPress postavki
+
+U WordPress administratoru (**Postavke → CookieConsent**) koristite **Export JSON configuration**. Uvoz podržava JSON datoteke prethodno izvezene iz istog dodatka (sadržaj zalijepiti u polje za import) i može zamijeniti cijelu konfiguraciju. Import ima CSRF nonce, administrativnu provjeru ovlasti, shemu i ograničenje veličine te sanitizira sve vrijednosti. Prije importa napravite backup.
+
+## Lokalna dijagnostika
+
+`BrendigoCookieConsent.auditLocal()` izravno vraća browser-vidljive nazive first-party kolačića, ključeve `localStorage`/`sessionStorage` i popis skripti/iframeova sa statusom oznake kategorije. Podaci se **ne šalju** s korisnikove stranice. Ovaj pregled ne vidi HttpOnly cookies, drugi origin, serverske eventove ili ranije mrežne zahtjeve; za potpuno ispitivanje koristite browser Network panel i server logove.

@@ -7,7 +7,7 @@
 > Univerzalni sustav za upravljanje kolačićima i privolama za obične web-stranice, PHP i WordPress. Bez obveznog CDN-a, vanjskog računa ili pretplate.
 
 [![CI](https://github.com/bren-wp/CookieConsent/actions/workflows/ci.yml/badge.svg)](https://github.com/bren-wp/CookieConsent/actions/workflows/ci.yml)
-![Version](https://img.shields.io/badge/version-0.3.0-4357e8)
+![Version](https://img.shields.io/badge/version-0.4.0-4357e8)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Runtime](https://img.shields.io/badge/runtime%20dependencies-0-brightgreen)
 ![Author](https://img.shields.io/badge/by-Brendigo-26387a)
@@ -31,8 +31,10 @@
 | 🌐 | **CDN ili lokalno:** verzionirani paket za `cookie.brendigo.com` |
 | 📈 | **Google Basic adapter:** opcionalan Consent Mode v2 adapter uz ručno blokiranje Google tagova |
 | 🔄 | **Integracijski lifecycle:** `onGrant` i `onRevoke` za servise i povlačenje privole |
-| 🖌️ | **Vizualni konfigurator:** lokalni interaktivni demo svih devet pozicija, boja i jezika |
+| 🖌️ | **Vizualni konfigurator:** devet pozicija, tri stila, boje i jezici |
 | 📋 | **Katalog pružatelja:** detalji servisa, svrha, kolačića, rokova i politika privatnosti |
+| 🔎 | **Lokalna dijagnostika:** popis dostupnih kolačića, browser storage ključeva i oznaka resursa, bez slanja podataka |
+| 📤 | **WP JSON backup:** administratorski izvoz i sanitizirani uvoz postavki |
 
 ## 🖼️ Izgled
 
@@ -52,6 +54,7 @@ Prenesite datoteke iz [packages/core](packages/core) na vlastiti hosting, primje
     policyUrl: "/politika-kolacica",
     revision: "1",
     position: "bottom-right",
+    bannerStyle: "compact",
     accentColor: "#4357e8",
     surfaceColor: "#ffffff",
     textColor: "#17223e"
@@ -98,12 +101,13 @@ Pripremljena je verzionirana distribucija za CDN. **DNS, TLS i javno posluživan
 <script>
   window.BCC_SITE_CONFIG = {
     language: 'hr', position: 'bottom-right',
+    bannerStyle: 'compact',
     accentColor: '#4357e8',
     surfaceColor: '#ffffff', textColor: '#17223e',
     policyUrl: '/politika-kolacica', revision: '1'
   };
 </script>
-<script defer src="https://cookie.brendigo.com/v0.3.0/loader.js"></script>
+<script defer src="https://cookie.brendigo.com/v0.4.0/loader.js"></script>
 ```
 
 U paketu je opt-in `google-consent-basic.js` adapter za Google Consent Mode v2. Ne uključuje Google tagove i ne zamjenjuje ispravno blokiranje oznaka prije privole. Detalji: [CDN vodič](docs/CDN.hr.md).
@@ -151,6 +155,7 @@ cc.hasConsent("analytics");    // true / false
 cc.openPreferences();          // otvara postavke
 cc.reset();                    // briše odabir
 cc.refresh();                  // procesira novo dodane označene elemente
+cc.auditLocal();               // lokalni pregled vidljivih kolačića/resursa (ne šalje podatke)
 
 window.addEventListener("brendigo:consentchange", (event) => {
   console.log(event.detail.consent);
@@ -158,6 +163,22 @@ window.addEventListener("brendigo:consentchange", (event) => {
 ```
 
 Revokacija sprečava novo aktiviranje označenih skripti, ali **ne može poništiti već izvršen JavaScript niti automatski obrisati kolačiće trećih strana**. Integrirajte čišćenje i ponovno učitavanje za svaki servis zasebno.
+
+## 🔐 WordPress sigurnosna kopija konfiguracije
+
+U **Postavke → CookieConsent** nalazi se **Export JSON configuration** za pohranu konfiguracije i **Import and replace settings** za vraćanje prethodno izvezenih podataka. Import zahtijeva administratorsku ovlast i nonce, provjerava shemu, veličinu i sanitizira sva polja.
+
+## 🧪 Browser testovi
+
+`npm test` pokreće lokalne unit/integration testove bez dodatnih ovisnosti. Odvojeni GitHub CI posao instalira Playwright i Chromium **isključivo za testove** te provjerava prvu posjetu, odbijanje, prihvaćanje, ponovno otvaranje i povlačenje privole, označene iframeove, stilove i tipkovnicu.
+
+```bash
+npm install --no-save --no-package-lock playwright@1.56.1
+npx playwright install --with-deps chromium
+npm run test:browser
+```
+
+CDN i lokalni paketi i dalje nemaju vanjskih runtime biblioteka.
 
 ## 📁 Struktura
 
@@ -189,7 +210,7 @@ python3 -m http.server 8000
 
 ## ⚖️ Zakonska usklađenost i ograničenja
 
-**v0.3.0 je razvojna verzija, nije certificirani CMP niti jamstvo usklađenosti s GDPR-om, ePrivacy pravilima, UK PECR-om, LGPD-om ili američkim zakonima.** Za svaku web-stranicu potrebno je provjeriti stvarne servise, podatke, kategorije, trajanje kolačića, dokaze privole i pravo na povlačenje.
+**v0.4.0 je razvojna verzija, nije certificirani CMP niti jamstvo usklađenosti s GDPR-om, ePrivacy pravilima, UK PECR-om, LGPD-om ili američkim zakonima.** Za svaku web-stranicu potrebno je provjeriti stvarne servise, podatke, kategorije, trajanje kolačića, dokaze privole i pravo na povlačenje.
 
 Trenutačno **nisu implementirani** automatski skener, server-side evidencija privole, IAB TCF, Google-certified CMP status, automatsko blokiranje Google oznaka, GeoIP ni potpuni US privacy opt-out proces. Postoji **opcionalni Google Consent Mode v2 Basic adapter** koji zahtijeva zasebnu integraciju i testiranje.
 

@@ -24,15 +24,19 @@
 - [ ] RTL podrška i provjera s govornim tehnologijama
 
 ## v0.3 — upravljanje politikama
-- [ ] Lokalni audit i detekcija kolačića (nije implementirano)
+- [x] Ručna lokalna dijagnostika browser-vidljivih kolačića i resursa kroz `auditLocal()`
+- [ ] Potpuni automatizirani skener i detekcija HttpOnly/cross-origin/server-side praćenja
 - [x] Prvi granularni katalog usluga s javnom transparentnošću po kategorijama
 - [ ] Napredni katalog, pravila po geo-jurisdikciji i pojedinačna razina privole
 - [x] Lokalni vizualni konfigurator: pozicije, jezici i boje
-- [ ] Više stilova bannera i vizualni konfigurator u WP administraciji
-- [ ] Izvoz i uvoz konfiguracije
+- [x] Standard, Compact i Minimal stilovi bannera u WP administraciji
+- [ ] Ugrađeni interaktivni konfigurator unutar WP administracije
+- [x] WordPress izvoz i uvoz JSON postavki s nonce/capability provjerom
+- [ ] Samostalni import/export svih postavki za višestruke CMS sustave
 
 ## v1.0 — stabilnost
-- [ ] Browser end-to-end, security audit i accessibility audit
+- [x] Prvi Chromium browser end-to-end i tipkovnički regresijski testovi u CI-u
+- [ ] Potpuna cross-browser (Firefox/WebKit), screen reader, WCAG i sigurnosna revizija
 - [ ] Reproducibilni release ZIP paketi i validacija za zajedničke hostinge
 - [ ] Dokumentirane matrice kompatibilnosti s CMS platformama
 - [ ] Posebne pravne i tehničke provjere za podržane regulatorne profile
@@ -44,6 +48,7 @@
 - [x] WordPress opcionalno učitavanje Google Basic adaptera
 - [x] Vizualni konfigurator u `demo/configurator.html` i odvojene kontrole pristanka od provider linkova
 - [x] Jedinični testovi za lifecycle, provider validaciju i katalog
+- [x] v0.4.0: WP izvoz/uvoz, tri izgleda bannera, local audit API, validacija URL shema i Chromium CI
 - [ ] Produkcijski audit pojedinačnih servisa, sustava kolačića i poslužitelja
 
 Funkcionalnost nije isto što i pravna certifikacija. Neoznačene stavke nisu implementirane.

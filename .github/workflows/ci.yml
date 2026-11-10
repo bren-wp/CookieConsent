@@ -20,7 +20,7 @@ jobs:
           npm run check
           npm test
           npm run build:cdn
-          test -s dist/cdn/v0.3.0/manifest.json
+          test -s dist/cdn/v0.4.0/manifest.json
       - name: WordPress plugin PHP syntax
         run: php -l wordpress/brendigo-cookieconsent/brendigo-cookieconsent.php
       - name: Ensure WordPress plugin assets match the core
@@ -28,3 +28,16 @@ jobs:
           cmp packages/core/brendigo-cookieconsent.js wordpress/brendigo-cookieconsent/assets/brendigo-cookieconsent.js
           cmp packages/core/brendigo-cookieconsent.css wordpress/brendigo-cookieconsent/assets/brendigo-cookieconsent.css
           cmp packages/integrations/google-consent-basic.js wordpress/brendigo-cookieconsent/assets/google-consent-basic.js
+
+  browser:
+    name: Chromium end-to-end and keyboard checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install browser test dependency (CI only)
+        run: npm install --no-save --no-package-lock playwright@1.56.1
+      - name: Install Chromium and OS libraries
+        run: npx playwright install --with-deps chromium
+      - name: Run browser regression tests
+        run: npm run test:browser

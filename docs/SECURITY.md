@@ -33,3 +33,11 @@ Katalog pružatelja služi informiranju posjetitelja, **ne autorizaciji skripti*
 U dijalogu detalji pružatelja više se ne nalaze unutar `<label>` elementa koji mijenja izbor kategorije, čime su poveznice odvojene od aktivacije checkboxa.
 
 Nema automatskog brisanja cookiesa trećih strana, dokaznog server-side dnevnika, IP geolokacije ni skenera skripti.
+
+## Dodatne provjere u v0.4.0
+
+- `data-bcc-src` skripte i iframeovi provjeravaju URL shemu (HTTP i HTTPS). Nevažeci ili netipični protokoli ostaju inertni.
+- `auditLocal()` je isključivo lokalni API; preglednički podaci se ne šalju na CDN, server ili treće strane.
+- WordPress JSON import i export zahtijevaju administratorske ovlasti; import je ograničen na 64 KiB, podržanu shemu i sanitizaciju svih opcija. Podaci se spremaju tek nakon provjere.
+- Komponente čuvaju stalni potpis *by Brendigo*. MIT dopušta izmjene koda i nije mehanizam za tehničko onemogućavanje skrivanja.
+- Automatizirani Chromium testovi provjeravaju neke tokove, ali ne zamjenjuju puni WCAG audit, security pentest, certifikaciju CMP-a i stručni pravni pregled.

@@ -56,6 +56,14 @@
         </select>
       </div>
       <div class="field">
+        <label for="style">Stil bannera</label>
+        <select id="style">
+          <option value="standard">Standardni</option>
+          <option value="compact">Kompaktni</option>
+          <option value="minimal">Minimalistički</option>
+        </select>
+      </div>
+      <div class="field">
         <label for="language">Jezik</label>
         <select id="language">
           <option value="hr">Hrvatski</option>
@@ -87,7 +95,7 @@
   <script>
     (function () {
       'use strict';
-      var keys=['position','language','accent','surface','text'];
+      var keys=['position','style','language','accent','surface','text'];
       var controls={};
       keys.forEach(function(key){controls[key]=document.getElementById(key);});
       function values(){
@@ -101,7 +109,7 @@
         document.getElementById('preview').src='index.html?'+query.toString();
         document.getElementById('snippet').value =
           'window.BCC_SITE_CONFIG = '+JSON.stringify({
-            language:o.language,position:o.position,accentColor:o.accent,
+            language:o.language,position:o.position,bannerStyle:o.style,accentColor:o.accent,
             surfaceColor:o.surface,textColor:o.text,
             policyUrl:'/politika-kolacica',revision:'1'
           },null,2)+';';
