@@ -1,6 +1,6 @@
 # Matrica provjera — CookieConsent by Brendigo
 
-**Izdanje:** razvojna grana nakon v0.11.1 · [ROADMAP](ROADMAP.md) · [Sigurnost](SECURITY-AUDIT.hr.md)
+**Izdanje:** razvojna grana nakon v0.11.2 · [ROADMAP](ROADMAP.md) · [Sigurnost](SECURITY-AUDIT.hr.md)
 
 Zeleni GitHub CI znači da su prošli **konkretni automatizirani scenariji**. Ne znači da je svaki CMS dodatak funkcionalno validiran u stvarnoj trgovini.
 

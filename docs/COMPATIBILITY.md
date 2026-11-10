@@ -1,4 +1,4 @@
-# Kompatibilnost — CookieConsent by Brendigo v0.11.1
+# Kompatibilnost — CookieConsent by Brendigo v0.11.2
 
 ## Što se automatizirano provjerava
 
@@ -34,4 +34,4 @@ Automatski source-audit blokira opasne dinamičke sinkove, suvišan init i pogre
 
 ## Novi adapteri
 
-U v0.11.1 šest platformi ima lokalne izvorne integracije, verzionirane resurse i statički validirane instalacijske strukture. Stvarna instalacija na Joomla 5, Drupal 10/11, Shopify development shop, Magento 2.4, OpenCart 4 i PrestaShop 8/9 zasad **nije potvrđena**. [Vodič](CMS-INTEGRATIONS.hr.md).
+U v0.11.2 šest platformi ima lokalne izvorne integracije, verzionirane resurse i statički validirane instalacijske strukture. Stvarna instalacija na Joomla 5, Drupal 10/11, Shopify development shop, Magento 2.4, OpenCart 4 i PrestaShop 8/9 zasad **nije potvrđena**. [Vodič](CMS-INTEGRATIONS.hr.md).

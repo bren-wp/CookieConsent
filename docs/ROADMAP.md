@@ -1,6 +1,6 @@
 # Razvojni plan — CookieConsent by Brendigo
 
-**Aktualno testno izdanje: v0.11.1** · Revizija 10. 11. 2026. · [Dokumentacija](README.md) · [Povijest](CHANGELOG.md)
+**Aktualno testno izdanje: v0.11.2** · Revizija 10. 11. 2026. · [Dokumentacija](README.md) · [Povijest](CHANGELOG.md)
 
 Projekt razlikuje **implementirano**, **automatizirano provjereno**, **ovisno o produkcijskoj instalaciji** i **vanjsku certifikaciju**. Svi preostali zadaci ostaju vidljivi. Zeleni CI ne zamjenjuje neovisnu sigurnosnu, pravnu ili pristupačnu validaciju.
 

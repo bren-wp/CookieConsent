@@ -1,5 +1,16 @@
 # Povijest promjena — CookieConsent by Brendigo
 
+## 0.11.2 — testno izdanje
+
+- OpenCart 4: URL-ovi resursa iz korijena trgovine, CSP-sigurna JSON konfiguracija i odvojeni bootstrap.
+- Shopify: ponovno povezivanje s Customer Privacy API-jem nakon učitavanja, ograničen red posljednje privole, test GPC-a.
+- Stvarni PHP izvršni smoke testovi pet platformskih adaptera u izoliranim okvirima; sve stvarne platforme i dalje zahtijevaju staging instalaciju.
+- Javni katalog platformi na engleskom webu, popravljena središnja dokumentacija i matrica kvalitete.
+- CLI provjera postavljenog weba/CDN-a: HTTPS, status, MIME, verzija, SHA-256; lokalni test bez vanjske mreže.
+- Održano pakiranje 11 zasebnih ZIP-a i postupak objave samo nakon uspješnog CI-a.
+
+
+
 ## 0.11.1 — testna zakrpa
 
 - Sinkronizacija privole poboljšana je pri povratku na karticu (focus/pageshow/visibilitychange).
