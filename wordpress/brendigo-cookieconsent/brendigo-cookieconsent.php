@@ -3,7 +3,7 @@
  * Plugin Name: CookieConsent by Brendigo
  * Plugin URI: https://brendigo.com
  * Description: Self-hosted, privacy-first cookie consent banner and preference manager.
- * Version: 0.3.0
+ * Version: 0.4.0
  * Requires at least: 6.2
  * Requires PHP: 7.4
  * Author: Brendigo
@@ -16,7 +16,7 @@ namespace Brendigo\CookieConsent;
 
 defined('ABSPATH') || exit;
 
-const VERSION = '0.3.0';
+const VERSION = '0.4.0';
 const OPTION = 'brendigo_cookieconsent_options';
 
 function defaults(): array {
@@ -26,6 +26,7 @@ function defaults(): array {
         'surface_color' => '#ffffff',
         'text_color' => '#17223e',
         'position' => 'bottom-center',
+        'banner_style' => 'standard',
         'asset_source' => 'local',
         'policy_url' => '',
         'consent_days' => 180,
@@ -50,6 +51,7 @@ function sanitize_options($input): array {
     $position = isset($input['position']) ? sanitize_key($input['position']) : 'bottom-center';
     $positions = ['bottom-center','bottom-left','bottom-right','bottom-bar','top-center','top-left','top-right','top-bar','center'];
     $asset_source = isset($input['asset_source']) ? sanitize_key($input['asset_source']) : 'local';
+    $style = isset($input['banner_style']) ? sanitize_key($input['banner_style']) : 'standard';
     $policy = isset($input['policy_url']) ? esc_url_raw($input['policy_url'], ['http', 'https']) : '';
     $handles = isset($input['blocked_handles']) ? sanitize_textarea_field($input['blocked_handles']) : '';
     return [
@@ -58,6 +60,7 @@ function sanitize_options($input): array {
         'surface_color' => $surface ?: '#ffffff',
         'text_color' => $text_color ?: '#17223e',
         'position' => in_array($position, $positions, true) ? $position : 'bottom-center',
+        'banner_style' => in_array($style, ['standard', 'compact', 'minimal'], true) ? $style : 'standard',
         'asset_source' => in_array($asset_source, ['local','cdn'], true) ? $asset_source : 'local',
         'policy_url' => $policy,
         'consent_days' => isset($input['consent_days']) ? max(1, min(365, absint($input['consent_days']))) : 180,
@@ -168,6 +171,14 @@ function render_settings(): void {
                     </select></td>
                 </tr>
                 <tr>
+                    <th scope="row"><label for="bcc-style"><?php esc_html_e('Banner style', 'brendigo-cookieconsent'); ?></label></th>
+                    <td><select id="bcc-style" name="<?php echo esc_attr(OPTION); ?>[banner_style]">
+                        <?php foreach (['standard' => 'Standard', 'compact' => 'Compact', 'minimal' => 'Minimal'] as $value => $label) : ?>
+                            <option value="<?php echo esc_attr($value); ?>" <?php selected($o['banner_style'], $value); ?>><?php echo esc_html($label); ?></option>
+                        <?php endforeach; ?>
+                    </select></td>
+                </tr>
+                <tr>
                     <th scope="row"><label for="bcc-assets"><?php esc_html_e('Asset delivery', 'brendigo-cookieconsent'); ?></label></th>
                     <td><select id="bcc-assets" name="<?php echo esc_attr(OPTION); ?>[asset_source]">
                         <option value="local" <?php selected($o['asset_source'], 'local'); ?>><?php esc_html_e('Local files (recommended)', 'brendigo-cookieconsent'); ?></option>
@@ -239,6 +250,7 @@ function frontend_assets(): void {
         'surfaceColor' => $o['surface_color'],
         'textColor' => $o['text_color'],
         'position' => $o['position'],
+        'bannerStyle' => $o['banner_style'],
         'services' => parse_services($o['services_catalog']),
         'policyUrl' => $o['policy_url'] ?: home_url('/cookie-policy/'),
         'consentDays' => (int) $o['consent_days'],

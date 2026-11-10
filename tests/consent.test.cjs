@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const consent = require('../packages/core/brendigo-cookieconsent.js');
 
 test('core can be loaded without DOM or third-party packages', () => {
-  assert.equal(consent.version, '0.3.0');
+  assert.equal(consent.version, '0.4.0');
   assert.equal(typeof consent.init, 'function');
 });
 test('optional categories are denied by default', () => {
@@ -67,4 +67,15 @@ test('service metadata trims oversized strings', () => {
   const result=consent.utils.normalizeServices([{category:'analytics',name:'X'.repeat(500),purpose:'p'.repeat(500)}]);
   assert.equal(result[0].name.length,120);
   assert.equal(result[0].purpose.length,350);
+});
+
+test('style sanitizer accepts the supported variants only', () => {
+  for (const style of ['standard', 'compact', 'minimal'])
+    assert.equal(consent.utils.sanitizeStyle(style), style);
+  assert.equal(consent.utils.sanitizeStyle('display:none'), 'standard');
+});
+test('local audit is explicit, read-only and absent in Node without a DOM', () => {
+  assert.deepEqual(consent.auditLocal(),{
+    cookies:[],localStorage:[],sessionStorage:[],scripts:[],iframes:[]
+  });
 });

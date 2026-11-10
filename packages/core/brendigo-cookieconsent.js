@@ -1,5 +1,5 @@
 /*!
- * CookieConsent by Brendigo — v0.3.0
+ * CookieConsent by Brendigo — v0.4.0
  * Copyright (c) 2026 Brendigo · MIT License
  * Zero-dependency, self-hosted consent manager.
  */
@@ -14,12 +14,17 @@
 })(typeof window !== 'undefined' ? window : globalThis, function (root) {
   'use strict';
 
-  var VERSION = '0.3.0';
+  var VERSION = '0.4.0';
   var CATEGORIES = ['necessary', 'preferences', 'analytics', 'marketing'];
   var POSITIONS = ['bottom-center', 'bottom-left', 'bottom-right',
     'bottom-bar', 'top-center', 'top-left', 'top-right', 'top-bar', 'center'];
   function sanitizePosition(position) {
     return POSITIONS.indexOf(position) !== -1 ? position : 'bottom-center';
+  }
+
+  var STYLES = ['standard', 'compact', 'minimal'];
+  function sanitizeStyle(style) {
+    return STYLES.indexOf(style) !== -1 ? style : 'standard';
   }
   function sanitizeColor(value, fallback) {
     return typeof value === 'string' && /^#[0-9a-fA-F]{6}$/.test(value) ? value.toLowerCase() : fallback;
@@ -285,7 +290,10 @@
       });
       var src = source.getAttribute('data-bcc-src');
       if (src) {
-        script.src = src;
+        // Unknown schemes (javascript:, data:, blob:) and invalid URLs are never activated.
+        var externalUrl = safeHttpUrl(src);
+        if (!externalUrl) return;
+        script.src = externalUrl;
         script.async = source.hasAttribute('data-bcc-async');
       } else {
         script.textContent = source.textContent;
@@ -296,10 +304,48 @@
     var frames = doc.querySelectorAll('iframe[data-bcc-category][data-bcc-src]');
     Array.prototype.forEach.call(frames, function (frame) {
       var permitted = hasConsent(frame.getAttribute('data-bcc-category'));
-      var src = frame.getAttribute('data-bcc-src');
-      if (permitted && frame.getAttribute('src') !== src) frame.setAttribute('src', src);
-      if (!permitted && frame.hasAttribute('src')) frame.removeAttribute('src');
+      var src = safeHttpUrl(frame.getAttribute('data-bcc-src'));
+      if (permitted && src && frame.getAttribute('src') !== src) frame.setAttribute('src', src);
+      if ((!permitted || !src) && frame.hasAttribute('src')) frame.removeAttribute('src');
     });
+  }
+  /**
+   * Read-only, local diagnostic snapshot. Browser limitations: HttpOnly cookies,
+   * cross-origin cookies/storage, server-to-server calls and dynamically generated
+   * requests cannot be discovered. Never transmits this information externally.
+   */
+  function auditLocal() {
+    if (!root.document) return { cookies: [], localStorage: [], sessionStorage: [], scripts: [], iframes: [] };
+    function storageKeys(storage) {
+      var keys = [];
+      try {
+        if (!storage) return keys;
+        for (var i = 0; i < storage.length; i++) keys.push(storage.key(i));
+      } catch (_) { /* Storage access may be blocked by the browser. */ }
+      return keys.filter(function (key) { return typeof key === 'string'; }).sort();
+    }
+    var cookies = (root.document.cookie || '').split(';').map(function (item) {
+      return item.trim().split('=')[0];
+    }).filter(Boolean).sort();
+    function inspect(selector) {
+      var result = [];
+      Array.prototype.forEach.call(root.document.querySelectorAll(selector), function (node) {
+        var category = node.getAttribute('data-bcc-category');
+        result.push({
+          category: category || null,
+          enabled: category ? hasConsent(category) : null,
+          source: node.getAttribute('data-bcc-src') || node.getAttribute('src') || '',
+          marked: !!category
+        });
+      });
+      return result;
+    }
+    return {
+      cookies: cookies, localStorage: storageKeys(root.localStorage),
+      sessionStorage: storageKeys(root.sessionStorage),
+      scripts: inspect('script[src],script[data-bcc-category]'),
+      iframes: inspect('iframe[src],iframe[data-bcc-category]')
+    };
   }
   function closePreferences() {
     if (nodes.overlay) {
@@ -443,7 +489,7 @@
   function mount() {
     if (nodes.root) return;
     var t = translations();
-    var holder = element('div', 'bcc-root bcc-position-' + config.position);
+    var holder = element('div', 'bcc-root bcc-position-' + config.position + ' bcc-style-' + config.bannerStyle);
     holder.style.setProperty('--bcc-accent', config.accentColor);
     holder.style.setProperty('--bcc-button-text', accessibleText('#ffffff', config.accentColor));
     holder.style.setProperty('--bcc-bg', config.surfaceColor);
@@ -499,6 +545,7 @@
       language: options.language || 'auto',
       policyUrl: typeof options.policyUrl === 'string' ? options.policyUrl : '/cookie-policy',
       position: sanitizePosition(options.position),
+      bannerStyle: sanitizeStyle(options.bannerStyle),
       accentColor: sanitizeColor(options.accentColor, '#4357e8'),
       surfaceColor: sanitizeColor(options.surfaceColor, '#ffffff'),
       textColor: sanitizeColor(options.textColor, '#17223e'),
@@ -519,10 +566,10 @@
     init: init, getConsent: getConsent, hasConsent: hasConsent,
     setConsent: setConsent, reset: reset, openPreferences: openPreferences,
     registerProvider: registerProvider,
-    refresh: applyGatedResources,
+    refresh: applyGatedResources, auditLocal: auditLocal,
     utils: {
       normalizeConsent: normalizeConsent, encodeRecord: encodeRecord, parseRecord: parseRecord,
-      sanitizePosition: sanitizePosition, sanitizeColor: sanitizeColor,
+      sanitizePosition: sanitizePosition, sanitizeStyle: sanitizeStyle, sanitizeColor: sanitizeColor,
       contrastRatio: contrastRatio, accessibleText: accessibleText,
       normalizeServices: normalizeServices
     }
