@@ -5,7 +5,10 @@
  */
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const {chromium} = require('playwright');
+const {chromium, firefox, webkit} = require('playwright');
+const browserName=process.env.BCC_BROWSER || 'chromium';
+const selectedBrowser={chromium,firefox,webkit}[browserName];
+if (!selectedBrowser) throw new Error('Unsupported BCC_BROWSER value');
 const fs = require('node:fs');
 const path = require('node:path');
 const http = require('node:http');
@@ -34,7 +37,9 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
     const origin='http://127.0.0.1:'+server.address().port;
     let browser;
     try {
-      browser=await chromium.launch({headless:true,args:['--no-sandbox']});
+      browser=await selectedBrowser.launch({
+        headless:true, args:browserName==='chromium' ? ['--no-sandbox'] : []
+      });
       await t.test('no optional tracker fires before choice; reject all and reopen', async () => {
         const context=await browser.newContext();
         try {

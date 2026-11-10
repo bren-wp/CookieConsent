@@ -35,8 +35,8 @@
 - [ ] Samostalni import/export svih postavki za višestruke CMS sustave
 
 ## v1.0 — stabilnost
-- [x] Prvi Chromium browser end-to-end i tipkovnički regresijski testovi u CI-u
-- [ ] Potpuna cross-browser (Firefox/WebKit), screen reader, WCAG i sigurnosna revizija
+- [x] Browser end-to-end i tipkovnički regresijski testovi u Chromiumu, Firefoxu i WebKitu
+- [ ] Screen reader, puni WCAG i sigurnosna revizija u produkciji
 - [x] Deterministički ZIP paketi s provjerom istovjetnosti i CDN SHA-256 manifestom
 - [ ] Validacija stvarnih shared-hosting instalacija kroz više PHP/WordPress verzija
 - [ ] Dokumentirane matrice kompatibilnosti s CMS platformama
