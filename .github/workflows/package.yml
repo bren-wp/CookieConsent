@@ -33,4 +33,5 @@ jobs:
             dist/cookieconsent-brendigo-standalone.zip
             dist/brendigo-cookieconsent-wordpress.zip
             dist/brendigo-cookieconsent-cdn.zip
+            dist/cookieconsent-brendigo-website.zip
           retention-days: 14

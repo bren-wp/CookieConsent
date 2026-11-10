@@ -13,7 +13,7 @@ Samostalni sustav za informiranje posjetitelja i upravljanje privolama na HTML/P
 ![Runtime](https://img.shields.io/badge/runtime_dependencies-0-brightgreen)
 ![Brand](https://img.shields.io/badge/by-Brendigo-4357e8)
 
-**[Najnovija izdanja](https://github.com/bren-wp/CookieConsent/releases)** · **[Interaktivni konfigurator](demo/configurator.html)** · **[Dokumentacija](docs/README.md)** · **[Razvojni plan](docs/ROADMAP.md)** · **[Brendigo](https://brendigo.com)**
+**[Službena web-stranica](https://cookie.brendigo.com)** · **[Najnovija izdanja](https://github.com/bren-wp/CookieConsent/releases)** · **[Interaktivni konfigurator](demo/configurator.html)** · **[Dokumentacija](docs/README.md)** · **[Razvojni plan](docs/ROADMAP.md)** · **[Brendigo](https://brendigo.com)**
 
 > **Status: v0.8.1 — testno izdanje.** Sustav omogućuje implementaciju upravljanja privolama, ali ne jamči usklađenost pojedine web-stranice i nema status certificiranog CMP-a. Nije automatski blokator svih vanjskih servisa.
 
@@ -32,7 +32,7 @@ Samostalni sustav za informiranje posjetitelja i upravljanje privolama na HTML/P
 | Više kartica | Sinkronizacija odabira na istoj domeni bez slanja sadržaja privole |
 | WordPress | Administratorske postavke, vizualni pregled, katalog, editor tekstova, JSON backup, ručno blokiranje WP handleova |
 | WooCommerce | Zaštita ključnih registriranih skripti košarice i naplate od slučajnog blokiranja |
-| Isporuka | Samostalni ZIP, WordPress ZIP i verzionirani CDN ZIP; bez vanjskih runtime biblioteka |
+| Isporuka | Samostalni ZIP, WordPress ZIP, verzionirani CDN ZIP i web-stranica ZIP; bez vanjskih runtime biblioteka |
 
 ![Ilustracija izgleda bannera](assets/brand/banner-preview.svg)
 
@@ -72,6 +72,10 @@ Neobvezne vanjske skripte označite prije učitavanja:
 
 Skripte koje web-stranica sama izvrši, neoznačene iframeove, piksele i server-side događaje sustav **ne može univerzalno zaustaviti**. Detalji: [Instalacija](docs/INSTALL.hr.md) i [Integracije](docs/INTEGRATIONS.hr.md).
 
+## Službena web-stranica
+
+Dvojezična, responzivna stranica projekta nalazi se u [website/](website/) i distribuira se i kao `cookieconsent-brendigo-website.zip`. Paket sadrži lokalne demonstracije, JS/CSS jezgru i verzionirane CDN datoteke. Predviđena javna adresa je [cookie.brendigo.com](https://cookie.brendigo.com), no domena **nije potvrđena kao postavljena niti se sama aktivira iz GitHuba**. Autor je [Brendigo](https://brendigo.com).
+
 ## WordPress
 
 1. Preuzmite `brendigo-cookieconsent-wordpress.zip` iz [GitHub Releases](https://github.com/bren-wp/CookieConsent/releases).
@@ -79,6 +83,8 @@ Skripte koje web-stranica sama izvrši, neoznačene iframeove, piksele i server-
 3. Otvorite **Postavke → CookieConsent**. Podesite izgled, jezik, politiku kolačića, reviziju privole, usluge i opcionalne integracije.
 4. Koristite ugrađeni vizualni pregled, editor tekstova po jeziku i JSON izvoz/uvoz konfiguracije.
 5. Provjerite sve stvarne skripte i zahtjeve pri prvoj posjeti, prihvaćanju, odbijanju i povlačenju privole.
+
+**Službeni metapodaci:** Plugin URI [cookie.brendigo.com](https://cookie.brendigo.com), autor **Brendigo**, Author URI [brendigo.com](https://brendigo.com), `Contributors: brendigo`. **Važno:** WordPress.org direktorij ima posebna pravila o obveznom prikazu zasluga i vanjskom učitavanju koda. Trenutačna brendirana ZIP distribucija nije proglašena odobrenom za WordPress.org direktorij.
 
 **Preduvjeti:** WordPress 6.2+ i PHP 7.4+. Izolirani CI testovi nisu zamjena za testiranje konkretnog hostinga. [Potpune WordPress upute](docs/WORDPRESS.hr.md).
 

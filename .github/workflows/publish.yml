@@ -60,8 +60,9 @@ jobs:
             dist/cookieconsent-brendigo-standalone.zip \
             dist/brendigo-cookieconsent-wordpress.zip \
             dist/brendigo-cookieconsent-cdn.zip \
+            dist/cookieconsent-brendigo-website.zip \
             --repo "$GITHUB_REPOSITORY" \
             --target "$VERIFIED_SHA" \
             --title "CookieConsent by Brendigo $RELEASE_TAG" \
-            --notes "Tested beta prerelease: vanilla JS/CSS, WordPress plugin and CDN bundle. Includes consent controls, provider catalog, visual preferences, WooCommerce safeguards, reproducible ZIPs and browser/PHP CI. Read docs/GO-LIVE.hr.md before production use. Not a certified CMP, legal guarantee or live CDN deployment." \
+            --notes "Tested beta prerelease: vanilla JS/CSS, WordPress plugin, complete static website and versioned CDN bundle. Includes consent controls, provider catalog, visual preferences, WooCommerce safeguards, reproducible ZIPs and browser/PHP CI. Read docs/GO-LIVE.hr.md before production use. Not a certified CMP, legal guarantee or live CDN deployment." \
             --prerelease

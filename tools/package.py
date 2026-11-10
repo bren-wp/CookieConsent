@@ -59,10 +59,23 @@ def planned_archives() -> dict[str, dict[str, bytes]]:
     cdn = directory_members(DIST / "cdn" / ("v" + VERSION), "v" + VERSION)
     if not cdn:
         raise RuntimeError("Build the CDN directory with npm run build:cdn first")
+    website = {
+        p.relative_to(ROOT / "website").as_posix(): p.read_bytes()
+        for p in (ROOT / "website").rglob("*")
+        if p.is_file() and not p.is_symlink()
+    }
+    website.update(directory_members(ROOT / "packages/core", "packages/core"))
+    website.update(directory_members(ROOT / "demo", "demo"))
+    website.update(directory_members(ROOT / "assets/brand", "assets/brand"))
+    website.update(cdn)
+    website["LICENSE"] = (ROOT / "LICENSE").read_bytes()
+    if not website:
+        raise RuntimeError("Website source is missing")
     return {
         "cookieconsent-brendigo-standalone.zip": standalone,
         "brendigo-cookieconsent-wordpress.zip": plugin,
         "brendigo-cookieconsent-cdn.zip": cdn,
+        "cookieconsent-brendigo-website.zip": website,
     }
 
 
@@ -84,6 +97,12 @@ def verify(destination: Path, members: dict[str, bytes]) -> None:
 def main() -> None:
     members_by_archive = planned_archives()
     verify_only = len(sys.argv) > 1 and sys.argv[1] == "--verify"
+    website_dir = DIST / "website"
+    for name, data in members_by_archive["cookieconsent-brendigo-website.zip"].items():
+        output = website_dir / name
+        output.parent.mkdir(parents=True, exist_ok=True)
+        if not output.exists() or output.read_bytes() != data:
+            output.write_bytes(data)
     for filename, members in members_by_archive.items():
         destination = DIST / filename
         if not verify_only:
