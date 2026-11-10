@@ -153,6 +153,38 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
           await checkAxe('preferences');
         }finally{await context.close();}
       });
+      await t.test('configurator previews advanced layout, translations, and downloads a standalone JSON',async()=>{
+        const context=await browser.newContext({acceptDownloads:true});
+        try {
+          const page=await context.newPage();
+          await page.goto(origin+'/demo/configurator.html');
+          await page.locator('#theme').selectOption('dark');
+          await page.locator('#prefs').selectOption('right');
+          await page.locator('#language').selectOption('en');
+          await page.locator('#flip').check();
+          await page.locator('#equal').uncheck();
+          await page.locator('#heading').fill('Privacy settings by Brendigo');
+          await page.locator('#intro').fill('Only selected services can load.');
+          await page.locator('#accept').fill('Allow chosen services');
+          await page.locator('#reject').fill('Reject optional services');
+          const preview=page.frameLocator('#preview');
+          await preview.locator('.bcc-banner').waitFor({state:'visible'});
+          await page.waitForFunction(() => {
+            const frame=document.getElementById('preview');
+            return frame && frame.contentWindow && frame.contentWindow.location.search.includes('theme=dark');
+          });
+          assert.equal(await preview.locator('.bcc-root').getAttribute('class').then(x=>x.includes('bcc-theme-dark')),true);
+          assert.equal(await preview.locator('.bcc-banner h2').textContent(),'Privacy settings by Brendigo');
+          assert.equal(await preview.getByRole('button',{name:'Reject optional services'}).count(),1);
+          const exported=await page.locator('#snippet').inputValue();
+          assert.ok(exported.includes('"theme": "dark"'));
+          assert.ok(exported.includes('"preferencesPosition": "right"'));
+          const dl=page.waitForEvent('download');
+          await page.getByRole('button',{name:'Preuzmi JSON konfiguraciju'}).click();
+          const download=await dl;
+          assert.equal(download.suggestedFilename(),'brendigo-cookieconsent-config.json');
+        } finally {await context.close();}
+      });
       await t.test('cookie inventory does not send data and focus remains within dialog',async()=>{
         const context=await browser.newContext();
         try{
