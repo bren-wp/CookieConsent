@@ -53,7 +53,7 @@ function sanitize_options($input): array {
     $policy = isset($input['policy_url']) ? esc_url_raw($input['policy_url'], ['http', 'https']) : '';
     $handles = isset($input['blocked_handles']) ? sanitize_textarea_field($input['blocked_handles']) : '';
     return [
-        'language' => in_array($language, ['auto', 'hr', 'en'], true) ? $language : 'auto',
+        'language' => in_array($language, ['auto', 'hr', 'en', 'de', 'it'], true) ? $language : 'auto',
         'accent_color' => $accent ?: '#4357e8',
         'surface_color' => $surface ?: '#ffffff',
         'text_color' => $text_color ?: '#17223e',
@@ -142,7 +142,7 @@ function render_settings(): void {
                 <tr>
                     <th scope="row"><label for="bcc-language"><?php esc_html_e('Language', 'brendigo-cookieconsent'); ?></label></th>
                     <td><select id="bcc-language" name="<?php echo esc_attr(OPTION); ?>[language]">
-                        <?php foreach (['auto' => 'Auto (site language)', 'hr' => 'Hrvatski', 'en' => 'English'] as $code => $label) : ?>
+                        <?php foreach (['auto' => 'Auto (site language)', 'hr' => 'Hrvatski', 'en' => 'English', 'de' => 'Deutsch', 'it' => 'Italiano'] as $code => $label) : ?>
                             <option value="<?php echo esc_attr($code); ?>" <?php selected($o['language'], $code); ?>><?php echo esc_html($label); ?></option>
                         <?php endforeach; ?>
                     </select></td>
