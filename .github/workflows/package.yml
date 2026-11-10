@@ -39,7 +39,7 @@ jobs:
             dist/brendigo-cookieconsent-drupal.zip
             dist/brendigo-cookieconsent-shopify-extension.zip
             dist/brendigo-cookieconsent-magento.zip
-            dist/brendigo_cookieconsent.ocmod.zip
+            dist/brendigo.ocmod.zip
             dist/brendigocookieconsent-prestashop.zip
             dist/brendigo-cookieconsent-cdn.zip
             dist/cookieconsent-brendigo-website.zip

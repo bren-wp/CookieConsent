@@ -67,7 +67,7 @@ jobs:
             dist/brendigo-cookieconsent-drupal.zip \
             dist/brendigo-cookieconsent-shopify-extension.zip \
             dist/brendigo-cookieconsent-magento.zip \
-            dist/brendigo_cookieconsent.ocmod.zip \
+            dist/brendigo.ocmod.zip \
             dist/brendigocookieconsent-prestashop.zip \
             --repo "$GITHUB_REPOSITORY" \
             --target "$VERIFIED_SHA" \

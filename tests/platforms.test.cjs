@@ -31,7 +31,8 @@ test('platform plugins have native installation entrypoints',()=>{
  assert.match(read('shopify/extensions/brendigo-cookieconsent/shopify.extension.toml'),/type = "theme"/);
  assert.match(read('magento/registration.php'),/ComponentRegistrar::MODULE/);
  assert.match(read('magento/view/frontend/layout/default.xml'),/before\.body\.end/);
- assert.match(read('opencart/admin/controller/module/cookieconsent.php'),/catalog\/view\/common\/header\/after/);
+ assert.match(read('opencart/admin/controller/module/cookieconsent.php'),/catalog\\/view\\/common\\/header\\/after/);
+ assert.match(read('opencart/catalog/controller/module/cookieconsent.php'),/extension\\/brendigo\\/catalog\\/view\\/javascript/);
  assert.match(read('prestashop/brendigocookieconsent.php'),/registerHook\('actionFrontControllerSetMedia'\)/);
 });
 test('Shopify app embed JSON schema uses compliance_head and explicit Customer Privacy API updates',()=>{

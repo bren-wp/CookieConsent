@@ -121,7 +121,7 @@ def planned_archives() -> dict[str, dict[str, bytes]]:
         "brendigo-cookieconsent-drupal.zip": drupal,
         "brendigo-cookieconsent-shopify-extension.zip": shopify,
         "brendigo-cookieconsent-magento.zip": magento,
-        "brendigo_cookieconsent.ocmod.zip": opencart,
+        "brendigo.ocmod.zip": opencart,
         "brendigocookieconsent-prestashop.zip": prestashop,
     }
 
