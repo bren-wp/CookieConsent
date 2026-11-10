@@ -337,6 +337,13 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
               categories:{analytics:true},
               services:{'stats-a':true,'stats-b':true}
             });
+          });
+          // Both service iframes navigate to same-origin demos. Let the
+          // navigations settle before creating test cookies; Firefox can
+          // otherwise invalidate the cookie observer while a frame commits.
+          await page.frameLocator('#a-frame').locator('body').waitFor({state:'attached'});
+          await page.frameLocator('#b-frame').locator('body').waitFor({state:'attached'});
+          await page.evaluate(()=>{
             document.cookie='bcc_test_analytics_a=1; Path=/; SameSite=Lax';
             document.cookie='bcc_test_analytics_b=1; Path=/; SameSite=Lax';
             document.cookie='bcc_test_global_one=1; Path=/; SameSite=Lax';
@@ -356,7 +363,7 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
             return window.bccServiceEvents;
           });
           assert.deepEqual(events,['grant','revoke']);
-          await page.waitForFunction(()=>!document.cookie.includes('bcc_test_analytics_a='),null,{timeout:5000});
+          await page.waitForFunction(()=>!document.cookie.includes('bcc_test_analytics_a='),null,{timeout:10000});
           const cookies=await page.evaluate(()=>document.cookie);
           assert.ok(!cookies.includes('bcc_test_analytics_a='));
           assert.ok(cookies.includes('bcc_test_analytics_b='));
