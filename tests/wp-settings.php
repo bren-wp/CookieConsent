@@ -92,7 +92,7 @@ $live = \Brendigo\CookieConsent\options();
 verify(!array_key_exists('show_branding',$live), 'legacy disabled branding key removed');
 verify($live['language'] === 'de', 'known options retained');
 verify(!\Brendigo\CookieConsent\protected_woocommerce_script('wc-checkout'), 'no Woo adapter without WooCommerce');
-eval('class WooCommerce {}');
+if (true) { class WooCommerce {} } // Load fixture at runtime; no eval.
 verify(\Brendigo\CookieConsent\protected_woocommerce_script('wc-checkout'), 'Woo cart/checkout protected');
 verify(!\Brendigo\CookieConsent\protected_woocommerce_script('wc-analytics'), 'Woo analytics not automatically exempt');
 verify(count(\Brendigo\CookieConsent\woocommerce_services()) === 1, 'Woo inventory when active');

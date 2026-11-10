@@ -878,7 +878,7 @@
     nodes.root = holder;
     nodes.banner = banner;
     showBanner();
-    listenForTabUpdates();
+    // Subscription already installed during init, before DOM rendering.
     emit('ready'); // Returning consent is propagated before third-party tag activation.
     if (consent) invokeHook('onConsent', getConsentReceipt());
     syncProviders();

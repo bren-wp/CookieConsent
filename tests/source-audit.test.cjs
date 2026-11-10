@@ -1,0 +1,53 @@
+'use strict';
+const test=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+const root=path.resolve(__dirname,'..');
+function source(file){return fs.readFileSync(path.join(root,file),'utf8');}
+test('source security audit: unsafe dynamic JS and PHP execution sinks are absent',()=>{
+  const jsFiles=[
+    'packages/core/brendigo-cookieconsent.js',
+    'wordpress/brendigo-cookieconsent/assets/brendigo-cookieconsent.js',
+    'wordpress/brendigo-cookieconsent/assets/admin-preview.js',
+    'wordpress/brendigo-cookieconsent/assets/translation-editor.js',
+    'packages/integrations/google-consent-basic.js',
+    'cdn/loader.js'
+  ];
+  for(const file of jsFiles){
+    const value=source(file);
+    for(const [name,pattern] of [
+      ['eval()',/\beval\s*\(/],
+      ['new Function()',/\bnew\s+Function\s*\(/],
+      ['innerHTML assignment',/\.innerHTML\s*=/],
+      ['document.write()',/\bdocument\.write\s*\(/],
+      ['importScripts()',/\bimportScripts\s*\(/],
+    ]) assert.doesNotMatch(value,pattern,name+' is not permitted in '+file);
+  }
+  const php=source('wordpress/brendigo-cookieconsent/brendigo-cookieconsent.php');
+  assert.doesNotMatch(php,/\b(?:eval|unserialize|base64_decode)\s*\(/);
+  assert.match(php,/check_admin_referer\('bcc_import_settings'\)/);
+  assert.match(php,/current_user_can\('manage_options'\)/);
+  assert.match(php,/wp_json_encode\(\$config,\s*JSON_HEX_TAG/);
+  assert.match(php,/WP_HTML_Tag_Processor/);
+});
+test('dead code regression: no redundant tab subscription and no duplicate hidden override',()=>{
+  const js=source('packages/core/brendigo-cookieconsent.js');
+  const css=source('packages/core/brendigo-cookieconsent.css');
+  assert.equal((js.match(/listenForTabUpdates\(\);/g)||[]).length,1);
+  assert.equal((css.match(/\.bcc-root \.bcc-banner\[hidden\]/g)||[]).length,1);
+  assert.equal(js,source('wordpress/brendigo-cookieconsent/assets/brendigo-cookieconsent.js'));
+  assert.equal(css,source('wordpress/brendigo-cookieconsent/assets/brendigo-cookieconsent.css'));
+  assert.doesNotMatch(source('tests/wp-settings.php'),/\beval\s*\(/);
+});
+test('security invariants: expiry, safe URL scheme, local WordPress default',()=>{
+ const js=source('packages/core/brendigo-cookieconsent.js');
+ const php=source('wordpress/brendigo-cookieconsent/brendigo-cookieconsent.php');
+ const wporg=source('tools/build-wporg.mjs');
+ assert.match(js,/now - timestamp > days \* 86400000/);
+ assert.match(js,/url\.username \|\| url\.password/);
+ assert.match(js,/root\.location\.protocol === 'https:' && url\.protocol !== 'https:'/);
+ assert.match(php,/'asset_source' => 'local'/);
+ assert.match(wporg,/showBranding === true/);
+ assert.match(wporg,/Local plugin assets only/);
+});
