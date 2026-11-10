@@ -1,4 +1,4 @@
-/* CookieConsent by Brendigo — locally hosted UI styles */
+/* CookieConsent by Brendigo v0.2.0 — locally hosted UI styles */
 .bcc-root{--bcc-accent:#4357e8;--bcc-text:#17223e;--bcc-subtle:#66708c;--bcc-border:#e1e6f1;--bcc-bg:#fff;--bcc-shadow:0 18px 65px rgba(18,28,69,.19);font:inherit;color:var(--bcc-text);z-index:2147483000}
 .bcc-root *{box-sizing:border-box}
 .bcc-root button,.bcc-root input{font:inherit}
@@ -7,18 +7,18 @@
 .bcc-banner{position:fixed;bottom:24px;left:24px;right:24px;display:flex;align-items:center;justify-content:space-between;gap:28px;max-width:1180px;margin:auto;background:var(--bcc-bg);border:1px solid var(--bcc-border);border-radius:20px;padding:26px 30px;box-shadow:var(--bcc-shadow);z-index:2147483000}
 .bcc-banner[hidden]{display:none}
 .bcc-banner-content{min-width:0;max-width:700px}
-.bcc-eyebrow{font-size:10px;letter-spacing:.14em;font-weight:800;color:var(--bcc-accent);margin:0 0 8px}
+.bcc-eyebrow{font-size:10px;letter-spacing:.14em;font-weight:800;color:var(--bcc-link,var(--bcc-accent));margin:0 0 8px}
 .bcc-root h2{font-size:21px;line-height:1.25;font-weight:750;color:var(--bcc-text);margin:0 0 9px}
 .bcc-root p{margin:0;line-height:1.6}
 .bcc-muted{color:var(--bcc-subtle);font-size:14px}
 .bcc-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:15px}
-.bcc-footer a{color:var(--bcc-accent);font-size:12px;text-decoration:underline;text-underline-offset:3px}
+.bcc-footer a{color:var(--bcc-link,var(--bcc-accent));font-size:12px;text-decoration:underline;text-underline-offset:3px}
 .bcc-footer .bcc-credit{margin-left:auto;color:var(--bcc-subtle);text-decoration:none}
 .bcc-banner-actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end;max-width:430px}
 .bcc-button{min-height:43px;border-radius:10px;border:1px solid var(--bcc-border);font-size:13px;font-weight:700;padding:10px 15px;background:#fff;color:var(--bcc-text);transition:transform .15s,box-shadow .15s}
 .bcc-button:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(22,36,81,.09)}
-.bcc-primary{background:var(--bcc-accent);border-color:var(--bcc-accent);color:#fff}
-.bcc-secondary{background:#fff;color:var(--bcc-text)}
+.bcc-primary{background:var(--bcc-accent);border-color:var(--bcc-accent);color:var(--bcc-button-text,#fff)}
+.bcc-secondary{background:var(--bcc-bg);color:var(--bcc-text)}
 .bcc-overlay{position:fixed;inset:0;background:rgba(12,19,47,.57);display:flex;align-items:center;justify-content:center;padding:22px;z-index:2147483001}
 .bcc-panel{width:min(100%,600px);max-height:calc(100vh - 44px);overflow:auto;background:var(--bcc-bg);border-radius:19px;padding:28px;box-shadow:var(--bcc-shadow)}
 .bcc-panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:22px}
@@ -38,5 +38,40 @@
 @media(prefers-reduced-motion:reduce){.bcc-button{transition:none}.bcc-button:hover{transform:none}}
 @media(prefers-color-scheme:dark){.bcc-root.bcc-dark{--bcc-text:#f7f8ff;--bcc-subtle:#c1cae5;--bcc-border:#374461;--bcc-bg:#171f34}.bcc-root.bcc-dark .bcc-secondary,.bcc-root.bcc-dark .bcc-icon-button{background:#252e47;color:#f7f8ff}}
 
-.bcc-reopen{position:fixed;bottom:17px;left:17px;z-index:2147483000;background:var(--bcc-accent);color:#fff;border-color:var(--bcc-accent);font-size:12px;min-height:38px;padding:9px 13px;border-radius:99px;box-shadow:0 5px 19px rgba(18,28,69,.2)}
+.bcc-reopen{position:fixed;bottom:17px;left:17px;z-index:2147483000;background:var(--bcc-accent);color:var(--bcc-button-text,#fff);border-color:var(--bcc-accent);font-size:12px;min-height:38px;padding:9px 13px;border-radius:99px;box-shadow:0 5px 19px rgba(18,28,69,.2)}
 .bcc-reopen[hidden]{display:none}
+
+/* Position selector; mobile positions are constrained to the viewport. */
+.bcc-root .bcc-banner{margin:0;width:min(1180px,calc(100% - 48px));left:auto;right:auto;top:auto;bottom:auto;max-height:calc(100dvh - 32px);overflow:auto}
+.bcc-position-bottom-center .bcc-banner{left:50%;bottom:24px;transform:translateX(-50%)}
+.bcc-position-top-center .bcc-banner{left:50%;top:24px;transform:translateX(-50%)}
+.bcc-position-bottom-left .bcc-banner,.bcc-position-bottom-right .bcc-banner,
+.bcc-position-top-left .bcc-banner,.bcc-position-top-right .bcc-banner{
+  max-width:570px;display:block}
+.bcc-position-bottom-left .bcc-banner{left:24px;bottom:24px}
+.bcc-position-bottom-right .bcc-banner{right:24px;bottom:24px}
+.bcc-position-top-left .bcc-banner{left:24px;top:24px}
+.bcc-position-top-right .bcc-banner{right:24px;top:24px}
+.bcc-position-bottom-bar .bcc-banner,.bcc-position-top-bar .bcc-banner{
+  left:12px;right:12px;width:calc(100% - 24px);max-width:none}
+.bcc-position-bottom-bar .bcc-banner{bottom:12px}
+.bcc-position-top-bar .bcc-banner{top:12px}
+.bcc-position-center .bcc-banner{left:50%;top:50%;width:min(720px,calc(100% - 40px));max-width:720px;transform:translate(-50%,-50%);display:block}
+.bcc-position-center .bcc-banner-actions{max-width:none;margin-top:16px}
+.bcc-position-bottom-left .bcc-banner-actions,.bcc-position-bottom-right .bcc-banner-actions,
+.bcc-position-top-left .bcc-banner-actions,.bcc-position-top-right .bcc-banner-actions{
+  max-width:none;justify-content:flex-start;margin-top:16px}
+.bcc-root .bcc-footer .bcc-credit{font-size:12px;white-space:nowrap}
+.bcc-root .bcc-banner-actions .bcc-primary{min-width:125px}
+.bcc-root .bcc-banner-actions .bcc-primary:first-child,
+.bcc-root .bcc-banner-actions .bcc-primary:last-child{font-weight:700}
+@media(max-width:780px){
+ .bcc-root .bcc-banner{width:calc(100% - 24px);max-width:none;left:12px;right:12px;transform:none;padding:18px}
+ .bcc-position-bottom-center .bcc-banner,.bcc-position-bottom-left .bcc-banner,
+ .bcc-position-bottom-right .bcc-banner,.bcc-position-bottom-bar .bcc-banner{top:auto;bottom:12px}
+ .bcc-position-top-center .bcc-banner,.bcc-position-top-left .bcc-banner,
+ .bcc-position-top-right .bcc-banner,.bcc-position-top-bar .bcc-banner{top:12px;bottom:auto}
+ .bcc-position-center .bcc-banner{top:50%;bottom:auto;transform:translateY(-50%)}
+ .bcc-root .bcc-banner-actions{max-width:none;justify-content:stretch}
+}
+@media(max-height:380px){.bcc-root .bcc-banner{max-height:calc(100dvh - 12px)}}

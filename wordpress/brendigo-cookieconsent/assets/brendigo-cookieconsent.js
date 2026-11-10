@@ -1,5 +1,5 @@
 /*!
- * CookieConsent by Brendigo — v0.1.0
+ * CookieConsent by Brendigo — v0.2.0
  * Copyright (c) 2026 Brendigo · MIT License
  * Zero-dependency, self-hosted consent manager.
  */
@@ -14,8 +14,31 @@
 })(typeof window !== 'undefined' ? window : globalThis, function (root) {
   'use strict';
 
-  var VERSION = '0.1.0';
+  var VERSION = '0.2.0';
   var CATEGORIES = ['necessary', 'preferences', 'analytics', 'marketing'];
+  var POSITIONS = ['bottom-center', 'bottom-left', 'bottom-right',
+    'bottom-bar', 'top-center', 'top-left', 'top-right', 'top-bar', 'center'];
+  function sanitizePosition(position) {
+    return POSITIONS.indexOf(position) !== -1 ? position : 'bottom-center';
+  }
+  function sanitizeColor(value, fallback) {
+    return typeof value === 'string' && /^#[0-9a-fA-F]{6}$/.test(value) ? value.toLowerCase() : fallback;
+  }
+  function luminance(hex) {
+    var channels = [1, 3, 5].map(function (index) {
+      var x = parseInt(hex.slice(index, index + 2), 16) / 255;
+      return x <= 0.04045 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4);
+    });
+    return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
+  }
+  function contrastRatio(first, second) {
+    var a = luminance(first), b = luminance(second);
+    return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+  }
+  function accessibleText(preferred, background) {
+    if (contrastRatio(preferred, background) >= 4.5) return preferred;
+    return contrastRatio('#ffffff', background) >= 4.5 ? '#ffffff' : '#000000';
+  }
   var MESSAGES = {
     hr: {
       heading: 'Vaša privatnost, vaš izbor',
@@ -29,7 +52,7 @@
       analyticsDesc: 'Pomažu nam razumjeti korištenje web-stranice.',
       marketingDesc: 'Koriste se za oglašavanje i mjerenje kampanja.',
       gpc: 'Signal Global Privacy Control je uključen. Marketinška kategorija ostaje isključena.',
-      powered: 'by Brendigo', reopen: 'Postavke kolačića'
+      reopen: 'Postavke kolačića'
     },
     en: {
       heading: 'Your privacy. Your choice.',
@@ -43,7 +66,7 @@
       analyticsDesc: 'Help us understand how the website is used.',
       marketingDesc: 'Used for advertising and campaign measurement.',
       gpc: 'Global Privacy Control is enabled. The marketing category remains disabled.',
-      powered: 'by Brendigo', reopen: 'Cookie settings'
+      reopen: 'Cookie settings'
     }
   };
   var config = null;
@@ -117,9 +140,9 @@
     node.addEventListener('click', callback);
     return node;
   }
-  function branding(node, t) {
-    if (config.showBranding === false) return;
-    var link = element('a', 'bcc-credit', t.powered);
+  function branding(node) {
+    // Product attribution cannot be disabled using public configuration.
+    var link = element('a', 'bcc-credit', 'by Brendigo');
     link.href = 'https://brendigo.com';
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
@@ -291,10 +314,13 @@
   function mount() {
     if (nodes.root) return;
     var t = translations();
-    var holder = element('div', 'bcc-root');
-    if (config.accentColor && /^#[0-9a-fA-F]{6}$/.test(config.accentColor)) {
-      holder.style.setProperty('--bcc-accent', config.accentColor);
-    }
+    var holder = element('div', 'bcc-root bcc-position-' + config.position);
+    holder.style.setProperty('--bcc-accent', config.accentColor);
+    holder.style.setProperty('--bcc-button-text', accessibleText('#ffffff', config.accentColor));
+    holder.style.setProperty('--bcc-bg', config.surfaceColor);
+    holder.style.setProperty('--bcc-text', accessibleText(config.textColor, config.surfaceColor));
+    holder.style.setProperty('--bcc-subtle', accessibleText('#66708c', config.surfaceColor));
+    holder.style.setProperty('--bcc-link', accessibleText(config.accentColor, config.surfaceColor));
     var banner = element('section', 'bcc-banner');
     banner.setAttribute('role', 'region');
     banner.setAttribute('aria-label', t.heading);
@@ -315,7 +341,7 @@
     }));
     banner.appendChild(actions);
     holder.appendChild(banner);
-    if (config.showSettingsButton) {
+    {
       var reopen = button(t.reopen, 'bcc-reopen', openPreferences);
       reopen.setAttribute('aria-label', t.reopen);
       holder.appendChild(reopen);
@@ -342,9 +368,10 @@
     config = {
       language: options.language || 'auto',
       policyUrl: typeof options.policyUrl === 'string' ? options.policyUrl : '/cookie-policy',
-      showBranding: options.showBranding !== false,
-      showSettingsButton: options.showSettingsButton !== false,
-      accentColor: options.accentColor || '#4357e8',
+      position: sanitizePosition(options.position),
+      accentColor: sanitizeColor(options.accentColor, '#4357e8'),
+      surfaceColor: sanitizeColor(options.surfaceColor, '#ffffff'),
+      textColor: sanitizeColor(options.textColor, '#17223e'),
       consentDays: options.consentDays || 180,
       revision: String(options.revision || '1'),
       cookieName: /^[-_a-zA-Z0-9]{1,60}$/.test(options.cookieName || '') ? options.cookieName : 'bcc_consent',
@@ -361,7 +388,11 @@
     init: init, getConsent: getConsent, hasConsent: hasConsent,
     setConsent: setConsent, reset: reset, openPreferences: openPreferences,
     refresh: applyGatedResources,
-    utils: { normalizeConsent: normalizeConsent, encodeRecord: encodeRecord, parseRecord: parseRecord }
+    utils: {
+      normalizeConsent: normalizeConsent, encodeRecord: encodeRecord, parseRecord: parseRecord,
+      sanitizePosition: sanitizePosition, sanitizeColor: sanitizeColor,
+      contrastRatio: contrastRatio, accessibleText: accessibleText
+    }
   };
   return api;
 });

@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const consent = require('../packages/core/brendigo-cookieconsent.js');
 
 test('core can be loaded without DOM or third-party packages', () => {
-  assert.equal(consent.version, '0.1.0');
+  assert.equal(consent.version, '0.2.0');
   assert.equal(typeof consent.init, 'function');
 });
 test('optional categories are denied by default', () => {
@@ -27,4 +27,28 @@ test('a persisted record parses only for the current policy revision', () => {
 test('malformed cookie payload cannot bypass default denial', () => {
   assert.equal(consent.utils.parseRecord('%XX', '1'), null);
   assert.equal(consent.utils.parseRecord(encodeURIComponent('{"version":1}'), '1'), null);
+});
+
+test('unknown position fails closed to a supported banner location', () => {
+  assert.equal(consent.utils.sanitizePosition('bottom-left'), 'bottom-left');
+  assert.equal(consent.utils.sanitizePosition('top-bar'), 'top-bar');
+  assert.equal(consent.utils.sanitizePosition('position:fixed;display:none'), 'bottom-center');
+});
+test('only six-digit hex colors are accepted', () => {
+  assert.equal(consent.utils.sanitizeColor('#abc123', '#ffffff'), '#abc123');
+  assert.equal(consent.utils.sanitizeColor('transparent', '#ffffff'), '#ffffff');
+  assert.equal(consent.utils.sanitizeColor('#fff', '#ffffff'), '#ffffff');
+});
+test('foreground colors reach at least 4.5:1 contrast', () => {
+  for (const background of ['#ffffff','#000000','#777777','#4357e8','#faf7db']) {
+    const chosen = consent.utils.accessibleText('#ddddee', background);
+    assert.ok(consent.utils.contrastRatio(chosen, background) >= 4.5,
+      'contrast for '+background+' should be accessible');
+  }
+});
+test('core attribution does not expose a disabling option', () => {
+  const fs = require('node:fs');
+  const source = fs.readFileSync(require('node:path').join(__dirname, '../packages/core/brendigo-cookieconsent.js'),'utf8');
+  assert.match(source, /'by Brendigo'/);
+  assert.doesNotMatch(source, /config\.showBranding|options\.showBranding/);
 });
