@@ -2,7 +2,7 @@
 <module>
   <name>brendigocookieconsent</name>
   <displayName><![CDATA[CookieConsent by Brendigo]]></displayName>
-  <version><![CDATA[0.11.1]]></version>
+  <version><![CDATA[0.11.2]]></version>
   <description><![CDATA[Consent choices and privacy controls.]]></description>
   <author><![CDATA[Brendigo]]></author>
   <tab><![CDATA[administration]]></tab>

@@ -9,7 +9,7 @@ class BrendigoCookieConsent extends Module
     {
         $this->name = 'brendigocookieconsent';
         $this->tab = 'administration';
-        $this->version = '0.11.1';
+        $this->version = '0.11.2';
         $this->author = 'Brendigo';
         $this->need_instance = 0;
         $this->bootstrap = true;
