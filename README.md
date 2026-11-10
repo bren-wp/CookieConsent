@@ -7,7 +7,7 @@
 > Univerzalni sustav za upravljanje kolačićima i privolama za obične web-stranice, PHP i WordPress. Bez obveznog CDN-a, vanjskog računa ili pretplate.
 
 [![CI](https://github.com/bren-wp/CookieConsent/actions/workflows/ci.yml/badge.svg)](https://github.com/bren-wp/CookieConsent/actions/workflows/ci.yml)
-![Version](https://img.shields.io/badge/version-0.4.0-4357e8)
+![Version](https://img.shields.io/badge/version-0.5.0-4357e8)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Runtime](https://img.shields.io/badge/runtime%20dependencies-0-brightgreen)
 ![Author](https://img.shields.io/badge/by-Brendigo-26387a)
@@ -107,7 +107,7 @@ Pripremljena je verzionirana distribucija za CDN. **DNS, TLS i javno posluživan
     policyUrl: '/politika-kolacica', revision: '1'
   };
 </script>
-<script defer src="https://cookie.brendigo.com/v0.4.0/loader.js"></script>
+<script defer src="https://cookie.brendigo.com/v0.5.0/loader.js"></script>
 ```
 
 U paketu je opt-in `google-consent-basic.js` adapter za Google Consent Mode v2. Ne uključuje Google tagove i ne zamjenjuje ispravno blokiranje oznaka prije privole. Detalji: [CDN vodič](docs/CDN.hr.md).
@@ -212,9 +212,13 @@ python3 -m http.server 8000
 # Otvorite http://localhost:8000/demo/
 ```
 
+## 🧭 Podržane platforme i regulatorne granice
+
+Pogledajte [matricu kompatibilnosti](docs/COMPATIBILITY.md), [regulatornu matricu](docs/REGULATORY-MATRIX.hr.md) i [kontrolni popis za produkciju](docs/GO-LIVE.hr.md). Zahtjevi se razlikuju prema usluzi i jurisdikciji; globalno primjenjujemo konzervativni opt-in i ne zaključujemo automatski lokaciju posjetitelja.
+
 ## ⚖️ Zakonska usklađenost i ograničenja
 
-**v0.4.0 je razvojna verzija, nije certificirani CMP niti jamstvo usklađenosti s GDPR-om, ePrivacy pravilima, UK PECR-om, LGPD-om ili američkim zakonima.** Za svaku web-stranicu potrebno je provjeriti stvarne servise, podatke, kategorije, trajanje kolačića, dokaze privole i pravo na povlačenje.
+**v0.5.0 je funkcionalno testno izdanje, nije certificirani CMP niti jamstvo usklađenosti s GDPR-om, ePrivacy pravilima, UK PECR-om, LGPD-om ili američkim zakonima.** Za svaku web-stranicu potrebno je provjeriti stvarne servise, podatke, kategorije, trajanje kolačića, dokaze privole i pravo na povlačenje.
 
 Trenutačno **nisu implementirani** automatski skener, server-side evidencija privole, IAB TCF, Google-certified CMP status, automatsko blokiranje Google oznaka, GeoIP ni potpuni US privacy opt-out proces. Postoji **opcionalni Google Consent Mode v2 Basic adapter** koji zahtijeva zasebnu integraciju i testiranje.
 

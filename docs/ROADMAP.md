@@ -18,10 +18,12 @@
 - [x] Integracijski hookovi `registerProvider`, `onGrant`, `onRevoke` i popravljeni `reset()`
 - [ ] Potpuni cleanup vanjskih pružatelja, automatska revokacija i brisanje njihovih kolačića
 - [ ] Google Consent Mode v2 (basic) integracija i testiranje redoslijeda
-- [ ] WooCommerce i registrirani WP provider adapteri
+- [x] Ograničeni WooCommerce zaštitni adapter za košaricu/naplatu
+- [ ] Napredni provider adapteri za analitiku, oglase i konkretne WP dodatke
 - [x] Katalog usluga, kategorija, svrha, kolačića, trajanja i politika u WordPress administratoru
 - [x] Dodatni jezici: DE i IT
-- [ ] RTL podrška i provjera s govornim tehnologijama
+- [x] RTL i arapska lokalizacija; automatski smjer ili odabir u WP-u
+- [ ] Ručni testovi s čitačima ekrana
 
 ## v0.3 — upravljanje politikama
 - [x] Ručna lokalna dijagnostika browser-vidljivih kolačića i resursa kroz `auditLocal()`
@@ -30,7 +32,7 @@
 - [ ] Napredni katalog, pravila po geo-jurisdikciji i pojedinačna razina privole
 - [x] Lokalni vizualni konfigurator: pozicije, jezici i boje
 - [x] Standard, Compact i Minimal stilovi bannera u WP administraciji
-- [ ] Ugrađeni interaktivni konfigurator unutar WP administracije
+- [x] Ugrađeni WordPress live preview položaja, jezika, stila i boja
 - [x] WordPress izvoz i uvoz JSON postavki s nonce/capability provjerom
 - [ ] Samostalni import/export svih postavki za višestruke CMS sustave
 
@@ -42,7 +44,8 @@
 - [x] Automatizirana PHP 7.4, 8.1, 8.2, 8.3 i 8.4 provjera sintakse i izoliranih WP postavki
 - [ ] Stvarna instalacijska validacija na više WordPress verzija i shared-hosting konfiguracija
 - [ ] Dokumentirane matrice kompatibilnosti s CMS platformama
-- [ ] Posebne pravne i tehničke provjere za podržane regulatorne profile
+- [x] Dokumentirana konzervativna globalna opt-in matrica i kontrolna lista
+- [ ] Neovisna provjera regulatornih profila i prilagodbe stvarnoj djelatnosti
 
 ## v0.3.0 — ostvareno u ovom koraku
 - [x] Lifecycle API za davanje i povlačenje privole bez vanjskih ovisnosti
@@ -51,7 +54,23 @@
 - [x] WordPress opcionalno učitavanje Google Basic adaptera
 - [x] Vizualni konfigurator u `demo/configurator.html` i odvojene kontrole pristanka od provider linkova
 - [x] Jedinični testovi za lifecycle, provider validaciju i katalog
-- [x] v0.4.0: WP izvoz/uvoz, tri izgleda bannera, local audit API, validacija URL shema i Chromium CI
+- [x] v0.5.0: WP izvoz/uvoz, tri izgleda bannera, local audit API, validacija URL shema i Chromium CI
 - [ ] Produkcijski audit pojedinačnih servisa, sustava kolačića i poslužitelja
 
 Funkcionalnost nije isto što i pravna certifikacija. Neoznačene stavke nisu implementirane.
+
+## v0.5.0 — konsolidirano testno izdanje
+- [x] Tri vrste bannera, devet pozicija, pet jezika i RTL
+- [x] Lokalni dijagnostički API bez prijenosa podataka
+- [x] JSON backup i restore u WordPress administraciji
+- [x] Lokalni i verzionirani CDN distribucijski paket
+- [x] WooCommerce zaštitni adapter (ograničeni opseg)
+- [x] Browser e2e na Chromiumu, Firefoxu i WebKitu + axe-core automatska A/AA provjera
+- [x] PHP 7.4, 8.1, 8.2, 8.3 i 8.4 izolirani testovi postavki
+- [x] Reproducibilne ZIP datoteke i kriptografski SHA-256 sažeci datoteka
+- [ ] Produkcijski deployment i DNS/TLS na cookie.brendigo.com
+- [ ] Audit svih stvarnih integracija i potpuno brisanje third-party podataka pri opozivu
+- [ ] Google Certified CMP / IAB TCF certifikacija (ovisno o primjeni)
+- [ ] Neovisni pen-test, screen-reader audit i pravni pregled po jurisdikciji
+
+**Napomena:** završetak funkcionalnih zadataka nije isto što i pravna certifikacija ili produkcijsko puštanje u rad.

@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const consent = require('../packages/core/brendigo-cookieconsent.js');
 
 test('core can be loaded without DOM or third-party packages', () => {
-  assert.equal(consent.version, '0.4.0');
+  assert.equal(consent.version, '0.5.0');
   assert.equal(typeof consent.init, 'function');
 });
 test('optional categories are denied by default', () => {

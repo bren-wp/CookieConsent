@@ -52,7 +52,7 @@ test('GPC keeps Google marketing signals denied even when a client requests mark
 test('CDN loader resolves only assets in its versioned own directory', () => {
   const tags=[];
   const doc={
-    currentScript:{src:'https://cookie.brendigo.com/v0.4.0/loader.js'},
+    currentScript:{src:'https://cookie.brendigo.com/v0.5.0/loader.js'},
     head:{appendChild(tag){tags.push(tag);}},
     createElement(tagName){return {tagName,addEventListener(){}};}
   };
@@ -60,8 +60,8 @@ test('CDN loader resolves only assets in its versioned own directory', () => {
     document:doc, URL,window:{console}
   });
   assert.equal(tags.length,2);
-  assert.equal(tags[0].href,'https://cookie.brendigo.com/v0.4.0/brendigo-cookieconsent.css');
-  assert.equal(tags[1].src,'https://cookie.brendigo.com/v0.4.0/brendigo-cookieconsent.js');
+  assert.equal(tags[0].href,'https://cookie.brendigo.com/v0.5.0/brendigo-cookieconsent.css');
+  assert.equal(tags[1].src,'https://cookie.brendigo.com/v0.5.0/brendigo-cookieconsent.js');
 });
 
 test('all nine supported banner positions have a CSS rule', () => {

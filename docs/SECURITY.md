@@ -34,7 +34,7 @@ U dijalogu detalji pružatelja više se ne nalaze unutar `<label>` elementa koji
 
 Nema automatskog brisanja cookiesa trećih strana, dokaznog server-side dnevnika, IP geolokacije ni skenera skripti.
 
-## Dodatne provjere u v0.4.0
+## Dodatne provjere u v0.5.0
 
 - `data-bcc-src` skripte i iframeovi provjeravaju URL shemu (HTTP i HTTPS). Nevažeci ili netipični protokoli ostaju inertni.
 - `auditLocal()` je isključivo lokalni API; preglednički podaci se ne šalju na CDN, server ili treće strane.
