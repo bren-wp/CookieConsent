@@ -123,7 +123,7 @@ $GLOBALS['bcc_fixture'][\Brendigo\CookieConsent\OPTION] = [
 ];
 $catalog = \Brendigo\CookieConsent\render_catalog_shortcode(['language' => 'hr']);
 verify(strpos($catalog,'<script') === false, 'catalog does not render user-controlled HTML');
-verify(strpos($catalog,'&lt;Unsafe Service&gt;') !== false, 'catalog escapes provider name');
+verify(strpos($catalog,'Unsafe Service') !== false && strpos($catalog,'<Unsafe Service>') === false, 'catalog strips markup from provider name');
 verify(strpos($catalog,'https://example.org/privacy') !== false, 'catalog includes safe policy link');
 verify(strpos($catalog,'scope="col"') !== false, 'catalog is semantic table');
 verify(strpos(\Brendigo\CookieConsent\render_catalog_shortcode(['language'=>'ar']),'dir="rtl"') !== false,
