@@ -213,7 +213,11 @@
     if (!raw || !root.URL || !root.location) return null;
     try {
       var url = new root.URL(raw, root.location.href);
-      return url.protocol === 'https:' || url.protocol === 'http:' ? url.href : null;
+      if (url.username || url.password) return null;
+      if (url.protocol !== 'https:' && url.protocol !== 'http:') return null;
+      // Never downgrade HTTPS pages to active mixed-content HTTP resources.
+      if (root.location.protocol === 'https:' && url.protocol !== 'https:') return null;
+      return url.href;
     } catch (_) { return null; }
   }
   function invokeProvider(record, method) {
@@ -278,17 +282,26 @@
       categories: normalizeConsent(value), services: services || {}
     }));
   }
-  function parseRecord(value, revision, gpc) {
+  function parseRecord(value, revision, gpc, consentDays) {
     try {
+      if (typeof value !== 'string' || value.length > 14000) return null;
       var parsed = JSON.parse(decodeURIComponent(value || ''));
       if (!parsed || parsed.version !== 1 || parsed.revision !== revision ||
           !parsed.categories || typeof parsed.categories !== 'object' ||
-          typeof parsed.date !== 'string' || !Number.isFinite(Date.parse(parsed.date))) return null;
+          Array.isArray(parsed.categories) || typeof parsed.date !== 'string' ||
+          !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(parsed.date)) return null;
+      var timestamp = Date.parse(parsed.date);
+      var now = Date.now();
+      var days = Math.max(1, Math.min(365, Number(consentDays) || 180));
+      // Respect policy retention even if a cookie is manually replayed,
+      // restored from backup, or the site's duration was shortened.
+      if (!Number.isFinite(timestamp) || timestamp > now + 5 * 60000 ||
+          now - timestamp > days * 86400000) return null;
       return normalizeConsent(parsed.categories, gpc);
     } catch (_) { return null; }
   }
-  function parseServiceRecord(value, revision, gpc) {
-    if (!parseRecord(value, revision, gpc)) return null;
+  function parseServiceRecord(value, revision, gpc, consentDays) {
+    if (!parseRecord(value, revision, gpc, consentDays)) return null;
     try {
       var parsed = JSON.parse(decodeURIComponent(value));
       return parsed && parsed.services && typeof parsed.services === 'object' && !Array.isArray(parsed.services)
@@ -316,7 +329,7 @@
     var parts = (root.document.cookie || '').split(';');
     for (var i = 0; i < parts.length; i++) {
       var part = parts[i].trim();
-      if (part.indexOf(name) === 0) return parseRecord(part.slice(name.length), config.revision, isGpc());
+      if (part.indexOf(name) === 0) return parseRecord(part.slice(name.length), config.revision, isGpc(), config.consentDays);
     }
     return null;
   }
@@ -325,7 +338,7 @@
     var parts = (root.document.cookie || '').split(';');
     for (var i = 0; i < parts.length; i++) {
       var part = parts[i].trim();
-      if (part.indexOf(name) === 0) return parseServiceRecord(part.slice(name.length), config.revision, isGpc());
+      if (part.indexOf(name) === 0) return parseServiceRecord(part.slice(name.length), config.revision, isGpc(), config.consentDays);
     }
     return null;
   }
@@ -336,7 +349,7 @@
       var part = parts[i].trim();
       if (part.indexOf(name) !== 0) continue;
       var value = part.slice(name.length);
-      if (!parseRecord(value, config.revision, isGpc())) return null;
+      if (!parseRecord(value, config.revision, isGpc(), config.consentDays)) return null;
       try {
         var raw = JSON.parse(decodeURIComponent(value));
         return typeof raw.date === 'string' ? raw.date : null;

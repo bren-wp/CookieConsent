@@ -164,3 +164,20 @@ test('local passive scanner provides report without DOM or network',()=>{
  assert.equal(consent.renderCatalog('#inventory'),false);
  assert.deepEqual(consent.getCatalog(),[]);
 });
+
+test('rejects expired, future, malformed and oversized cookie records regardless of browser cookie lifetime',()=>{
+  const make=(date)=>consent.utils.encodeRecord({analytics:true},'expiry-test',date);
+  const day=86400000, now=Date.now();
+  assert.equal(consent.utils.parseRecord(make(new Date(now-8*day).toISOString()),'expiry-test',false,7),null);
+  assert.equal(consent.utils.parseRecord(make(new Date(now+2*day).toISOString()),'expiry-test'),null);
+  assert.equal(consent.utils.parseRecord(make(new Date(now-6*day).toISOString()),'expiry-test',false,7).analytics,true);
+  assert.equal(consent.utils.parseRecord('x'.repeat(14001),'expiry-test'),null);
+  const badDate=encodeURIComponent(JSON.stringify({version:1,revision:'expiry-test',
+      date:'2026-11-10T01:00:00',categories:{analytics:true}}));
+  assert.equal(consent.utils.parseRecord(badDate,'expiry-test'),null);
+});
+test('does not treat malformed stored objects as a category consent',()=>{
+  const record=encodeURIComponent(JSON.stringify({version:1,revision:'obj',
+    date:new Date().toISOString(),categories:[]}));
+  assert.equal(consent.utils.parseRecord(record,'obj'),null);
+});
