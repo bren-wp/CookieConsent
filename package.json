@@ -5,13 +5,14 @@
   "description": "CookieConsent by Brendigo — self-hosted privacy choices",
   "license": "MIT",
   "scripts": {
-    "test": "node --test tests/consent.test.cjs tests/integrations.test.cjs tests/docs.test.cjs tests/site.test.cjs tests/wporg.test.cjs tests/source-audit.test.cjs tests/performance.test.cjs tests/platforms.test.cjs",
+    "test": "node --test tests/consent.test.cjs tests/integrations.test.cjs tests/docs.test.cjs tests/site.test.cjs tests/wporg.test.cjs tests/source-audit.test.cjs tests/performance.test.cjs tests/platforms.test.cjs tests/deployment.test.cjs",
     "test:browser": "node --test tests/browser.test.cjs",
-    "check": "node --check packages/core/brendigo-cookieconsent.js && node --check cdn/loader.js && node --check packages/integrations/google-consent-basic.js && node --check wordpress/brendigo-cookieconsent/assets/admin-preview.js && node --check wordpress/brendigo-cookieconsent/assets/translation-editor.js && node --check tools/build-wporg.mjs && node tools/check-release.mjs",
+    "check": "node --check packages/core/brendigo-cookieconsent.js && node --check cdn/loader.js && node --check packages/integrations/google-consent-basic.js && node --check wordpress/brendigo-cookieconsent/assets/admin-preview.js && node --check wordpress/brendigo-cookieconsent/assets/translation-editor.js && node --check tools/build-wporg.mjs && node --check tools/verify-deployment.mjs && node tools/check-release.mjs",
     "build:cdn": "node tools/build-cdn.mjs",
     "build:wporg": "node tools/build-wporg.mjs",
     "audit:source": "node --test tests/source-audit.test.cjs",
-    "validate:platforms": "python3 tools/validate-integrations.py"
+    "validate:platforms": "python3 tools/validate-integrations.py",
+    "verify:deployment": "node tools/verify-deployment.mjs"
   },
   "engines": { "node": ">=18" }
 }
