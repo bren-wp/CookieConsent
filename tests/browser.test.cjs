@@ -225,6 +225,34 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
           assert.equal(await page.locator('#b-status').textContent(),'not loaded');
         }finally{await context.close();}
       });
+      await t.test('privacy receipt and lifecycle hooks are local, persistent and revision-aware',async()=>{
+        const context=await browser.newContext();
+        try{
+          const page=await context.newPage();
+          await page.goto(origin+'/demo/services.html');
+          await page.locator('.bcc-banner').waitFor({state:'visible'});
+          assert.equal(await page.evaluate(()=>BrendigoCookieConsent.getConsentReceipt()),null);
+          await page.locator('.bcc-banner-actions').getByRole('button',{name:'Reject all'}).click();
+          const first=await page.evaluate(()=>({
+            receipt:BrendigoCookieConsent.getConsentReceipt(),
+            events:window.bccDecisionEvents
+          }));
+          assert.equal(first.receipt.localOnly,true);
+          assert.equal(first.receipt.revision,'services-v1');
+          assert.equal(first.receipt.categories.analytics,false);
+          assert.ok(Number.isFinite(Date.parse(first.receipt.decidedAt)));
+          assert.deepEqual(first.events.map(e=>e.type),['first','consent','decision']);
+          await page.reload();
+          const after=await page.evaluate(()=>({
+            receipt:BrendigoCookieConsent.getConsentReceipt(),
+            events:window.bccDecisionEvents
+          }));
+          assert.equal(after.receipt.decidedAt,first.receipt.decidedAt);
+          assert.deepEqual(after.events.map(e=>e.type),['consent']);
+          await page.evaluate(()=>BrendigoCookieConsent.reset());
+          assert.equal(await page.evaluate(()=>BrendigoCookieConsent.getConsentReceipt()),null);
+        }finally{await context.close();}
+      });
       await t.test('first-party cleanup honors service IDs and protects the consent cookie',async()=>{
         const context=await browser.newContext();
         try{

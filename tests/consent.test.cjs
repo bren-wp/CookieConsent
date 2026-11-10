@@ -122,3 +122,8 @@ test('service choices persist alongside category consent in a backward compatibl
   assert.equal(services['stats-b'],false);
   assert.equal(consent.utils.parseServiceRecord(encoded,'policy-2',false),null);
 });
+
+test('receipt API returns null when visitor has not made a choice',()=>{
+  assert.equal(consent.getConsentReceipt(),null);
+  assert.equal(consent.downloadConsentReceipt(),false);
+});

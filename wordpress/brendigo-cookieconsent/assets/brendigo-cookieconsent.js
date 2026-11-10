@@ -163,6 +163,7 @@
   var nodes = {};
   var lastFocused = null;
   var listenersAttached = false;
+  var lastDecisionAt = null;
   var serviceConsent = Object.create(null);
   var providers = Object.create(null);
   var providerStates = Object.create(null);
@@ -327,10 +328,25 @@
     }
     return null;
   }
+  function readDecisionDate() {
+    var name = config.cookieName + '=';
+    var parts = (root.document.cookie || '').split(';');
+    for (var i = 0; i < parts.length; i++) {
+      var part = parts[i].trim();
+      if (part.indexOf(name) !== 0) continue;
+      var value = part.slice(name.length);
+      if (!parseRecord(value, config.revision, isGpc())) return null;
+      try {
+        var raw = JSON.parse(decodeURIComponent(value));
+        return typeof raw.date === 'string' ? raw.date : null;
+      } catch (_) { return null; }
+    }
+    return null;
+  }
   function persist() {
     var maxAge = Math.max(1, Math.min(365, Number(config.consentDays) || 180)) * 86400;
     var secure = root.location && root.location.protocol === 'https:' ? '; Secure' : '';
-    root.document.cookie = config.cookieName + '=' + encodeRecord(consent, config.revision, null, serviceConsent) +
+    root.document.cookie = config.cookieName + '=' + encodeRecord(consent, config.revision, lastDecisionAt, serviceConsent) +
       '; Path=/; Max-Age=' + maxAge + '; SameSite=Lax' + secure;
   }
   // Explicit first-party only cleanup rules: no RegExp input and no cross-origin access.
@@ -420,6 +436,50 @@
   }
   function getConsent() {
     return consent ? Object.assign({}, consent) : null;
+  }
+  /**
+   * A user-owned copy of the locally persisted choice, NOT an authenticated
+   * proof of compliance. No identifier, IP address, remote logging or beacon.
+   */
+  function getConsentReceipt() {
+    if (!consent || !config) return null;
+    return {
+      schema: 'brendigo-consent-receipt-v1',
+      product: 'CookieConsent by Brendigo',
+      revision: config.revision,
+      decidedAt: lastDecisionAt,
+      categories: getConsent(),
+      services: getServiceConsent(),
+      gpc: isGpc(),
+      localOnly: true
+    };
+  }
+  function downloadConsentReceipt() {
+    var receipt = getConsentReceipt();
+    if (!receipt || !root.document || !root.Blob || !root.URL ||
+        typeof root.URL.createObjectURL !== 'function') return false;
+    var blob = new root.Blob([JSON.stringify(receipt, null, 2) + '\n'],
+      {type:'application/json;charset=utf-8'});
+    var url = root.URL.createObjectURL(blob);
+    var link = element('a');
+    link.href = url;
+    link.download = 'brendigo-consent-receipt.json';
+    link.hidden = true;
+    root.document.body.appendChild(link);
+    link.click();
+    link.remove();
+    // Delayed release avoids an interrupted download in slower browsers.
+    if (root.setTimeout) root.setTimeout(function () { root.URL.revokeObjectURL(url); }, 1000);
+    return true;
+  }
+  function invokeHook(name, data) {
+    if (!config || typeof config[name] !== 'function') return;
+    try { config[name](data); }
+    catch (error) {
+      if (root.console && typeof root.console.error === 'function') {
+        root.console.error('[CookieConsent by Brendigo] ' + name + ' callback error', error);
+      }
+    }
   }
   function hasConsent(category) {
     return CATEGORIES.indexOf(category) !== -1 && (category === 'necessary' || !!(consent && consent[category]));
@@ -515,12 +575,30 @@
     if (!config) throw new Error('Initialize CookieConsent before setting consent.');
     var previous = getConsent();
     var oldServices = getServiceConsent();
+    var firstChoice = !previous;
     consent = normalizeConsent(choice, isGpc());
     serviceConsent = normalizeServiceChoices(consent, services);
+    lastDecisionAt = new Date().toISOString();
     persist();
     clearConfiguredCookies(previous, consent, oldServices, serviceConsent);
     // Adapters receive the complete decision before any gated script starts.
     emit('change');
+    var diff = {
+      receipt: getConsentReceipt(),
+      firstChoice: firstChoice,
+      changedCategories: CATEGORIES.filter(function (key) {
+        return !!(previous && previous[key]) !== !!consent[key];
+      }),
+      changedServices: Object.keys(serviceConsent).filter(function (key) {
+        return !!oldServices[key] !== !!serviceConsent[key];
+      })
+    };
+    if (firstChoice) {
+      emit('first');
+      invokeHook('onFirstConsent', diff.receipt);
+    }
+    invokeHook('onConsent', diff.receipt);
+    invokeHook('onDecision', diff);
     var revokedCategories = previous && CATEGORIES.some(function (cat) {
       return previous[cat] && !consent[cat] && cat !== 'necessary';
     });
@@ -545,6 +623,7 @@
     var oldServices = getServiceConsent();
     consent = null;
     serviceConsent = Object.create(null);
+    lastDecisionAt = null;
     root.document.cookie = config.cookieName + '=; Path=/; Max-Age=0; SameSite=Lax';
     clearConfiguredCookies(old, null, oldServices, serviceConsent);
     emit('change');
@@ -736,6 +815,7 @@
     nodes.banner = banner;
     showBanner();
     emit('ready'); // Returning consent is propagated before third-party tag activation.
+    if (consent) invokeHook('onConsent', getConsentReceipt());
     syncProviders();
     applyGatedResources();
     if (!listenersAttached) {
@@ -770,17 +850,22 @@
       revision: String(options.revision || '1'),
       cookieName: /^[-_a-zA-Z0-9]{1,60}$/.test(options.cookieName || '') ? options.cookieName : 'bcc_consent',
       translations: options.translations || null,
-      onChange: options.onChange
+      onChange: options.onChange,
+      onConsent: options.onConsent,
+      onFirstConsent: options.onFirstConsent,
+      onDecision: options.onDecision
     };
     consent = readSaved();
     serviceConsent = normalizeServiceChoices(consent, readServiceSaved());
+    lastDecisionAt = consent ? readDecisionDate() : null;
     if (root.document.readyState === 'loading') root.document.addEventListener('DOMContentLoaded', mount, { once: true });
     else mount();
     return api;
   }
   var api = {
     version: VERSION,
-    init: init, getConsent: getConsent, hasConsent: hasConsent,
+    init: init, getConsent: getConsent, getConsentReceipt: getConsentReceipt,
+    downloadConsentReceipt: downloadConsentReceipt, hasConsent: hasConsent,
     setConsent: setConsent, setDetailedConsent: setDetailedConsent,
     getServiceConsent: getServiceConsent, hasServiceConsent: hasServiceConsent,
     reset: reset, openPreferences: openPreferences,

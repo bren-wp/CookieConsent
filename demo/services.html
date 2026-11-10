@@ -13,6 +13,22 @@
       {category:'analytics',name:'bcc_test_analytics_b',serviceId:'stats-b'},
       {category:'analytics',prefix:'bcc_test_global_'}
     ],
+    onFirstConsent: function(receipt) {
+      (window.bccDecisionEvents = window.bccDecisionEvents || []).push({
+        type:'first',revision:receipt.revision
+      });
+    },
+    onConsent: function(receipt) {
+      (window.bccDecisionEvents = window.bccDecisionEvents || []).push({
+        type:'consent',revision:receipt.revision
+      });
+    },
+    onDecision: function(decision) {
+      (window.bccDecisionEvents = window.bccDecisionEvents || []).push({
+        type:'decision',first:decision.firstChoice,
+        changedCategories:decision.changedCategories
+      });
+    },
     services: [
       {category:'analytics', id:'stats-a',toggleable:true,name:'Service A',
         purpose:'First optional statistics provider',cookies:'bcc_test_analytics_a'},
