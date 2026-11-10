@@ -136,6 +136,18 @@ jobs:
           php "$RUNNER_TEMP/bin/wp" --path="$RUNNER_TEMP/wordpress" plugin check brendigo-cookieconsent \
             --format=table --allow-root > "$RUNNER_TEMP/plugin-check.txt" 2>&1 || true
           cat "$RUNNER_TEMP/plugin-check.txt"
+          if grep -q 
+      - name: Upload official Plugin Check report
+        if: always() && matrix.wordpress == 'latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: wordpress-plugin-check-report
+          path: ${{ runner.temp }}/plugin-check.txt
+          if-no-files-found: ignore
+\tERROR\t' "$RUNNER_TEMP/plugin-check.txt"; then
+            echo "WordPress Plugin Check found blocking ERROR items"
+            exit 1
+          fi
       - name: Upload official Plugin Check report
         if: always() && matrix.wordpress == 'latest'
         uses: actions/upload-artifact@v4

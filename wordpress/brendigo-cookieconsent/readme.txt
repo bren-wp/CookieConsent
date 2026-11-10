@@ -3,6 +3,7 @@ Contributors: brendigo
 Tags: cookie, consent, privacy, preference-manager, gdpr
 Requires at least: 6.2
 Requires PHP: 7.4
+Tested up to: 7.1
 Stable tag: 0.9.0
 License: MIT
 License URI: https://opensource.org/licenses/MIT

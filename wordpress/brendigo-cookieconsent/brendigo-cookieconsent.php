@@ -257,9 +257,11 @@ function import_settings(): void {
         wp_die(esc_html__('You are not allowed to import settings.', 'brendigo-cookieconsent'), '', ['response' => 403]);
     }
     check_admin_referer('bcc_import_settings');
+    // phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- JSON is schema-validated, size-limited and sanitized field by field below.
     $value = isset($_POST['bcc_settings_json']) && is_string($_POST['bcc_settings_json'])
         ? wp_unslash($_POST['bcc_settings_json'])
         : '';
+    // phpcs:enable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
     $decoded = strlen($value) <= 65536 ? json_decode($value, true) : null;
     $valid = is_array($decoded) && ($decoded['schema'] ?? null) === 'brendigo-cookieconsent-options-v1'
         && isset($decoded['settings']) && is_array($decoded['settings']);
@@ -288,9 +290,11 @@ function render_settings(): void {
         wp_die(esc_html__('You do not have permission to view this page.', 'brendigo-cookieconsent'));
     }
     $o = options();
+    // phpcs:disable WordPress.Security.NonceVerification.Recommended -- Read-only administrative notice; no change is made on GET.
     $import_status = isset($_GET['bcc_import']) && is_string($_GET['bcc_import'])
         ? sanitize_key(wp_unslash($_GET['bcc_import']))
         : '';
+    // phpcs:enable WordPress.Security.NonceVerification.Recommended
     ?>
     <div class="wrap">
         <h1><?php echo esc_html__('CookieConsent by Brendigo', 'brendigo-cookieconsent'); ?></h1>
