@@ -1,0 +1,39 @@
+/* CookieConsent by Brendigo — locally hosted UI styles */
+.bcc-root{--bcc-accent:#4357e8;--bcc-text:#17223e;--bcc-subtle:#66708c;--bcc-border:#e1e6f1;--bcc-bg:#fff;--bcc-shadow:0 18px 65px rgba(18,28,69,.19);font:inherit;color:var(--bcc-text);z-index:2147483000}
+.bcc-root *{box-sizing:border-box}
+.bcc-root button,.bcc-root input{font:inherit}
+.bcc-root button{cursor:pointer}
+.bcc-root button:focus-visible,.bcc-root a:focus-visible,.bcc-root input:focus-visible{outline:3px solid var(--bcc-accent);outline-offset:3px}
+.bcc-banner{position:fixed;bottom:24px;left:24px;right:24px;display:flex;align-items:center;justify-content:space-between;gap:28px;max-width:1180px;margin:auto;background:var(--bcc-bg);border:1px solid var(--bcc-border);border-radius:20px;padding:26px 30px;box-shadow:var(--bcc-shadow);z-index:2147483000}
+.bcc-banner[hidden]{display:none}
+.bcc-banner-content{min-width:0;max-width:700px}
+.bcc-eyebrow{font-size:10px;letter-spacing:.14em;font-weight:800;color:var(--bcc-accent);margin:0 0 8px}
+.bcc-root h2{font-size:21px;line-height:1.25;font-weight:750;color:var(--bcc-text);margin:0 0 9px}
+.bcc-root p{margin:0;line-height:1.6}
+.bcc-muted{color:var(--bcc-subtle);font-size:14px}
+.bcc-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:15px}
+.bcc-footer a{color:var(--bcc-accent);font-size:12px;text-decoration:underline;text-underline-offset:3px}
+.bcc-footer .bcc-credit{margin-left:auto;color:var(--bcc-subtle);text-decoration:none}
+.bcc-banner-actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end;max-width:430px}
+.bcc-button{min-height:43px;border-radius:10px;border:1px solid var(--bcc-border);font-size:13px;font-weight:700;padding:10px 15px;background:#fff;color:var(--bcc-text);transition:transform .15s,box-shadow .15s}
+.bcc-button:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(22,36,81,.09)}
+.bcc-primary{background:var(--bcc-accent);border-color:var(--bcc-accent);color:#fff}
+.bcc-secondary{background:#fff;color:var(--bcc-text)}
+.bcc-overlay{position:fixed;inset:0;background:rgba(12,19,47,.57);display:flex;align-items:center;justify-content:center;padding:22px;z-index:2147483001}
+.bcc-panel{width:min(100%,600px);max-height:calc(100vh - 44px);overflow:auto;background:var(--bcc-bg);border-radius:19px;padding:28px;box-shadow:var(--bcc-shadow)}
+.bcc-panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:22px}
+.bcc-icon-button{border:0;background:#f0f2fa;border-radius:9px;min-width:34px;min-height:34px;font-size:24px;line-height:1;color:var(--bcc-text)}
+.bcc-category-list{border:1px solid var(--bcc-border);border-radius:14px;overflow:hidden}
+.bcc-category{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px;cursor:pointer}
+.bcc-category:not(:last-child){border-bottom:1px solid var(--bcc-border)}
+.bcc-category-description{display:flex;flex-direction:column;gap:5px}
+.bcc-category-description strong{font-size:14px;color:var(--bcc-text)}
+.bcc-category-description small{font-size:12px;color:var(--bcc-subtle);line-height:1.55}
+.bcc-category input{appearance:auto;accent-color:var(--bcc-accent);min-width:18px;min-height:18px;cursor:pointer}
+.bcc-category input:disabled{cursor:not-allowed}
+.bcc-panel .bcc-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px;margin-top:20px}
+.bcc-panel .bcc-actions .bcc-primary{flex:1 1 155px}
+.bcc-notice{padding:11px 13px;border-radius:9px;background:#f1f5ff;color:#30417f;font-size:12px;margin-top:12px!important}
+@media(max-width:780px){.bcc-banner{bottom:12px;left:12px;right:12px;padding:18px;display:block;border-radius:16px}.bcc-banner-actions{max-width:none;justify-content:stretch;margin-top:17px}.bcc-banner-actions .bcc-button{flex:1 1 110px}.bcc-panel{padding:19px}.bcc-panel .bcc-actions .bcc-button{flex:1 1 100%}}
+@media(prefers-reduced-motion:reduce){.bcc-button{transition:none}.bcc-button:hover{transform:none}}
+@media(prefers-color-scheme:dark){.bcc-root.bcc-dark{--bcc-text:#f7f8ff;--bcc-subtle:#c1cae5;--bcc-border:#374461;--bcc-bg:#171f34}.bcc-root.bcc-dark .bcc-secondary,.bcc-root.bcc-dark .bcc-icon-button{background:#252e47;color:#f7f8ff}}
