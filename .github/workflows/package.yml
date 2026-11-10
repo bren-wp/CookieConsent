@@ -22,13 +22,10 @@ jobs:
           cmp packages/core/brendigo-cookieconsent.js wordpress/brendigo-cookieconsent/assets/brendigo-cookieconsent.js
           cmp packages/core/brendigo-cookieconsent.css wordpress/brendigo-cookieconsent/assets/brendigo-cookieconsent.css
           cmp packages/integrations/google-consent-basic.js wordpress/brendigo-cookieconsent/assets/google-consent-basic.js
-      - name: Build ZIP installers
+      - name: Build deterministic ZIP installers
         run: |
-          mkdir -p dist/standalone
-          cp packages/core/* dist/standalone/
-          cd dist && zip -qr cookieconsent-brendigo-standalone.zip standalone
-          cd ../wordpress && zip -qr ../dist/brendigo-cookieconsent-wordpress.zip brendigo-cookieconsent
-          cd ../dist/cdn && zip -qr ../brendigo-cookieconsent-cdn.zip v0.4.0
+          python3 tools/package.py
+          python3 tools/package.py --verify
       - uses: actions/upload-artifact@v4
         with:
           name: cookieconsent-by-brendigo-installers

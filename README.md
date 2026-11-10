@@ -178,7 +178,7 @@ npx playwright install --with-deps chromium
 npm run test:browser
 ```
 
-CDN i lokalni paketi i dalje nemaju vanjskih runtime biblioteka.
+CDN i lokalni paketi i dalje nemaju vanjskih runtime biblioteka. Za izradu provjerljivih ZIP paketa koristite `python3 tools/package.py`; dokumentacija: [Distribucija](docs/RELEASE.md).
 
 ## 📁 Struktura
 

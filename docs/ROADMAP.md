@@ -37,7 +37,8 @@
 ## v1.0 — stabilnost
 - [x] Prvi Chromium browser end-to-end i tipkovnički regresijski testovi u CI-u
 - [ ] Potpuna cross-browser (Firefox/WebKit), screen reader, WCAG i sigurnosna revizija
-- [ ] Reproducibilni release ZIP paketi i validacija za zajedničke hostinge
+- [x] Deterministički ZIP paketi s provjerom istovjetnosti i CDN SHA-256 manifestom
+- [ ] Validacija stvarnih shared-hosting instalacija kroz više PHP/WordPress verzija
 - [ ] Dokumentirane matrice kompatibilnosti s CMS platformama
 - [ ] Posebne pravne i tehničke provjere za podržane regulatorne profile
 

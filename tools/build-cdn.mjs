@@ -18,9 +18,10 @@ const entries = [
   ['packages/core/brendigo-cookieconsent.js', 'brendigo-cookieconsent.js'],
   ['packages/core/brendigo-cookieconsent.css', 'brendigo-cookieconsent.css'],
   ['cdn/loader.js', 'loader.js'],
-  ['packages/integrations/google-consent-basic.js', 'google-consent-basic.js']
+  ['packages/integrations/google-consent-basic.js', 'google-consent-basic.js'],
+  ['LICENSE', 'LICENSE']
 ];
-const manifest = { version, origin: 'https://cookie.brendigo.com', generatedAt: new Date().toISOString(), files: {} };
+const manifest = { schema: 1, version, origin: 'https://cookie.brendigo.com', files: {} };
 for (const [source, name] of entries) {
   const bytes = fs.readFileSync(path.join(root,source));
   fs.writeFileSync(path.join(target,name), bytes);
