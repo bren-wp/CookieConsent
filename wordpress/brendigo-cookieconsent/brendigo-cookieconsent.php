@@ -300,6 +300,10 @@ function render_settings(): void {
             <div class="notice notice-error"><p><?php esc_html_e('Invalid or oversized settings JSON. No settings were changed.', 'brendigo-cookieconsent'); ?></p></div>
         <?php endif; ?>
         <p><?php echo esc_html__('Privacy choices with a self-hosted banner. Integrations must be classified and gated separately.', 'brendigo-cookieconsent'); ?></p>
+        <p><?php esc_html_e('Public cookie inventory shortcode:', 'brendigo-cookieconsent'); ?>
+            <code>[brendigo_cookie_catalog language="hr"]</code>
+            <span class="description"><?php esc_html_e('Insert this into any public page to show the declared service and cookie inventory.', 'brendigo-cookieconsent'); ?></span>
+        </p>
         <form action="options.php" method="post">
             <?php settings_fields('brendigo_cookieconsent'); ?>
             <table class="form-table" role="presentation">
@@ -530,6 +534,53 @@ function protected_woocommerce_script(string $handle): bool {
         'wc-checkout', 'wc-cart', 'wc-blocks-checkout',
     ], true);
 }
+
+/**
+ * Public inventory only: no tracking scripts, no collection of visitor data.
+ * [brendigo_cookie_catalog language="hr"]
+ */
+function render_catalog_shortcode($attrs = []): string {
+    $attrs = is_array($attrs) ? $attrs : [];
+    $language = isset($attrs['language']) ? sanitize_key($attrs['language']) : 'auto';
+    if ($language === 'auto') {
+        $site_locale = function_exists('determine_locale') ? determine_locale() : 'hr';
+        $language = strtolower(substr((string) $site_locale, 0, 2));
+    }
+    $available = [
+        'hr' => ['Katalog kolačića i usluga','Kategorija','Pružatelj','Svrha','Kolačići','Trajanje','Politika privatnosti','Nema prijavljenih usluga.'],
+        'en' => ['Cookie and service catalogue','Category','Provider','Purpose','Cookies','Duration','Privacy policy','No services declared.'],
+        'de' => ['Cookie- und Dienstekatalog','Kategorie','Anbieter','Zweck','Cookies','Dauer','Datenschutz','Keine Dienste deklariert.'],
+        'it' => ['Catalogo cookie e servizi','Categoria','Fornitore','Finalità','Cookie','Durata','Privacy','Nessun servizio dichiarato.'],
+        'es' => ['Catálogo de cookies y servicios','Categoría','Proveedor','Finalidad','Cookies','Duración','Privacidad','No hay servicios registrados.'],
+        'fr' => ['Catalogue des cookies et services','Catégorie','Fournisseur','Finalité','Cookies','Durée','Confidentialité','Aucun service déclaré.'],
+        'ar' => ['كتالوج ملفات تعريف الارتباط والخدمات','الفئة','المزود','الغرض','الكوكيز','المدة','الخصوصية','لا توجد خدمات مسجلة.'],
+    ];
+    $lang = isset($available[$language]) ? $language : 'en';
+    $labels = $available[$lang];
+    $services = array_merge(woocommerce_services(), parse_services(options()['services_catalog']));
+    $html = '<div class="bcc-catalog-wrap" lang="' . esc_attr($lang) . '" dir="' .
+        ($lang === 'ar' ? 'rtl' : 'ltr') . '"><table class="bcc-catalog"><caption>' .
+        esc_html($labels[0]) . '</caption><thead><tr>';
+    foreach (array_slice($labels, 1, 6) as $label) {
+        $html .= '<th scope="col">' . esc_html($label) . '</th>';
+    }
+    $html .= '</tr></thead><tbody>';
+    foreach ($services as $service) {
+        $html .= '<tr>';
+        foreach (['category','name','purpose','cookies','duration'] as $key) {
+            $html .= '<td>' . esc_html($service[$key] ?? '') . '</td>';
+        }
+        $url = isset($service['privacyUrl']) ? esc_url($service['privacyUrl']) : '';
+        $html .= '<td>' . ($url !== '' ? '<a href="' . $url .
+            '" target="_blank" rel="noopener noreferrer">' . esc_html($labels[6]) . '</a>'
+            : '&mdash;') . '</td></tr>';
+    }
+    if (!$services) {
+        $html .= '<tr><td colspan="6">' . esc_html($labels[7]) . '</td></tr>';
+    }
+    return $html . '</tbody></table></div>';
+}
+add_shortcode('brendigo_cookie_catalog', __NAMESPACE__ . '\\render_catalog_shortcode');
 
 function frontend_assets(): void {
     $o = options();

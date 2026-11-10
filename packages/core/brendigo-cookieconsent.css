@@ -151,3 +151,17 @@
 }
 .bcc-root .bcc-receipt-button:hover{text-decoration:underline}
 .bcc-root .bcc-receipt-button:focus-visible{outline:3px solid var(--bcc-accent);outline-offset:2px}
+
+
+/* Public, accessible, locally rendered service inventory. */
+.bcc-catalog-wrap{overflow-x:auto;max-width:100%;margin:16px 0}
+.bcc-catalog{width:100%;border-collapse:collapse;border:1px solid #ccd5e5;
+  background:#fff;color:#18243b;text-align:start;font:inherit}
+.bcc-catalog caption{text-align:start;font-size:1.12em;font-weight:700;
+  padding:13px 8px;color:inherit}
+.bcc-catalog th,.bcc-catalog td{padding:12px;border:1px solid #d8dfea;
+  text-align:start;vertical-align:top;min-width:90px;overflow-wrap:anywhere}
+.bcc-catalog th{background:#f1f4fa;font-weight:700}
+.bcc-catalog tr:nth-child(even){background:#f8fafd}
+.bcc-catalog a{color:#173f93;text-decoration:underline}
+.bcc-catalog a:focus-visible{outline:3px solid #3856a8;outline-offset:2px}

@@ -8,6 +8,7 @@ define('ABSPATH', dirname(__DIR__));
 $GLOBALS['bcc_fixture'] = [];
 function add_action($name, $callback, ...$rest): void {}
 function add_filter($name, $callback, ...$rest): void {}
+function add_shortcode($name, $callback): void {}
 function get_option($name, $default = null) { return $GLOBALS['bcc_fixture'][$name] ?? $default; }
 function sanitize_text_field($value): string {
     return is_scalar($value) ? trim(strip_tags((string)$value)) : '';
@@ -27,6 +28,10 @@ function esc_url_raw($url, $protocols = ['http','https']): string {
     return in_array(strtolower((string)$scheme), $protocols, true) ? $url : '';
 }
 function absint($value): int { return abs((int)$value); }
+function esc_html($v): string { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
+function esc_attr($v): string { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
+function esc_url($v): string { return is_string($v) && preg_match('~^https?://~', $v) ? esc_attr($v) : ''; }
+function determine_locale(): string { return 'hr_HR'; }
 
 require __DIR__ . '/../wordpress/brendigo-cookieconsent/brendigo-cookieconsent.php';
 function verify($condition, string $message): void {
@@ -112,3 +117,14 @@ verify(strlen($translation_data['en']['intro']) === 700, 'long descriptions trun
 verify(\Brendigo\CookieConsent\sanitize_translation_overrides('{invalid-json}') === '', 'invalid JSON rejected');
 verify(\Brendigo\CookieConsent\sanitize_translation_overrides(str_repeat('x', 24001)) === '', 'oversized JSON rejected');
 verify(\Brendigo\CookieConsent\sanitize_options(['language'=>'fr'])['language'] === 'fr', 'French locale allowed');
+
+$GLOBALS['bcc_fixture'][\Brendigo\CookieConsent\OPTION] = [
+ 'services_catalog' => "analytics|<Unsafe Service>|Statistics|_stats|90 days|https://example.org/privacy|stats",
+];
+$catalog = \Brendigo\CookieConsent\render_catalog_shortcode(['language' => 'hr']);
+verify(strpos($catalog,'<script') === false, 'catalog does not render user-controlled HTML');
+verify(strpos($catalog,'&lt;Unsafe Service&gt;') !== false, 'catalog escapes provider name');
+verify(strpos($catalog,'https://example.org/privacy') !== false, 'catalog includes safe policy link');
+verify(strpos($catalog,'scope="col"') !== false, 'catalog is semantic table');
+verify(strpos(\Brendigo\CookieConsent\render_catalog_shortcode(['language'=>'ar']),'dir="rtl"') !== false,
+ 'catalog supports RTL direction');
