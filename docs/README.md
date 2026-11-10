@@ -7,8 +7,8 @@ Svi vodiči odnose se na vlastiti sustav **CookieConsent by Brendigo**. Funkcije
 ## Instalacija i administracija
 
 - [Početak i instalacija](INSTALL.hr.md) — HTML, PHP, lokalni resursi i demo.
-- [WordPress vodič](WORDPRESS.hr.md)
-- [CMS i webshop integracije](CMS-INTEGRATIONS.hr.md) — Joomla, Drupal, Shopify, Magento, OpenCart i PrestaShop. — sve postavke, editor jezika, katalog usluga, izvoz/uvoz.
+- [WordPress vodič](WORDPRESS.hr.md) — postavke, editor jezika, katalog, izvoz i uvoz.
+- [CMS i webshop integracije](CMS-INTEGRATIONS.hr.md) — Joomla, Drupal, Shopify, Magento, OpenCart i PrestaShop.
 - [Web-stranica proizvoda](../website/README.md) — dvojezični frontend i instalacija na vlastiti hosting.
 - [CDN infrastruktura](CDN.hr.md) — verzionirani sadržaj, HTTPS, CSP, caching i privatnost.
 - [WooCommerce](WOOCOMMERCE.hr.md) — košarica, naplata i razgraničenje neobveznih dodataka.
@@ -22,14 +22,15 @@ Svi vodiči odnose se na vlastiti sustav **CookieConsent by Brendigo**. Funkcije
 - [Arhitektura](ARCHITECTURE.hr.md) — slojevi koda, distribucija, tokovi privole.
 - [Pristupačnost](ACCESSIBILITY.hr.md) — podržane kontrole i testni plan.
 - [Razvoj i provjere](DEVELOPMENT.md) — Node, PHP, Playwright, reproducibilni paketi.
-- [Distribucija](RELEASE.md) — pet ZIP-ova, release workflow, SHA-256.
+- [Distribucija](RELEASE.md) — 11 paketa, release workflow i SHA-256.
+- [Matrica provjera](QUALITY-GATES.hr.md) — stvarni testovi, izolirani smoke testovi i otvorene produkcijske provjere.
 
 ## Privatnost, sigurnost i produkcija
 
 - [Potvrda korisnikova odabira](CONSENT-RECEIPT.hr.md) — sadržaj, preuzimanje, ograničenja.
-- [Sigurnosne smjernice](SECURITY.md)
-- [Source security audit](SECURITY-AUDIT.hr.md) — nalaz po nalaz, ispravci i preostali rizici.
-- [Dead code audit](DEAD-CODE-AUDIT.hr.md) — uklonjene duplicirane putanje, namjerna pakiranja. — zaštite, granice, prijava nalaza.
+- [Sigurnosne smjernice](SECURITY.md) — zaštite, granice i prijava nalaza.
+- [Security audit](SECURITY-AUDIT.hr.md) — nalazi, ispravci i otvoreni rizici.
+- [Dead-code audit](DEAD-CODE-AUDIT.hr.md) — uklonjeni duplikati i namjerno zadržane datoteke.
 - [Pravna kontrolna lista](COMPLIANCE.hr.md) — obveze koje konfigurira vlasnik stranice.
 - [Regulatorna matrica](REGULATORY-MATRIX.hr.md) — EU/HR, UK, SAD i druge jurisdikcije.
 - [Kontrolni popis prije objave](GO-LIVE.hr.md) — funkcionalni, pravni i infrastrukturni prihvat.

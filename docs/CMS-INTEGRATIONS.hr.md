@@ -60,7 +60,7 @@ Postavke su u **Stores → Configuration → General → CookieConsent by Brendi
 
 ## 5. OpenCart 4
 
-Prenesite **točno** `brendigo.ocmod.zip` kroz **Extensions → Installer**, instalirajte ga i potom omogućite pod **Extensions → Extensions → Modules**. Naziv ZIP-a je važan: OpenCart ga raspakirava u `extension/brendigo/`, što mora odgovarati namespaceovima kontrolera i event rutama. Modul koristi event `catalog/view/common/header/after` za lokalnu skriptu u zaglavlju. Dodijelite administratorske ovlasti za izmjenu ekstenzije i testirajte prilagođenu temu.
+Prenesite **točno** `brendigo.ocmod.zip` kroz **Extensions → Installer**, instalirajte ga i potom omogućite pod **Extensions → Extensions → Modules**. Naziv ZIP-a je važan: OpenCart ga raspakirava u `extension/brendigo/`, što mora odgovarati namespaceovima kontrolera i event rutama. Modul koristi event `catalog/view/common/header/after`, s putanjama relativnima korijenu trgovine (ne URL-u proizvoda). Konfiguracija se čita iz inertnog JSON bloka, a skripte su lokalne i učitavaju se redoslijedom bootstrap → jezgra. Dodijelite administratorske ovlasti za izmjenu ekstenzije i testirajte prilagođenu temu.
 
 ## 6. PrestaShop 8/9
 
@@ -76,6 +76,6 @@ Prenesite `brendigocookieconsent-prestashop.zip` kroz **Modules → Module Manag
 
 ## Stvarni status testiranja
 
-Implementirani su **nativne datoteke i lokalno pakiranje**, a CI provjerava izvorne kopije, JS testove, PHP sintaksu, XML/JSON manifeste, Shopify Liquid schema JSON i reproducibilnost ZIP-ova. **Nisu izvršene stvarne instalacije** šest platformi u ovom repozitoriju; bez njih se ne može tvrditi da su potpuni produkcijski integracijski testovi prošli.
+Implementirani su **nativne datoteke i lokalno pakiranje**, a CI provjerava izvorne kopije, JS testove, PHP sintaksu, XML/JSON manifeste, Shopify Liquid schema JSON i reproducibilnost ZIP-ova. **Nisu izvršene stvarne instalacije** šest platformi u ovom repozitoriju; bez njih se ne može tvrditi da su potpuni produkcijski integracijski testovi prošli. Dodatno se izvode **izolirani PHP adapter-smoke testovi** za Joomla, Drupal, Magento, OpenCart i PrestaShop uz simulirane platformske API-je te Node.js testovi za Shopify Customer Privacy most. Ti testovi mogu otkriti pogreške u vlastitom kodu, ali ne dokazuju kompatibilnost s produkcijskom platformom. Pogledajte [matricu provjera](QUALITY-GATES.hr.md).
 
 [Roadmap](ROADMAP.md) · [Kontrolni popis prije objave](GO-LIVE.hr.md) · [Arhitektura](ARCHITECTURE.hr.md) · [Sigurnost](SECURITY.md).
