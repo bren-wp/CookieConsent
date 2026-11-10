@@ -1,6 +1,6 @@
 {
   "name": "@brendigo/cookieconsent",
-  "version": "0.11.0",
+  "version": "0.11.1",
   "private": true,
   "description": "CookieConsent by Brendigo — self-hosted privacy choices",
   "license": "MIT",
