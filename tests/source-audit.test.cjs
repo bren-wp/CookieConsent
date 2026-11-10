@@ -33,7 +33,7 @@ test('source security audit: unsafe dynamic JS and PHP execution sinks are absen
 });
 test('demo pages do not rely on inline HTML event-handler attributes',()=>{
   for(const page of ['demo/index.html','demo/configurator.html','demo/services.html','demo/catalog.html']){
-    assert.doesNotMatch(source(page),/\\bon(?:click|load|error|mouseover|focus)\\s*=/i);
+    assert.doesNotMatch(source(page),/\bon(?:click|load|error|mouseover|focus)\s*=/i);
   }
 });
 test('dead code regression: no redundant tab subscription and no duplicate hidden override',()=>{
