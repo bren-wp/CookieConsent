@@ -1,6 +1,6 @@
 # Dokumentacija — CookieConsent by Brendigo
 
-**Verzija: 0.8.1 (testna)** · Autor: **Brendigo** · [Povratak na README](../README.md)
+**Verzija: 0.9.0 (testna)** · Autor: **Brendigo** · [Povratak na README](../README.md)
 
 Svi vodiči odnose se na vlastiti sustav **CookieConsent by Brendigo**. Funkcije su opisane prema aktualnoj bazi koda; pojedine produkcijske i certifikacijske obveze ostaju otvorene.
 
@@ -8,6 +8,7 @@ Svi vodiči odnose se na vlastiti sustav **CookieConsent by Brendigo**. Funkcije
 
 - [Početak i instalacija](INSTALL.hr.md) — HTML, PHP, lokalni resursi i demo.
 - [WordPress vodič](WORDPRESS.hr.md) — sve postavke, editor jezika, katalog usluga, izvoz/uvoz.
+- [Web-stranica proizvoda](../website/README.md) — dvojezični frontend i instalacija na vlastiti hosting.
 - [CDN infrastruktura](CDN.hr.md) — verzionirani sadržaj, HTTPS, CSP, caching i privatnost.
 - [WooCommerce](WOOCOMMERCE.hr.md) — košarica, naplata i razgraničenje neobveznih dodataka.
 - [Kompatibilnost](COMPATIBILITY.md) — automatski testirano nasuprot planiranom.

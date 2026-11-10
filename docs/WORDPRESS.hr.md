@@ -1,6 +1,6 @@
 # WordPress vodič — CookieConsent by Brendigo
 
-**Zahtjevi:** WordPress 6.2+, PHP 7.4+ · **Izdanje:** 0.8.1
+**Zahtjevi:** WordPress 6.2+, PHP 7.4+ · **Izdanje:** 0.9.0
 
 ## Instalacija
 
@@ -71,3 +71,9 @@ Lokalne datoteke zadana su opcija i ne trebaju Brendigo poslužitelj. CDN opciju
 - Ne poistovjećujte izolirane PHP provjere s testiranjem pune WordPress instalacije.
 
 [WooCommerce](WOOCOMMERCE.hr.md) · [Otklanjanje problema](TROUBLESHOOTING.hr.md) · [Prihvatni test](GO-LIVE.hr.md).
+
+## Metapodaci i WordPress.org direktorij
+
+Službeni paket ima `Plugin URI: https://cookie.brendigo.com`, `Author: Brendigo`, `Author URI: https://brendigo.com` i `Contributors: brendigo` u WordPress `readme.txt`. Za javni WordPress.org direktorij `Contributors` mora odgovarati stvarnom WordPress.org računu.
+
+**Razlika u pravilima:** brendirani GitHub ZIP ostavlja stalni potpis `by Brendigo` i nudi opcionalno učitavanje CDN skripti. Pravila WordPress.org direktorija zahtijevaju da javni kredit bude izboran i zadano isključen te u pravilu ne dopuštaju vanjsko učitavanje običnog plug-in JS/CSS koda. Stoga se **ne smije tvrditi** da je ova brendirana distribucija već odobrena za WordPress.org. Za direktorij je potrebna prilagođena distribucija uz zaseban Plugin Check audit. Službena dokumentacija: https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/ .

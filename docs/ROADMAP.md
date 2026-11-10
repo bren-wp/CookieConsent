@@ -1,6 +1,6 @@
 # Razvojni plan — CookieConsent by Brendigo
 
-**Aktualno izdanje: 0.8.1 (testno)** · Ažurirano: 10. 11. 2026. · [Dokumentacija](README.md) · [Promjene](CHANGELOG.md)
+**Aktualno izdanje: 0.9.0 (testno)** · Ažurirano: 10. 11. 2026. · [Dokumentacija](README.md) · [Promjene](CHANGELOG.md)
 
 Ovaj plan razlikuje **implementirano u kodu**, **automatizirano testirano** i **neprovjereno u stvarnoj produkciji**. Dokumentacija ne predstavlja potvrdu regulatorne certifikacije.
 
@@ -25,6 +25,15 @@ Ovaj plan razlikuje **implementirano u kodu**, **automatizirano testirano** i **
 | Reproducibilni ZIP-ovi: standalone, WordPress i CDN | Implementirano |
 | CI: Node, PHP 7.4 i 8.1–8.4, Chromium/Firefox/WebKit, automatizirani axe-core | Automatizirano testirano u pokrivenim scenarijima |
 | Stalni potpis `by Brendigo` u službenom UI-ju | Implementirano, ne kriptografski neuklonjivo |
+
+## Isporuka web-stranice i WordPress smjernice — v0.9.0
+
+- [x] Dvojezična (HR/EN) responzivna stranica za predviđenu domenu `cookie.brendigo.com`.
+- [x] Paketiranje web-stranice, demo sučelja i `/v0.9.0/` CDN resursa u zaseban ZIP.
+- [x] Metapodaci: Plugin URI `https://cookie.brendigo.com`, autor **Brendigo**, Author URI `https://brendigo.com`, Contributors `brendigo`.
+- [x] Lokalna provjera metapodataka i web datoteka u CI-u.
+- [ ] Aktivirati javni DNS/TLS/hosting i stvarno objaviti web-stranicu.
+- [ ] WordPress.org izdanje: osigurati opt-in javni potpis i lokalne JS/CSS resurse prema pravilima direktorija, zatim pokrenuti službeni Plugin Check.
 
 ## Prioritet A — produkcijska pouzdanost
 
@@ -57,4 +66,4 @@ Ovaj plan razlikuje **implementirano u kodu**, **automatizirano testirano** i **
 
 Izdanje se ne proglašava stabilnim samo zbog zelenog CI-a: potrebne su potvrđene stvarne instalacije, bez regresija prihvaćanja/odbijanja/opoziva, provjereni scenariji s pružateljima i održiv proces sigurnosnih nadogradnji.
 
-**Neposredan sljedeći korak:** završiti aktualne regresijske testove i objaviti usklađene distribucijske pakete v0.8.1, nakon čega slijedi testiranje na stvarnom WordPressu.
+**Neposredan sljedeći korak:** završiti aktualne regresijske testove i objaviti usklađene distribucijske pakete v0.9.0, nakon čega slijedi testiranje na stvarnom WordPressu.
