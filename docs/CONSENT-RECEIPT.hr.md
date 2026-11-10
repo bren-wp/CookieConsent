@@ -37,3 +37,5 @@ U prozoru postavki prikazuje se gumb za preuzimanje kada je odluka već spremlje
 **Lokalni JSON nije nepromjenjiv, nije digitalno potpisan, nije poslužiteljski ovjeren dokaz privole i ne može dokazati identitet korisnika.** Ako je za određenu primjenu potreban dokazni registar, mora se zasebno projektirati uz pravnu osnovu, minimizaciju, sigurnosna pravila i rokove čuvanja.
 
 Sustav ne tvrdi da posjeduje centralnu bazu privola.
+
+**Dodatni detalj sinkronizacije:** uz BroadcastChannel koristi se i StorageEvent, pri čemu lokalna pohrana sadrži samo reviziju i tehnički signal promjene, ne stvarni izbor kategorija ili usluga. Zapis se može ukloniti pri čišćenju lokalne pohrane preglednika.

@@ -49,3 +49,7 @@ Automatizirani pregled obuhvatio je **37 kodnih/testnih/CI datoteka** te izravnu
 U obuhvaćenom izvornom kodu popravljene su konkretne sigurnosne i robusnosne pogreške. Preostali rizici odnose se ponajviše na treće servise, preglednik, poslužitelj, raspored učitavanja, lokalnu evidenciju i vanjski hosting. **Ovaj dokument nije dokaz da je sustav bez ranjivosti niti da je usklađen sa svim zakonima.**
 
 [Sigurnosne smjernice](SECURITY.md) · [Roadmap](ROADMAP.md) · [Produkcijska provjera](GO-LIVE.hr.md).
+
+## Popravak međukartične sinkronizacije
+
+Uveden je dodatni `storage` event kanal uz BroadcastChannel, s porukama koje sadrže samo reviziju politike, timestamp i lokalni brojač. Time se smanjuje rizik gubitka sinkronizacije u preglednicima koji privremeno ograničavaju BroadcastChannel. Nema prijenosa sadržaja privole na udaljeni server; za oba kanala potreban je isti origin.

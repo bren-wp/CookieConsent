@@ -106,3 +106,7 @@ To je korisnikova **lokalna, nekriptografska** kopija, a ne serverski ili pravno
 `BrendigoCookieConsent.utils.parseConfigurationJSON(raw)` vraća sanirani objekt dozvoljenih postavki ili `null`; očekuje `schema: "brendigo-cookieconsent-standalone-v1"`. `initFromJSON(raw)` prihvaća samo valjanu konfiguraciju prije inicijalizacije. Nikada ne uvozi korisnikovu privolu.
 
 `renderCatalog('#my-catalog')` stvara preglednu višejezičnu tablicu za deklarirane usluge. Ne skenira automatski sve kolačiće niti klasificira treće strane.
+
+### Fallback kada BroadcastChannel nije podržan
+
+Uz `BroadcastChannel`, jezgra koristi i standardni `storage` događaj za isti origin. U `localStorage` se zapisuje samo tehnički signal `bcc-consent-update:<cookieName>` s revizijom politike, vremenom i lokalnim brojačem **bez sadržaja privole ili identifikatora korisnika**. Prijemna kartica ponovno čita vlastiti first-party cookie. Ako su obje mogućnosti blokirane, promjena postaje vidljiva pri ponovnom učitavanju.

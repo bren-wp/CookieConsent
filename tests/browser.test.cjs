@@ -288,6 +288,24 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
           assert.equal(await a.evaluate(()=>BrendigoCookieConsent.getConsentReceipt()),null);
         }finally{await context.close();}
       });
+      await t.test('same-origin consent sync falls back to StorageEvent without BroadcastChannel',async()=>{
+        const context=await browser.newContext();
+        try{
+          await context.addInitScript(()=>{
+            try { Object.defineProperty(window,'BroadcastChannel',{value:undefined,configurable:true}); }
+            catch (_) { window.BroadcastChannel=undefined; }
+          });
+          const a=await context.newPage(),b=await context.newPage();
+          await a.goto(origin+'/demo/services.html');
+          await b.goto(origin+'/demo/services.html');
+          await a.locator('.bcc-banner').waitFor({state:'visible'});
+          await b.locator('.bcc-banner').waitFor({state:'visible'});
+          await a.locator('.bcc-banner-actions').getByRole('button',{name:'Accept all'}).click();
+          await b.waitForFunction(()=>BrendigoCookieConsent.hasConsent('analytics')===true,null,{timeout:10000});
+          await b.evaluate(()=>BrendigoCookieConsent.reset());
+          await a.waitForFunction(()=>BrendigoCookieConsent.getConsent()===null,null,{timeout:10000});
+        } finally { await context.close(); }
+      });
       await t.test('first-party cleanup honors service IDs and protects the consent cookie',async()=>{
         const context=await browser.newContext();
         try{
