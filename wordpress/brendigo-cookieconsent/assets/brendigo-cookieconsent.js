@@ -910,6 +910,9 @@
     consent = readSaved();
     serviceConsent = normalizeServiceChoices(consent, readServiceSaved());
     lastDecisionAt = consent ? readDecisionDate() : null;
+    // Subscribe before mounting the banner: other tabs can make a decision
+    // while this tab is still building its UI.
+    listenForTabUpdates();
     if (root.document.readyState === 'loading') root.document.addEventListener('DOMContentLoaded', mount, { once: true });
     else mount();
     return api;
