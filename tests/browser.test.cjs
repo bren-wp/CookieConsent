@@ -253,6 +253,25 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
           assert.equal(await page.evaluate(()=>BrendigoCookieConsent.getConsentReceipt()),null);
         }finally{await context.close();}
       });
+      await t.test('same-origin tabs synchronize acceptance and withdrawal without sharing consent on the wire',async()=>{
+        const context=await browser.newContext();
+        try{
+          const a=await context.newPage(), b=await context.newPage();
+          await a.goto(origin+'/demo/services.html');
+          await b.goto(origin+'/demo/services.html');
+          await a.locator('.bcc-banner').waitFor({state:'visible'});
+          await b.locator('.bcc-banner').waitFor({state:'visible'});
+          await a.locator('.bcc-banner-actions').getByRole('button',{name:'Accept all'}).click();
+          await b.waitForFunction(()=>BrendigoCookieConsent.hasConsent('analytics')===true);
+          await b.locator('.bcc-banner').waitFor({state:'hidden'});
+          const receipt=await b.evaluate(()=>BrendigoCookieConsent.getConsentReceipt());
+          assert.equal(receipt.categories.analytics,true);
+          await b.evaluate(()=>BrendigoCookieConsent.reset());
+          await a.waitForFunction(()=>BrendigoCookieConsent.getConsent()===null);
+          await a.locator('.bcc-banner').waitFor({state:'visible'});
+          assert.equal(await a.evaluate(()=>BrendigoCookieConsent.getConsentReceipt()),null);
+        }finally{await context.close();}
+      });
       await t.test('first-party cleanup honors service IDs and protects the consent cookie',async()=>{
         const context=await browser.newContext();
         try{

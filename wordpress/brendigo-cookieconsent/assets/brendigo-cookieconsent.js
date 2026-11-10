@@ -164,6 +164,7 @@
   var lastFocused = null;
   var listenersAttached = false;
   var lastDecisionAt = null;
+  var syncChannel = null;
   var serviceConsent = Object.create(null);
   var providers = Object.create(null);
   var providerStates = Object.create(null);
@@ -571,6 +572,49 @@
     nodes.banner.hidden = !!consent;
     if (nodes.reopen) nodes.reopen.hidden = !consent;
   }
+  /**
+   * Same-origin tab synchronization. The channel contains only a revision
+   * notification; no consent values or identifiers are broadcast. Receiving
+   * tabs reread the site's own cookie instead.
+   */
+  function listenForTabUpdates() {
+    if (syncChannel || !root.BroadcastChannel || !config) return;
+    try {
+      syncChannel = new root.BroadcastChannel('bcc-consent:' + config.cookieName);
+      syncChannel.onmessage = function (event) {
+        var notice = event && event.data;
+        if (!notice || notice.type !== 'updated' || notice.revision !== config.revision) return;
+        var previous = getConsent();
+        var previousServices = getServiceConsent();
+        var next = readSaved();
+        var nextServices = normalizeServiceChoices(next, readServiceSaved());
+        var before = JSON.stringify([previous, previousServices]);
+        var after = JSON.stringify([next, nextServices]);
+        if (before === after) return;
+        consent = next;
+        serviceConsent = nextServices;
+        lastDecisionAt = next ? readDecisionDate() : null;
+        clearConfiguredCookies(previous, consent, previousServices, serviceConsent);
+        emit('change');
+        if ((previous && CATEGORIES.some(function (category) {
+            return category !== 'necessary' && previous[category] && !(consent && consent[category]);
+          })) || Object.keys(previousServices).some(function (id) {
+            return previousServices[id] === true && serviceConsent[id] !== true;
+          })) emit('revoked');
+        syncProviders();
+        applyGatedResources();
+        showBanner();
+        closePreferences();
+        if (consent) invokeHook('onConsent', getConsentReceipt());
+      };
+    } catch (_) { syncChannel = null; }
+  }
+  function notifyOtherTabs() {
+    if (!syncChannel) return;
+    try {
+      syncChannel.postMessage({type: 'updated', revision: config.revision});
+    } catch (_) { /* Same-origin broadcast support may be disabled. */ }
+  }
   function saveChoice(choice, services) {
     if (!config) throw new Error('Initialize CookieConsent before setting consent.');
     var previous = getConsent();
@@ -610,6 +654,7 @@
     applyGatedResources();
     showBanner();
     closePreferences();
+    notifyOtherTabs();
     return getConsent();
   }
   function setConsent(choice) { return saveChoice(choice, null); }
@@ -633,6 +678,7 @@
     applyGatedResources(); // clears gated iframe src attributes
     showBanner();
     closePreferences();
+    notifyOtherTabs();
   }
   function openPreferences() {
     if (!config || !nodes.root || nodes.overlay) return;
@@ -814,6 +860,7 @@
     nodes.root = holder;
     nodes.banner = banner;
     showBanner();
+    listenForTabUpdates();
     emit('ready'); // Returning consent is propagated before third-party tag activation.
     if (consent) invokeHook('onConsent', getConsentReceipt());
     syncProviders();
