@@ -1,237 +1,185 @@
-<div align="center"><img src="assets/brand/readme-cover.svg" alt="CookieConsent by Brendigo — Your privacy. Your choice." width="100%"></div>
+<div align="center">
+  <img src="assets/brand/readme-cover.svg" width="100%" alt="CookieConsent by Brendigo — upravljanje privatnošću">
+</div>
 
-# 🍪 CookieConsent by Brendigo
+# CookieConsent by Brendigo
 
-**Your privacy. Your choice.** · **Vaša privatnost, vaš izbor.**
+**Vaša privatnost. Vaš izbor.**  
+Samostalni sustav za informiranje posjetitelja i upravljanje privolama na HTML/PHP stranicama, WordPressu i projektima koji mogu uključiti JavaScript i CSS.
 
-> Univerzalni sustav za upravljanje kolačićima i privolama za obične web-stranice, PHP i WordPress. Bez obveznog CDN-a, vanjskog računa ili pretplate.
+[![GitHub CI](https://github.com/bren-wp/CookieConsent/actions/workflows/ci.yml/badge.svg)](https://github.com/bren-wp/CookieConsent/actions/workflows/ci.yml)
+![Version](https://img.shields.io/badge/version-0.8.0-4357e8)
+![License](https://img.shields.io/badge/license-MIT-26387a)
+![Runtime](https://img.shields.io/badge/runtime_dependencies-0-brightgreen)
+![Brand](https://img.shields.io/badge/by-Brendigo-4357e8)
 
-[![CI](https://github.com/bren-wp/CookieConsent/actions/workflows/ci.yml/badge.svg)](https://github.com/bren-wp/CookieConsent/actions/workflows/ci.yml)
-![Version](https://img.shields.io/badge/version-0.7.0-4357e8)
-![License](https://img.shields.io/badge/license-MIT-green)
-![Runtime](https://img.shields.io/badge/runtime%20dependencies-0-brightgreen)
-![Author](https://img.shields.io/badge/by-Brendigo-26387a)
+**[Najnovija izdanja](https://github.com/bren-wp/CookieConsent/releases)** · **[Interaktivni konfigurator](demo/configurator.html)** · **[Dokumentacija](docs/README.md)** · **[Razvojni plan](docs/ROADMAP.md)** · **[Brendigo](https://brendigo.com)**
 
-**Projekt:** [GitHub](https://github.com/bren-wp/CookieConsent) · **Autor:** [Brendigo](https://brendigo.com) · **Licencija:** [MIT](LICENSE)
+> **Status: v0.8.0 — testno izdanje.** Sustav omogućuje implementaciju upravljanja privolama, ali ne jamči usklađenost pojedine web-stranice i nema status certificiranog CMP-a. Nije automatski blokator svih vanjskih servisa.
 
-## ✨ Zašto CookieConsent?
+## Što dobivate
 
-| | Mogućnost |
+| Područje | Funkcionalnosti |
 |---|---|
-| 🛡️ | **Privatnost:** neobvezne kategorije isključene su dok korisnik ne odabere privolu |
-| ✅ | **Jasne odluke:** Prihvati sve, Odbij sve i Postavke na prvom sloju |
-| 🎛️ | **Četiri kategorije:** nužni, funkcionalni, analitički i marketinški kolačići |
-| 🌍 | **HR, EN, DE, IT:** automatski jezik, prilagodljivi tekstovi |
-| 🧩 | **WordPress:** lokalni dodatak s postavkama i blokiranjem odabranih registriranih skripti |
-| 🔌 | **Više platformi:** HTML, PHP, WordPress i ostali CMS-ovi s vlastitim JS/CSS |
-| 🧠 | **GPC:** konzervativno onemogućava marketinšku kategoriju uz Global Privacy Control |
-| ♿ | **Pristupačnost:** tipkovnica, fokus, oznake dijaloga, mobilni raspored |
-| 🎨 | **Brending:** devet pozicija, boje gumba, pozadine i teksta, stalni potpis by Brendigo |
-| 🔁 | **Stalni pristup:** automatski gumb za ponovno otvaranje postavki nakon izbora |
-| 🌐 | **CDN ili lokalno:** verzionirani paket za `cookie.brendigo.com` |
-| 📈 | **Google Basic adapter:** opcionalan Consent Mode v2 adapter uz ručno blokiranje Google tagova |
-| 🔄 | **Integracijski lifecycle:** `onGrant` i `onRevoke` za servise i povlačenje privole |
-| 🖌️ | **Vizualni konfigurator:** devet pozicija, tri stila, boje i jezici |
-| 📋 | **Katalog pružatelja:** detalji servisa, svrha, kolačića, rokova i politika privatnosti |
-| 🔎 | **Lokalna dijagnostika:** popis dostupnih kolačića, browser storage ključeva i oznaka resursa, bez slanja podataka |
-| 📤 | **WP JSON backup:** administratorski izvoz i sanitizirani uvoz postavki |
+| Privola | Nužno, funkcionalno, analitika, marketing; odluke Prihvati sve / Odbij sve / Postavke |
+| Granularnost | Pojedinačne usluge s vlastitim identifikatorima; kategorije, svrha, rok i poveznica pružatelja |
+| Dizajn | 9 položaja bannera, 3 izgleda, svijetla/tamna/vlastita tema, boje, raspored gumba i položaj modala |
+| Lokalizacija | HR, EN, DE, IT, ES, FR i AR uz RTL; tekstovi prilagodljivi po jeziku |
+| Pristupačnost | Tipkovnica, kontrola fokusa, semantičke oznake, smanjene animacije, automatizirane A/AA provjere |
+| Integracije | Ručno označene skripte/iframeovi, lifecycle API, registracija pružatelja, GPC |
+| Povlačenje | Ponovno otvaranje postavki, callbackovi na opoziv, opcionalna pravila brisanja dostupnih first-party kolačića |
+| Transparentnost | Lokalna potvrda korisnikova odabira, pregled vidljivih kolačića i browser pohrane |
+| Više kartica | Sinkronizacija odabira na istoj domeni bez slanja sadržaja privole |
+| WordPress | Administratorske postavke, vizualni pregled, katalog, editor tekstova, JSON backup, ručno blokiranje WP handleova |
+| WooCommerce | Zaštita ključnih registriranih skripti košarice i naplate od slučajnog blokiranja |
+| Isporuka | Samostalni ZIP, WordPress ZIP i verzionirani CDN ZIP; bez vanjskih runtime biblioteka |
 
-## 🖼️ Izgled
+![Ilustracija izgleda bannera](assets/brand/banner-preview.svg)
 
-![Ilustrativni prikaz cookie bannera](assets/brand/banner-preview.svg)
+*Ilustracija je grafički prikaz proizvoda, a ne dokaz da je određena instalacija testirana. Za interakciju otvorite [lokalni demo](demo/index.html), [konfigurator](demo/configurator.html) ili [demo pojedinačnih usluga](demo/services.html).*
 
-*Ilustracija dizajna. Funkcionalni prikaz: [demo/index.html](demo/index.html). Za isprobavanje svih devet položaja, boja i četiri jezika koristite [vizualni konfigurator](demo/configurator.html).*
+## Brza instalacija — HTML ili PHP
 
-## 🚀 Brza instalacija — HTML, PHP i drugi CMS-ovi
+Prenesite datoteke iz `packages/core/` na vlastiti hosting i dodajte:
 
-Prenesite datoteke iz [packages/core](packages/core) na vlastiti hosting, primjerice u `/assets/`.
-
-```html
+~~~html
 <link rel="stylesheet" href="/assets/brendigo-cookieconsent.css">
 <script>
   window.BCC_SITE_CONFIG = {
     language: "hr",
-    policyUrl: "/politika-kolacica",
-    revision: "1",
     position: "bottom-right",
     bannerStyle: "compact",
+    theme: "custom",
     accentColor: "#4357e8",
     surfaceColor: "#ffffff",
-    textColor: "#17223e"
+    textColor: "#17223e",
+    policyUrl: "/politika-kolacica",
+    revision: "1"
   };
 </script>
 <script defer src="/assets/brendigo-cookieconsent.js"></script>
-```
+~~~
 
-Označite *opcionalne* skripte kako se ne bi pokretale prije privole:
+Neobvezne vanjske skripte označite prije učitavanja:
 
-```html
-<script type="text/plain" data-bcc-category="analytics"
-        data-bcc-src="/assets/my-analytics.js"></script>
+~~~html
+<script type="text/plain"
+        data-bcc-category="analytics"
+        data-bcc-src="/assets/analytics.js"></script>
+
 <button type="button" data-bcc-open>Postavke kolačića</button>
-```
+~~~
 
-**Važno:** alat blokira samo izričito označene skripte i iframeove; ostale skripte i pixeli koje stranica sama pokreće nisu automatski blokirani. Neophodna je inventura svih servisa i testiranje Network panela preglednika.
+Skripte koje web-stranica sama izvrši, neoznačene iframeove, piksele i server-side događaje sustav **ne može univerzalno zaustaviti**. Detalji: [Instalacija](docs/INSTALL.hr.md) i [Integracije](docs/INTEGRATIONS.hr.md).
 
-📖 [Upute za integraciju](docs/INSTALL.hr.md).
+## WordPress
 
-## 🧩 WordPress dodatak
+1. Preuzmite `brendigo-cookieconsent-wordpress.zip` iz [GitHub Releases](https://github.com/bren-wp/CookieConsent/releases).
+2. Otvorite **Dodaci → Dodaj novi → Prenesi dodatak** i aktivirajte dodatak.
+3. Otvorite **Postavke → CookieConsent**. Podesite izgled, jezik, politiku kolačića, reviziju privole, usluge i opcionalne integracije.
+4. Koristite ugrađeni vizualni pregled, editor tekstova po jeziku i JSON izvoz/uvoz konfiguracije.
+5. Provjerite sve stvarne skripte i zahtjeve pri prvoj posjeti, prihvaćanju, odbijanju i povlačenju privole.
 
-Izvorni dodatak je u [wordpress/brendigo-cookieconsent](wordpress/brendigo-cookieconsent).
+**Preduvjeti:** WordPress 6.2+ i PHP 7.4+. Izolirani CI testovi nisu zamjena za testiranje konkretnog hostinga. [Potpune WordPress upute](docs/WORDPRESS.hr.md).
 
-1. Pakirajte cijelu mapu `brendigo-cookieconsent` u ZIP s tom mapom u korijenu.
-2. U WordPressu otvorite **Dodaci → Dodaj novi → Prenesi dodatak**, instalirajte ZIP i aktivirajte ga.
-3. Pod **Postavke → CookieConsent** odaberite **9 pozicija**, boje gumba/pozadine/teksta, jezik, politiku kolačića, trajanje i reviziju privole. Potpis **by Brendigo** nije moguće isključiti u postavkama. Dodajte katalog usluga i po potrebi uključite Google Basic adapter.
-4. Po potrebi klasificirajte **registrirane WordPress script handles**, primjerice:
+## Vlastiti CDN — cookie.brendigo.com
 
-```text
-analytics:my-analytics
-marketing:my-ad-script
-```
+Projekt priprema verzionirani paket za predviđenu adresu:
 
-**Zahtjevi:** WordPress 6.2+ i PHP 7.4+. Filtar za skriptne nazive ne blokira automatski inline skripte, piksele i vanjske ugradnje drugih dodataka.
-
-Automatski ZIP paketi dostupni su u **Actions → Package installers → Artifacts**. Kada kompletan CI prođe, zaseban workflow objavljuje *prerelease* pod [GitHub Releases](https://github.com/bren-wp/CookieConsent/releases), ako verzija još nije objavljena.
-
-## 🌐 CDN — cookie.brendigo.com
-
-Pripremljena je verzionirana distribucija za CDN. **DNS, TLS i javno posluživanje nisu automatski postavljeni; URL nije potvrđen kao dostupan.** Nakon stvarnog postavljanja CDN datoteka:
-
-```html
+~~~html
 <script>
   window.BCC_SITE_CONFIG = {
-    language: 'hr', position: 'bottom-right',
-    bannerStyle: 'compact',
-    accentColor: '#4357e8',
-    surfaceColor: '#ffffff', textColor: '#17223e',
-    policyUrl: '/politika-kolacica', revision: '1'
+    language: "hr",
+    policyUrl: "/politika-kolacica",
+    revision: "1"
   };
 </script>
-<script defer src="https://cookie.brendigo.com/v0.7.0/loader.js"></script>
-```
+<script defer src="https://cookie.brendigo.com/v0.8.0/loader.js"></script>
+~~~
 
-U paketu je opt-in `google-consent-basic.js` adapter za Google Consent Mode v2. Ne uključuje Google tagove i ne zamjenjuje ispravno blokiranje oznaka prije privole. Detalji: [CDN vodič](docs/CDN.hr.md).
+**Ta adresa nije automatski aktivirana objavom GitHub paketa.** Prije primjene moraju biti postavljeni DNS, HTTPS/TLS i stvarno posluživanje datoteka. Zadana WordPress opcija ostaje lokalno učitavanje. [CDN vodič](docs/CDN.hr.md).
 
-## 📋 Katalog usluga
+## Kontrola pojedinačnih usluga
 
-Svaka integracija može biti prikazana u detaljnim postavkama (bez automatskog autoriziranja njezinih skripti):
-
-```javascript
+~~~javascript
 window.BCC_SITE_CONFIG = {
   language: "hr",
+  revision: "2026-11",
   services: [{
+    id: "site-statistics",
     category: "analytics",
-    name: "Primjer analitike",
-    purpose: "Anonimizirana statistika korištenja",
-    cookies: "_example",
-    duration: "13 mjeseci",
-    privacyUrl: "https://example.org/privacy"
+    toggleable: true,
+    name: "Statistika web-stranice",
+    purpose: "Mjerenje posjećenosti.",
+    cookies: "_site_stats",
+    duration: "90 dana",
+    privacyUrl: "/politika-privatnosti"
   }]
 };
-```
+~~~
 
-WordPress postavke sadrže katalog u formatu **kategorija|naziv|svrha|kolačići|trajanje|URL** (jedan servis po retku). Podaci su isključivo informativni: skripte se moraju zasebno klasificirati i blokirati.
+Ovo je opis i kontrola usluge **samo ako je ta usluga uistinu povezana sa sustavom blokiranja**. Katalog sam ne presreće svaki zahtjev.
 
-## 🔄 Lifecycle integracija
+## JavaScript API
 
-```javascript
-const unregister = BrendigoCookieConsent.registerProvider({
-  id: "my-analytics",
-  category: "analytics",
-  onGrant: () => { /* učitaj vlastiti dopušteni adapter */ },
-  onRevoke: () => { /* zaustavi slanje i očisti kolačiće u vlastitoj domeni */ }
-});
-// unregister() pri uklanjanju integracije
-```
-
-Pozivi se izvršavaju kada se stanje kategorije promijeni. **Povlačenje ne briše automatski kolačiće drugih domena i ne može poništiti ranije izvršene skripte.** Vlasnik stranice mora osigurati odgovarajući cleanup i zaustavljanje vanjskog servisa.
-
-## 🧰 JavaScript API
-
-```javascript
+~~~javascript
 const cc = window.BrendigoCookieConsent;
-cc.getConsent();              // null ili objekt kategorija
-cc.hasConsent("analytics");    // true / false
-cc.openPreferences();          // otvara postavke
-cc.reset();                    // briše odabir
-cc.refresh();                  // procesira novo dodane označene elemente
-cc.auditLocal();               // lokalni pregled vidljivih kolačića/resursa (ne šalje podatke)
+cc.getConsent();                  // null ili kategorije
+cc.getServiceConsent();           // detaljan odabir usluga
+cc.hasConsent("analytics");       // status kategorije
+cc.hasServiceConsent("site-statistics");
+cc.openPreferences();              // ponovno otvaranje
+cc.getConsentReceipt();            // lokalni prikaz korisnikove odluke
+cc.downloadConsentReceipt();       // JSON kopija za korisnika
+cc.auditLocal();                   // lokalni, ograničeni browser audit
+cc.refresh();                      // obrada novo dodanih označenih resursa
+cc.reset();                        // poništavanje spremljenog izbora
+~~~
 
-window.addEventListener("brendigo:consentchange", (event) => {
-  console.log(event.detail.consent);
-});
-```
+[Događaji, povratne funkcije, detaljan API i primjeri](docs/API.hr.md).
 
-Revokacija sprečava novo aktiviranje označenih skripti, ali **ne može poništiti već izvršen JavaScript niti automatski obrisati kolačiće trećih strana**. Integrirajte čišćenje i ponovno učitavanje za svaki servis zasebno.
+## Lokalni razvoj i provjere
 
-## 🔐 WordPress sigurnosna kopija konfiguracije
-
-U **Postavke → CookieConsent** nalazi se **Export JSON configuration** za pohranu konfiguracije i **Import and replace settings** za vraćanje prethodno izvezenih podataka. Import zahtijeva administratorsku ovlast i nonce, provjerava shemu, veličinu i sanitizira sva polja.
-
-## 🐘 Kompatibilnost PHP/WordPress
-
-CI obuhvaća PHP **7.4, 8.1, 8.2, 8.3 i 8.4** te izolirane testove validacije WordPress postavki i WooCommerce adaptera. To **nije** potpuni funkcionalni test na instaliranom WordPress sustavu ili zajedničkom hostingu. [WooCommerce upute](docs/WOOCOMMERCE.hr.md).
-
-## 🧪 Browser testovi
-
-`npm test` pokreće lokalne unit/integration testove bez dodatnih ovisnosti. Odvojeni GitHub CI posao instalira Playwright i Chromium, Firefox i WebKit **isključivo za testove** te provjerava prvu posjetu, odbijanje, prihvaćanje, ponovno otvaranje i povlačenje privole, označene iframeove, stilove, tipkovnicu i automatizirane WCAG 2.0/2.1 A/AA provjere kroz axe-core.
-
-```bash
-npm install --no-save --no-package-lock playwright@1.56.1 axe-core@4.10.3
-npx playwright install --with-deps chromium
-npm run test:browser
-```
-
-CDN i lokalni paketi i dalje nemaju vanjskih runtime biblioteka. Za izradu provjerljivih ZIP paketa koristite `python3 tools/package.py`; dokumentacija: [Distribucija](docs/RELEASE.md).
-
-## 📁 Struktura
-
-```text
-CookieConsent/
-├── demo/configurator.html     # Vizualni konfigurator bannera
-├── packages/core/             # Samostalni JS i CSS
-├── packages/integrations/     # Opcionalni Google Basic adapter
-├── cdn/                       # Loader za cookie.brendigo.com
-├── tools/build-cdn.mjs        # Verzionirani CDN paket
-├── wordpress/
-│   └── brendigo-cookieconsent/ # WordPress plugin s lokalnim datotekama
-├── demo/index.html            # Interaktivni lokalni demo
-├── assets/brand/              # Autorski SVG vizuali
-├── docs/                      # Integracija i pravni okvir
-├── tests/                     # Jedinični testovi bez ovisnosti
-└── .github/workflows/         # CI i ZIP paketiranje
-```
-
-## 🧪 Razvoj
-
-```bash
-npm test
+~~~bash
 npm run check
-php -l wordpress/brendigo-cookieconsent/brendigo-cookieconsent.php
+npm test
+npm run build:cdn
+python3 tools/package.py
+python3 tools/package.py --verify
+
+# Pregled demonstracije
 python3 -m http.server 8000
-# Otvorite http://localhost:8000/demo/
-```
+# Otvoriti http://localhost:8000/demo/configurator.html
+~~~
 
-## 🧭 Podržane platforme i regulatorne granice
+Browser E2E koristi Playwright i axe-core **samo kao razvojne/testne alate**. Testna matrica obuhvaća Chromium, Firefox i WebKit, dok PHP kompatibilnost prolazi izolirane provjere za PHP 7.4 i 8.1–8.4. Detalji: [Razvoj i testiranje](docs/DEVELOPMENT.md), [Kompatibilnost](docs/COMPATIBILITY.md).
 
-Pogledajte [matricu kompatibilnosti](docs/COMPATIBILITY.md), [regulatornu matricu](docs/REGULATORY-MATRIX.hr.md) i [kontrolni popis za produkciju](docs/GO-LIVE.hr.md). Zahtjevi se razlikuju prema usluzi i jurisdikciji; globalno primjenjujemo konzervativni opt-in i ne zaključujemo automatski lokaciju posjetitelja.
+## Dokumentacija
 
-## ⚖️ Zakonska usklađenost i ograničenja
+| Tema | Dokument |
+|---|---|
+| Početak i kompletna instalacija | [INSTALL.hr.md](docs/INSTALL.hr.md) |
+| Sve konfiguracijske opcije | [CONFIGURATION.hr.md](docs/CONFIGURATION.hr.md) |
+| JavaScript API i događaji | [API.hr.md](docs/API.hr.md) |
+| WordPress administrator i backup | [WORDPRESS.hr.md](docs/WORDPRESS.hr.md) |
+| CDN, verzioniranje i hosting | [CDN.hr.md](docs/CDN.hr.md) |
+| Integracije i blokiranje | [INTEGRATIONS.hr.md](docs/INTEGRATIONS.hr.md) |
+| Lokalna potvrda privole | [CONSENT-RECEIPT.hr.md](docs/CONSENT-RECEIPT.hr.md) |
+| Sigurnost i privatnost | [SECURITY.md](docs/SECURITY.md) |
+| Pristupačnost | [ACCESSIBILITY.hr.md](docs/ACCESSIBILITY.hr.md) |
+| Zakonski kontrolni popis | [COMPLIANCE.hr.md](docs/COMPLIANCE.hr.md) |
+| Produkcijski prihvatni test | [GO-LIVE.hr.md](docs/GO-LIVE.hr.md) |
+| Otklanjanje problema | [TROUBLESHOOTING.hr.md](docs/TROUBLESHOOTING.hr.md) |
+| Plan razvoja i promjene | [ROADMAP.md](docs/ROADMAP.md) · [CHANGELOG.md](docs/CHANGELOG.md) |
 
-**v0.7.0 je funkcionalno testno izdanje, nije certificirani CMP niti jamstvo usklađenosti s GDPR-om, ePrivacy pravilima, UK PECR-om, LGPD-om ili američkim zakonima.** Za svaku web-stranicu potrebno je provjeriti stvarne servise, podatke, kategorije, trajanje kolačića, dokaze privole i pravo na povlačenje.
+Cjelokupan sadržaj: [docs/README.md](docs/README.md).
 
-Trenutačno **nisu implementirani** automatski skener, server-side evidencija privole, IAB TCF, Google-certified CMP status, automatsko blokiranje Google oznaka, GeoIP ni potpuni US privacy opt-out proces. Postoji **opcionalni Google Consent Mode v2 Basic adapter** koji zahtijeva zasebnu integraciju i testiranje.
+## Produkcijska odgovornost
 
-[Pravna kontrolna lista](docs/COMPLIANCE.hr.md) · [Sigurnost i ograničenja](docs/SECURITY.md) · [Plan razvoja](docs/ROADMAP.md)
+Za svaku web-stranicu treba utvrditi sve pružatelje, pravne osnove, svrhe, kolačiće, vrijeme čuvanja, međunarodne prijenose, načine povlačenja i eventualne obveze evidencije privole. Projekt ne provodi potpun skener, ne briše cookies drugih domena i ne garantira zakonsku sukladnost samom instalacijom. Google Consent Mode v2 Basic adapter je opcionalan i zahtijeva pravilno blokiranje oznaka.
 
-## 💙 Built by Brendigo
+U službenoj distribuciji stalno se prikazuje **by Brendigo** i ne postoji postavka za njegovo isključivanje. MIT licencija ipak dopušta izmjenu izvornog koda i CSS-a; apsolutnu tehničku neuklonjivost nije moguće jamčiti.
 
-Neovisna implementacija pod identitetom **CookieConsent by Brendigo**. Naziv CookieConsent koriste i drugi open-source projekti; naš projekt ne preuzima njihov identitet ni njihov izvorni kod.
+---
 
-🌐 [brendigo.com](https://brendigo.com) · 💻 [GitHub](https://github.com/bren-wp/CookieConsent) · 📄 [MIT](LICENSE)
-
-**© 2026 Brendigo.** Potpis je obvezan u službenoj distribuciji. Budući da se kod distribuira pod MIT licencijom, administrator s pristupom izvornom kodu i CSS-u može ga tehnički izmijeniti; vidljivost se ne može kriptografski jamčiti.
-
-## Usporedba funkcionalnosti i napredni playground
-
-[Usporedba s Orestbida CookieConsent](docs/COMPARE-ORESTBIDA.hr.md) i [interaktivni Brendigo konfigurator](demo/configurator.html) daju pregled dostupnih značajki bez kopiranja izvornog koda drugog projekta. Konfigurator može izvesti JSON, ali taj format nije automatski WordPress import format.
+**CookieConsent by Brendigo** · © 2026 **[Brendigo](https://brendigo.com)** · [MIT licencija](LICENSE) · [GitHub projekt](https://github.com/bren-wp/CookieConsent)
