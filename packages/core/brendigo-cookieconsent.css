@@ -133,3 +133,6 @@
    width:min(100%,540px);height:100dvh;max-height:100dvh;border-radius:0
  }
 }
+
+/* The HTML hidden attribute must beat all position/layout display overrides. */
+.bcc-root .bcc-banner[hidden],.bcc-root .bcc-reopen[hidden]{display:none!important}
