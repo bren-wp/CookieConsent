@@ -20,7 +20,7 @@ test('GPC suppresses marketing even after accepting all', () => {
   assert.equal(consent.utils.normalizeConsent({marketing: true, analytics: true}, true).marketing, false);
 });
 test('a persisted record parses only for the current policy revision', () => {
-  const data = consent.utils.encodeRecord({analytics: true}, 'revision-2', '2026-11-10T18:00:00.000Z');
+  const data = consent.utils.encodeRecord({analytics: true}, 'revision-2', new Date().toISOString());
   assert.equal(consent.utils.parseRecord(data, 'revision-2').analytics, true);
   assert.equal(consent.utils.parseRecord(data, 'revision-1'), null);
 });
@@ -115,7 +115,7 @@ test('cleanup requires explicit safe cookie names or literal prefixes', () => {
 });
 test('service choices persist alongside category consent in a backward compatible record',()=>{
   const encoded=consent.utils.encodeRecord(
-    {analytics:true},'policy-1','2026-11-10T15:00:00.000Z',{'stats-a':true,'stats-b':false});
+    {analytics:true},'policy-1',new Date().toISOString(),{'stats-a':true,'stats-b':false});
   assert.equal(consent.utils.parseRecord(encoded,'policy-1',false).analytics,true);
   const services=consent.utils.parseServiceRecord(encoded,'policy-1',false);
   assert.equal(services['stats-a'],true);
