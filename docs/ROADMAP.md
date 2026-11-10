@@ -39,7 +39,8 @@
 - [x] Automatizirani axe-core WCAG 2.0/2.1 A/AA testovi za banner i dijalog
 - [ ] Ručna provjera čitača ekrana, potpuni WCAG i produkcijska sigurnosna revizija
 - [x] Deterministički ZIP paketi s provjerom istovjetnosti i CDN SHA-256 manifestom
-- [ ] Validacija stvarnih shared-hosting instalacija kroz više PHP/WordPress verzija
+- [x] Automatizirana PHP 7.4, 8.1, 8.2, 8.3 i 8.4 provjera sintakse i izoliranih WP postavki
+- [ ] Stvarna instalacijska validacija na više WordPress verzija i shared-hosting konfiguracija
 - [ ] Dokumentirane matrice kompatibilnosti s CMS platformama
 - [ ] Posebne pravne i tehničke provjere za podržane regulatorne profile
 

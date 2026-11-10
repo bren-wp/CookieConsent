@@ -168,6 +168,10 @@ Revokacija sprečava novo aktiviranje označenih skripti, ali **ne može poništ
 
 U **Postavke → CookieConsent** nalazi se **Export JSON configuration** za pohranu konfiguracije i **Import and replace settings** za vraćanje prethodno izvezenih podataka. Import zahtijeva administratorsku ovlast i nonce, provjerava shemu, veličinu i sanitizira sva polja.
 
+## 🐘 Kompatibilnost PHP/WordPress
+
+CI obuhvaća PHP **7.4, 8.1, 8.2, 8.3 i 8.4** te izolirane testove validacije WordPress postavki i WooCommerce adaptera. To **nije** potpuni funkcionalni test na instaliranom WordPress sustavu ili zajedničkom hostingu. [WooCommerce upute](docs/WOOCOMMERCE.hr.md).
+
 ## 🧪 Browser testovi
 
 `npm test` pokreće lokalne unit/integration testove bez dodatnih ovisnosti. Odvojeni GitHub CI posao instalira Playwright i Chromium, Firefox i WebKit **isključivo za testove** te provjerava prvu posjetu, odbijanje, prihvaćanje, ponovno otvaranje i povlačenje privole, označene iframeove, stilove, tipkovnicu i automatizirane WCAG 2.0/2.1 A/AA provjere kroz axe-core.
