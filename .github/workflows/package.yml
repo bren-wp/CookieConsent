@@ -1,0 +1,34 @@
+name: Package installers
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check source
+        run: |
+          node --check packages/core/brendigo-cookieconsent.js
+          node --test tests/*.test.cjs
+          php -l wordpress/brendigo-cookieconsent/brendigo-cookieconsent.php
+          cmp packages/core/brendigo-cookieconsent.js wordpress/brendigo-cookieconsent/assets/brendigo-cookieconsent.js
+          cmp packages/core/brendigo-cookieconsent.css wordpress/brendigo-cookieconsent/assets/brendigo-cookieconsent.css
+      - name: Build ZIP installers
+        run: |
+          mkdir -p dist/standalone
+          cp packages/core/* dist/standalone/
+          cd dist && zip -qr cookieconsent-brendigo-standalone.zip standalone
+          cd ../wordpress && zip -qr ../dist/brendigo-cookieconsent-wordpress.zip brendigo-cookieconsent
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cookieconsent-by-brendigo-installers
+          path: |
+            dist/cookieconsent-brendigo-standalone.zip
+            dist/brendigo-cookieconsent-wordpress.zip
+          retention-days: 14

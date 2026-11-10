@@ -1,0 +1,27 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Core and WordPress checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: JavaScript syntax and unit tests
+        run: |
+          node --version
+          npm run check
+          npm test
+      - name: WordPress plugin PHP syntax
+        run: php -l wordpress/brendigo-cookieconsent/brendigo-cookieconsent.php
+      - name: Ensure WordPress plugin assets match the core
+        run: |
+          cmp packages/core/brendigo-cookieconsent.js wordpress/brendigo-cookieconsent/assets/brendigo-cookieconsent.js
+          cmp packages/core/brendigo-cookieconsent.css wordpress/brendigo-cookieconsent/assets/brendigo-cookieconsent.css
