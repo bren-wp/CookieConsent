@@ -204,8 +204,18 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
           const state=await page.evaluate(()=>BrendigoCookieConsent.getServiceConsent());
           assert.equal(state['stats-a'],true);assert.equal(state['stats-b'],false);
           assert.equal(await page.evaluate(()=>window.unknownServiceExecuted),undefined);
+          const beforeReload=await page.evaluate(()=>document.cookie);
+          assert.match(beforeReload,/bcc_consent=/,'consent record must exist before reload');
           await page.reload();
-          assert.equal(await page.locator('.bcc-banner').isVisible(),false);
+          const afterReload=await page.evaluate(()=>({
+            rawCookie:document.cookie,
+            consent:window.BrendigoCookieConsent?.getConsent(),
+            services:window.BrendigoCookieConsent?.getServiceConsent()
+          }));
+          assert.ok(afterReload.consent, 'Consent must persist after reload; '+JSON.stringify({
+            beforeReload, afterReload
+          }));
+          await page.locator('.bcc-banner').waitFor({state:'hidden'});
           const saved=await page.evaluate(()=>BrendigoCookieConsent.getServiceConsent());
           assert.equal(saved['stats-a'],true);assert.equal(saved['stats-b'],false);
           assert.equal(await page.locator('#b-status').textContent(),'not loaded');
