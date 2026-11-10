@@ -31,6 +31,11 @@ test('source security audit: unsafe dynamic JS and PHP execution sinks are absen
   assert.match(php,/wp_json_encode\(\$config,\s*JSON_HEX_TAG/);
   assert.match(php,/WP_HTML_Tag_Processor/);
 });
+test('demo pages do not rely on inline HTML event-handler attributes',()=>{
+  for(const page of ['demo/index.html','demo/configurator.html','demo/services.html','demo/catalog.html']){
+    assert.doesNotMatch(source(page),/\\bon(?:click|load|error|mouseover|focus)\\s*=/i);
+  }
+});
 test('dead code regression: no redundant tab subscription and no duplicate hidden override',()=>{
   const js=source('packages/core/brendigo-cookieconsent.js');
   const css=source('packages/core/brendigo-cookieconsent.css');

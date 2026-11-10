@@ -17,8 +17,8 @@
     h1{font-size:clamp(42px,7vw,78px);line-height:1.06;letter-spacing:-.06em;margin:14px 0;max-width:900px}
     .lead{font-size:18px;line-height:1.65;color:#5f6e93;max-width:650px}
     .buttons{display:flex;gap:12px;flex-wrap:wrap;margin-top:26px}
-    .buttons button{border:0;background:#4357e8;color:#fff;border-radius:12px;padding:14px 18px;font-size:14px;font-weight:700;cursor:pointer}
-    .buttons button.secondary{background:#e3e8fa;color:#263a75}
+    .buttons button,.buttons a{display:inline-flex;align-items:center;text-decoration:none;border:0;background:#4357e8;color:#fff;border-radius:12px;padding:14px 18px;font-size:14px;font-weight:700;cursor:pointer}
+    .buttons button.secondary,.buttons a.secondary{background:#e3e8fa;color:#263a75}
     .feature-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:60px}
     .feature{padding:24px;background:#fff;border:1px solid #e3e8f7;border-radius:16px}
     .feature strong{display:block;font-size:18px;margin-bottom:7px}
@@ -72,7 +72,7 @@
     <div class="buttons">
       <button data-bcc-open>Otvori postavke</button>
       <button class="secondary" id="reset-consent">Resetiraj demo privolu</button>
-      <button class="secondary" type="button" onclick="window.location.href='./configurator.html'">Vizualni konfigurator</button>
+      <a class="secondary" href="./configurator.html">Vizualni konfigurator</a>
     </div>
     <div class="status">Analitički demo kod: <strong id="analytics-status">nije pokrenut</strong></div>
     <div class="feature-grid">
