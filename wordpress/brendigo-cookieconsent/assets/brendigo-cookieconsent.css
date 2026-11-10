@@ -1,4 +1,4 @@
-/* CookieConsent by Brendigo v0.5.0 — locally hosted UI styles */
+/* CookieConsent by Brendigo v0.6.0 — locally hosted UI styles */
 .bcc-root{--bcc-accent:#4357e8;--bcc-text:#17223e;--bcc-subtle:#66708c;--bcc-border:#e1e6f1;--bcc-bg:#fff;--bcc-shadow:0 18px 65px rgba(18,28,69,.19);font:inherit;color:var(--bcc-text);z-index:2147483000}
 .bcc-root *{box-sizing:border-box}
 .bcc-root button,.bcc-root input{font:inherit}
@@ -107,3 +107,9 @@
 .bcc-root[dir="rtl"] .bcc-footer .bcc-credit{margin-left:0;margin-right:auto}
 .bcc-root[dir="rtl"] .bcc-service{direction:rtl;text-align:right}
 .bcc-root[dir="rtl"] .bcc-category-option{direction:rtl}
+
+/* Per-provider consent controls are independent, accessible labels. */
+.bcc-service-option{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.bcc-service-option input{min-width:18px;min-height:18px;accent-color:var(--bcc-accent)}
+.bcc-service-option strong{overflow-wrap:anywhere}
+.bcc-root[dir="rtl"] .bcc-service-option{direction:rtl}

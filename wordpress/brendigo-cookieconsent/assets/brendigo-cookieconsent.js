@@ -1,5 +1,5 @@
 /*!
- * CookieConsent by Brendigo — v0.5.0
+ * CookieConsent by Brendigo — v0.6.0
  * Copyright (c) 2026 Brendigo · MIT License
  * Zero-dependency, self-hosted consent manager.
  */
@@ -14,7 +14,7 @@
 })(typeof window !== 'undefined' ? window : globalThis, function (root) {
   'use strict';
 
-  var VERSION = '0.5.0';
+  var VERSION = '0.6.0';
   var CATEGORIES = ['necessary', 'preferences', 'analytics', 'marketing'];
   var POSITIONS = ['bottom-center', 'bottom-left', 'bottom-right',
     'bottom-bar', 'top-center', 'top-left', 'top-right', 'top-bar', 'center'];
@@ -128,24 +128,46 @@
   var nodes = {};
   var lastFocused = null;
   var listenersAttached = false;
+  var serviceConsent = Object.create(null);
   var providers = Object.create(null);
   var providerStates = Object.create(null);
   function normalizeServices(items) {
     if (!Array.isArray(items)) return [];
+    var seen = Object.create(null);
     return items.slice(0, 50).filter(function (item) {
       return item && typeof item === 'object' &&
         CATEGORIES.indexOf(item.category) !== -1 &&
         typeof item.name === 'string' && item.name.trim().length > 0;
     }).map(function (item) {
+      var id = typeof item.id === 'string' && /^[a-zA-Z0-9._-]{1,64}$/.test(item.id) ? item.id : '';
+      if (id && seen[id]) id = '';
+      if (id) seen[id] = true;
       return {
-        category: item.category,
-        name: item.name.trim().slice(0, 120),
+        id: id, toggleable: !!id && item.toggleable === true && item.category !== 'necessary',
+        category: item.category, name: item.name.trim().slice(0, 120),
         purpose: typeof item.purpose === 'string' ? item.purpose.trim().slice(0, 350) : '',
         cookies: typeof item.cookies === 'string' ? item.cookies.trim().slice(0, 300) : '',
         duration: typeof item.duration === 'string' ? item.duration.trim().slice(0, 120) : '',
         privacyUrl: typeof item.privacyUrl === 'string' ? item.privacyUrl.trim().slice(0, 500) : ''
       };
     });
+  }
+  function normalizeServiceChoices(categories, choices) {
+    var output = Object.create(null);
+    var provided = choices && typeof choices === 'object' ? choices : {};
+    (config && config.services || []).forEach(function (service) {
+      if (!service.toggleable) return;
+      var chosen = Object.prototype.hasOwnProperty.call(provided, service.id)
+        ? provided[service.id] === true : !!(categories && categories[service.category]);
+      output[service.id] = !!(categories && categories[service.category] && chosen);
+    });
+    return output;
+  }
+  function hasServiceConsent(id) {
+    return typeof id === 'string' && serviceConsent[id] === true;
+  }
+  function getServiceConsent() {
+    return Object.assign({}, serviceConsent);
   }
   function safeHttpUrl(raw) {
     if (!raw || !root.URL || !root.location) return null;
@@ -164,7 +186,7 @@
   function syncProviders() {
     Object.keys(providers).forEach(function (id) {
       var record = providers[id];
-      var shouldRun = hasConsent(record.category);
+      var shouldRun = record.serviceId ? hasServiceConsent(record.serviceId) : hasConsent(record.category);
       var wasRunning = providerStates[id] === true;
       if (shouldRun && !wasRunning) {
         providerStates[id] = true;
@@ -181,11 +203,15 @@
         !/^[a-zA-Z0-9._-]{1,64}$/.test(definition.id) ||
         !CATEGORIES.includes(definition.category) ||
         definition.category === 'necessary' ||
-        providers[definition.id]) {
+        providers[definition.id] ||
+        (definition.serviceId && !((config && config.services || []).some(function (s) {
+          return s.id === definition.serviceId && s.toggleable && s.category === definition.category;
+        })))) {
       throw new TypeError('Invalid or duplicate CookieConsent provider');
     }
     var id = definition.id;
-    providers[id] = { category: definition.category, onGrant: definition.onGrant, onRevoke: definition.onRevoke };
+    providers[id] = { category: definition.category, serviceId: definition.serviceId || '',
+      onGrant: definition.onGrant, onRevoke: definition.onRevoke };
     providerStates[id] = false;
     if (nodes.root) syncProviders();
     return function unregister() {
@@ -205,12 +231,11 @@
       marketing: gpc === true ? false : values.marketing === true
     };
   }
-  function encodeRecord(value, revision, stamp) {
+  function encodeRecord(value, revision, stamp, services) {
     return encodeURIComponent(JSON.stringify({
-      version: 1,
-      revision: revision,
+      version: 1, revision: revision,
       date: stamp || new Date().toISOString(),
-      categories: normalizeConsent(value)
+      categories: normalizeConsent(value), services: services || {}
     }));
   }
   function parseRecord(value, revision, gpc) {
@@ -220,6 +245,14 @@
           !parsed.categories || typeof parsed.categories !== 'object' ||
           typeof parsed.date !== 'string' || !Number.isFinite(Date.parse(parsed.date))) return null;
       return normalizeConsent(parsed.categories, gpc);
+    } catch (_) { return null; }
+  }
+  function parseServiceRecord(value, revision, gpc) {
+    if (!parseRecord(value, revision, gpc)) return null;
+    try {
+      var parsed = JSON.parse(decodeURIComponent(value));
+      return parsed && parsed.services && typeof parsed.services === 'object' && !Array.isArray(parsed.services)
+        ? parsed.services : null;
     } catch (_) { return null; }
   }
   function getLanguage() {
@@ -247,11 +280,54 @@
     }
     return null;
   }
+  function readServiceSaved() {
+    var name = config.cookieName + '=';
+    var parts = (root.document.cookie || '').split(';');
+    for (var i = 0; i < parts.length; i++) {
+      var part = parts[i].trim();
+      if (part.indexOf(name) === 0) return parseServiceRecord(part.slice(name.length), config.revision, isGpc());
+    }
+    return null;
+  }
   function persist() {
     var maxAge = Math.max(1, Math.min(365, Number(config.consentDays) || 180)) * 86400;
     var secure = root.location && root.location.protocol === 'https:' ? '; Secure' : '';
-    root.document.cookie = config.cookieName + '=' + encodeRecord(consent, config.revision) +
+    root.document.cookie = config.cookieName + '=' + encodeRecord(consent, config.revision, null, serviceConsent) +
       '; Path=/; Max-Age=' + maxAge + '; SameSite=Lax' + secure;
+  }
+  // Explicit first-party only cleanup rules: no RegExp input and no cross-origin access.
+  function normalizeCleanupRules(items) {
+    if (!Array.isArray(items)) return [];
+    return items.slice(0, 100).filter(function (item) {
+      return item && ['preferences', 'analytics', 'marketing'].indexOf(item.category) !== -1 &&
+        ((typeof item.name === 'string' && /^[a-zA-Z0-9_.-]{1,120}$/.test(item.name)) ||
+         (typeof item.prefix === 'string' && /^[a-zA-Z0-9_.-]{1,120}$/.test(item.prefix)));
+    }).map(function (item) {
+      var rawPath = typeof item.path === 'string' ? item.path : '/';
+      var path = rawPath.length <= 150 && /^\/[a-zA-Z0-9/_-]*$/.test(rawPath) ? rawPath : '/';
+      return {
+        category: item.category, name: typeof item.name === 'string' ? item.name : '',
+        prefix: typeof item.prefix === 'string' ? item.prefix : '',
+        path: path
+      };
+    });
+  }
+  function clearConfiguredCookies(previous, current) {
+    if (!config || !config.cookieCleanupRules.length || !root.document) return;
+    var visible = (root.document.cookie || '').split(';').map(function (part) {
+      return part.trim().split('=')[0];
+    }).filter(Boolean);
+    config.cookieCleanupRules.forEach(function (rule) {
+      if (current && current[rule.category]) return;
+      // Clean on first rejection as well as explicit withdrawal.
+      if (previous && !previous[rule.category]) return;
+      visible.forEach(function (name) {
+        if (name === config.cookieName) return;
+        if (!(rule.name && rule.name === name) && !(rule.prefix && name.indexOf(rule.prefix) === 0)) return;
+        var secure = root.location && root.location.protocol === 'https:' ? '; Secure' : '';
+        root.document.cookie = name + '=; Max-Age=0; Path=' + rule.path + '; SameSite=Lax' + secure;
+      });
+    });
   }
   function element(tag, className, text) {
     var node = root.document.createElement(tag);
@@ -284,7 +360,7 @@
   function emit(type) {
     if (root.dispatchEvent && typeof root.CustomEvent === 'function') {
       root.dispatchEvent(new root.CustomEvent('brendigo:consent' + type, {
-        detail: { consent: getConsent(), gpc: isGpc() }
+        detail: { consent: getConsent(), services: getServiceConsent(), gpc: isGpc() }
       }));
     }
     if (type === 'change' && typeof config.onChange === 'function') {
@@ -306,6 +382,8 @@
     Array.prototype.forEach.call(scripts, function (source) {
       var category = source.getAttribute('data-bcc-category');
       if (!hasConsent(category)) return;
+      var serviceId = source.getAttribute('data-bcc-service');
+      if (serviceId && !hasServiceConsent(serviceId)) return;
       var script = doc.createElement('script');
       ['nonce', 'integrity', 'crossorigin', 'referrerpolicy'].forEach(function (attribute) {
         var value = source.getAttribute('data-bcc-' + attribute);
@@ -327,6 +405,8 @@
     var frames = doc.querySelectorAll('iframe[data-bcc-category][data-bcc-src]');
     Array.prototype.forEach.call(frames, function (frame) {
       var permitted = hasConsent(frame.getAttribute('data-bcc-category'));
+      var serviceId = frame.getAttribute('data-bcc-service');
+      if (serviceId && !hasServiceConsent(serviceId)) permitted = false;
       var src = safeHttpUrl(frame.getAttribute('data-bcc-src'));
       if (permitted && src && frame.getAttribute('src') !== src) frame.setAttribute('src', src);
       if ((!permitted || !src) && frame.hasAttribute('src')) frame.removeAttribute('src');
@@ -383,27 +463,37 @@
     nodes.banner.hidden = !!consent;
     if (nodes.reopen) nodes.reopen.hidden = !consent;
   }
-  function setConsent(choice) {
+  function saveChoice(choice, services) {
     if (!config) throw new Error('Initialize CookieConsent before setting consent.');
     var previous = getConsent();
     consent = normalizeConsent(choice, isGpc());
+    serviceConsent = normalizeServiceChoices(consent, services);
     persist();
-    // Notify consent adapters BEFORE any deferred script starts.
+    clearConfiguredCookies(previous, consent);
+    // Adapters receive the complete decision before any gated script starts.
     emit('change');
-    if (previous && CATEGORIES.some(function (cat) { return previous[cat] && !consent[cat] && cat !== 'necessary'; })) {
-      emit('revoked');
-    }
+    var revokedCategories = previous && CATEGORIES.some(function (cat) {
+      return previous[cat] && !consent[cat] && cat !== 'necessary';
+    });
+    if (revokedCategories) emit('revoked');
     syncProviders();
     applyGatedResources();
     showBanner();
     closePreferences();
     return getConsent();
   }
+  function setConsent(choice) { return saveChoice(choice, null); }
+  function setDetailedConsent(choice) {
+    if (!choice || typeof choice !== 'object') throw new TypeError('Consent must be an object');
+    return saveChoice(choice.categories, choice.services);
+  }
   function reset() {
     if (!config) return;
     var old = getConsent();
     consent = null;
+    serviceConsent = Object.create(null);
     root.document.cookie = config.cookieName + '=; Path=/; Max-Age=0; SameSite=Lax';
+    clearConfiguredCookies(old, null);
     emit('change');
     if (old && CATEGORIES.some(function (category) { return category !== 'necessary' && old[category]; })) emit('revoked');
     syncProviders();
@@ -415,6 +505,8 @@
     if (!config || !nodes.root || nodes.overlay) return;
     var t = translations();
     var draft = normalizeConsent(consent, isGpc());
+    var draftServices = Object.assign({}, serviceConsent);
+    var categoryCheckboxes = {};
     lastFocused = root.document.activeElement;
     var overlay = element('div', 'bcc-overlay');
     var panel = element('section', 'bcc-panel');
@@ -444,14 +536,41 @@
       checkbox.checked = draft[category];
       checkbox.disabled = category === 'necessary' || (category === 'marketing' && isGpc());
       checkbox.setAttribute('aria-label', t[category]);
-      checkbox.addEventListener('change', function () { draft[category] = checkbox.checked; });
+      categoryCheckboxes[category] = checkbox;
+      checkbox.addEventListener('change', function () {
+        draft[category] = checkbox.checked;
+        Array.prototype.forEach.call(row.querySelectorAll('[data-bcc-service-option]'), function (node) {
+          node.checked = checkbox.checked;
+          draftServices[node.getAttribute('data-bcc-service-option')] = checkbox.checked;
+        });
+      });
       var related = config.services.filter(function (service) { return service.category === category; });
       if (related.length) {
         var details = element('span', 'bcc-services');
         details.appendChild(element('span', 'bcc-services-heading', t.servicesHeading));
         related.forEach(function (service) {
           var serviceInfo = element('span', 'bcc-service');
-          serviceInfo.appendChild(element('strong', '', service.name));
+          if (service.toggleable) {
+            var serviceLabel = element('label', 'bcc-service-option');
+            serviceLabel.appendChild(element('strong', '', service.name));
+            var serviceSwitch = element('input');
+            serviceSwitch.type = 'checkbox';
+            serviceSwitch.checked = !!draftServices[service.id];
+            serviceSwitch.setAttribute('data-bcc-service-option', service.id);
+            serviceSwitch.setAttribute('aria-label', service.name);
+            serviceSwitch.disabled = service.category === 'marketing' && isGpc();
+            serviceSwitch.addEventListener('change', function () {
+              draftServices[service.id] = serviceSwitch.checked;
+              var relatedSwitches = row.querySelectorAll('[data-bcc-service-option]');
+              var any = Array.prototype.some.call(relatedSwitches, function (control) { return control.checked; });
+              draft[category] = any;
+              checkbox.checked = any;
+            });
+            serviceLabel.appendChild(serviceSwitch);
+            serviceInfo.appendChild(serviceLabel);
+          } else {
+            serviceInfo.appendChild(element('strong', '', service.name));
+          }
           if (service.purpose) serviceInfo.appendChild(element('small', '', service.purpose));
           if (service.cookies) serviceInfo.appendChild(element('small', '', 'Cookies: ' + service.cookies));
           if (service.duration) serviceInfo.appendChild(element('small', '', service.duration));
@@ -480,7 +599,9 @@
     actions.appendChild(button(t.accept, 'bcc-secondary', function () {
       setConsent({ preferences: true, analytics: true, marketing: true });
     }));
-    actions.appendChild(button(t.save, 'bcc-primary', function () { setConsent(draft); }));
+    actions.appendChild(button(t.save, 'bcc-primary', function () {
+      setDetailedConsent({categories: draft, services: draftServices});
+    }));
     panel.appendChild(actions);
     var footer = element('div', 'bcc-footer');
     addPolicyLink(footer, t);
@@ -575,6 +696,7 @@
       surfaceColor: sanitizeColor(options.surfaceColor, '#ffffff'),
       textColor: sanitizeColor(options.textColor, '#17223e'),
       services: normalizeServices(options.services),
+      cookieCleanupRules: normalizeCleanupRules(options.cookieCleanupRules),
       consentDays: options.consentDays || 180,
       revision: String(options.revision || '1'),
       cookieName: /^[-_a-zA-Z0-9]{1,60}$/.test(options.cookieName || '') ? options.cookieName : 'bcc_consent',
@@ -582,6 +704,7 @@
       onChange: options.onChange
     };
     consent = readSaved();
+    serviceConsent = normalizeServiceChoices(consent, readServiceSaved());
     if (root.document.readyState === 'loading') root.document.addEventListener('DOMContentLoaded', mount, { once: true });
     else mount();
     return api;
@@ -589,7 +712,9 @@
   var api = {
     version: VERSION,
     init: init, getConsent: getConsent, hasConsent: hasConsent,
-    setConsent: setConsent, reset: reset, openPreferences: openPreferences,
+    setConsent: setConsent, setDetailedConsent: setDetailedConsent,
+    getServiceConsent: getServiceConsent, hasServiceConsent: hasServiceConsent,
+    reset: reset, openPreferences: openPreferences,
     registerProvider: registerProvider,
     refresh: applyGatedResources, auditLocal: auditLocal,
     utils: {
@@ -597,7 +722,8 @@
       sanitizePosition: sanitizePosition, sanitizeStyle: sanitizeStyle,
       sanitizeDirection: sanitizeDirection, sanitizeColor: sanitizeColor,
       contrastRatio: contrastRatio, accessibleText: accessibleText,
-      normalizeServices: normalizeServices
+      normalizeServices: normalizeServices,
+      normalizeCleanupRules: normalizeCleanupRules, parseServiceRecord: parseServiceRecord
     }
   };
   return api;
