@@ -1,5 +1,5 @@
 /*!
- * CookieConsent by Brendigo — v0.2.0
+ * CookieConsent by Brendigo — v0.3.0
  * Copyright (c) 2026 Brendigo · MIT License
  * Zero-dependency, self-hosted consent manager.
  */
@@ -14,7 +14,7 @@
 })(typeof window !== 'undefined' ? window : globalThis, function (root) {
   'use strict';
 
-  var VERSION = '0.2.0';
+  var VERSION = '0.3.0';
   var CATEGORIES = ['necessary', 'preferences', 'analytics', 'marketing'];
   var POSITIONS = ['bottom-center', 'bottom-left', 'bottom-right',
     'bottom-bar', 'top-center', 'top-left', 'top-right', 'top-bar', 'center'];
@@ -52,7 +52,7 @@
       analyticsDesc: 'Pomažu nam razumjeti korištenje web-stranice.',
       marketingDesc: 'Koriste se za oglašavanje i mjerenje kampanja.',
       gpc: 'Signal Global Privacy Control je uključen. Marketinška kategorija ostaje isključena.',
-      reopen: 'Postavke kolačića'
+      reopen: 'Postavke kolačića', servicesHeading: 'Usluge i kolačići', providerPolicy: 'Privatnost pružatelja'
     },
     en: {
       heading: 'Your privacy. Your choice.',
@@ -66,7 +66,37 @@
       analyticsDesc: 'Help us understand how the website is used.',
       marketingDesc: 'Used for advertising and campaign measurement.',
       gpc: 'Global Privacy Control is enabled. The marketing category remains disabled.',
-      reopen: 'Cookie settings'
+      reopen: 'Cookie settings', servicesHeading: 'Services and cookies', providerPolicy: 'Provider privacy policy'
+    },
+    de: {
+      heading: 'Ihre Privatsphäre. Ihre Wahl.',
+      intro: 'Wir verwenden notwendige Cookies für den Betrieb dieser Website. Optionale Technologien nutzen wir nur mit Ihrer Einwilligung. Sie können Ihre Auswahl jederzeit ändern.',
+      accept: 'Alle akzeptieren', reject: 'Alle ablehnen', settings: 'Einstellungen',
+      headingPrefs: 'Datenschutzeinstellungen', descriptionPrefs: 'Wählen Sie aus, welche Kategorien verwendet werden dürfen. Notwendige Cookies bleiben aktiviert.',
+      save: 'Auswahl speichern', close: 'Schließen', policy: 'Cookie-Richtlinie',
+      necessary: 'Notwendig', preferences: 'Funktional', analytics: 'Analyse', marketing: 'Marketing',
+      necessaryDesc: 'Erforderlich für grundlegende Funktionen und Sicherheit.',
+      preferencesDesc: 'Speichern Ihre zusätzlichen Einstellungen.',
+      analyticsDesc: 'Helfen uns, die Nutzung der Website zu verstehen.',
+      marketingDesc: 'Werden für Werbung und Kampagnenmessung genutzt.',
+      gpc: 'Global Privacy Control ist aktiv. Marketing bleibt deaktiviert.',
+      reopen: 'Cookie-Einstellungen', servicesHeading: 'Dienste und Cookies',
+      providerPolicy: 'Datenschutz des Anbieters'
+    },
+    it: {
+      heading: 'La tua privacy. La tua scelta.',
+      intro: 'Utilizziamo cookie necessari al funzionamento del sito. Le tecnologie facoltative vengono utilizzate solo con il tuo consenso, modificabile in qualsiasi momento.',
+      accept: 'Accetta tutti', reject: 'Rifiuta tutti', settings: 'Personalizza',
+      headingPrefs: 'Preferenze sulla privacy', descriptionPrefs: 'Scegli le categorie consentite. I cookie necessari sono sempre attivi.',
+      save: 'Salva le scelte', close: 'Chiudi', policy: 'Informativa sui cookie',
+      necessary: 'Necessari', preferences: 'Funzionali', analytics: 'Analitici', marketing: 'Marketing',
+      necessaryDesc: 'Necessari alle funzionalità di base e alla sicurezza.',
+      preferencesDesc: 'Memorizzano le impostazioni facoltative.',
+      analyticsDesc: 'Ci aiutano a comprendere l’utilizzo del sito.',
+      marketingDesc: 'Utilizzati per pubblicità e misurazione delle campagne.',
+      gpc: 'Global Privacy Control è attivo. Il marketing rimane disattivato.',
+      reopen: 'Impostazioni cookie', servicesHeading: 'Servizi e cookie',
+      providerPolicy: 'Privacy del fornitore'
     }
   };
   var config = null;
@@ -74,6 +104,73 @@
   var nodes = {};
   var lastFocused = null;
   var listenersAttached = false;
+  var providers = Object.create(null);
+  var providerStates = Object.create(null);
+  function normalizeServices(items) {
+    if (!Array.isArray(items)) return [];
+    return items.slice(0, 50).filter(function (item) {
+      return item && typeof item === 'object' &&
+        CATEGORIES.indexOf(item.category) !== -1 &&
+        typeof item.name === 'string' && item.name.trim().length > 0;
+    }).map(function (item) {
+      return {
+        category: item.category,
+        name: item.name.trim().slice(0, 120),
+        purpose: typeof item.purpose === 'string' ? item.purpose.trim().slice(0, 350) : '',
+        cookies: typeof item.cookies === 'string' ? item.cookies.trim().slice(0, 300) : '',
+        duration: typeof item.duration === 'string' ? item.duration.trim().slice(0, 120) : '',
+        privacyUrl: typeof item.privacyUrl === 'string' ? item.privacyUrl.trim().slice(0, 500) : ''
+      };
+    });
+  }
+  function safeHttpUrl(raw) {
+    if (!raw || !root.URL || !root.location) return null;
+    try {
+      var url = new root.URL(raw, root.location.href);
+      return url.protocol === 'https:' || url.protocol === 'http:' ? url.href : null;
+    } catch (_) { return null; }
+  }
+  function invokeProvider(record, method) {
+    if (typeof record[method] !== 'function') return;
+    try { record[method](getConsent()); }
+    catch (err) {
+      if (root.console && typeof root.console.error === 'function') root.console.error('[CookieConsent by Brendigo] Provider callback error', err);
+    }
+  }
+  function syncProviders() {
+    Object.keys(providers).forEach(function (id) {
+      var record = providers[id];
+      var shouldRun = hasConsent(record.category);
+      var wasRunning = providerStates[id] === true;
+      if (shouldRun && !wasRunning) {
+        providerStates[id] = true;
+        invokeProvider(record, 'onGrant');
+      } else if (!shouldRun && wasRunning) {
+        providerStates[id] = false;
+        invokeProvider(record, 'onRevoke');
+      }
+    });
+  }
+  function registerProvider(definition) {
+    if (!definition || typeof definition !== 'object' ||
+        typeof definition.id !== 'string' ||
+        !/^[a-zA-Z0-9._-]{1,64}$/.test(definition.id) ||
+        !CATEGORIES.includes(definition.category) ||
+        definition.category === 'necessary' ||
+        providers[definition.id]) {
+      throw new TypeError('Invalid or duplicate CookieConsent provider');
+    }
+    var id = definition.id;
+    providers[id] = { category: definition.category, onGrant: definition.onGrant, onRevoke: definition.onRevoke };
+    providerStates[id] = false;
+    if (nodes.root) syncProviders();
+    return function unregister() {
+      if (!providers[id]) return;
+      if (providerStates[id]) invokeProvider(providers[id], 'onRevoke');
+      delete providers[id];
+      delete providerStates[id];
+    };
+  }
 
   function normalizeConsent(input, gpc) {
     var values = input && typeof input === 'object' ? input : {};
@@ -150,13 +247,10 @@
   }
   function addPolicyLink(node, t) {
     if (!config.policyUrl) return;
-    var safeUrl;
-    try {
-      safeUrl = new root.URL(config.policyUrl, root.location.href);
-      if (safeUrl.protocol !== 'http:' && safeUrl.protocol !== 'https:') return;
-    } catch (_) { return; }
+    var safeUrl = safeHttpUrl(config.policyUrl);
+    if (!safeUrl) return;
     var link = element('a', 'bcc-policy', t.policy);
-    link.href = safeUrl.href;
+    link.href = safeUrl;
     node.appendChild(link);
   }
   function emit(type) {
@@ -166,7 +260,10 @@
       }));
     }
     if (type === 'change' && typeof config.onChange === 'function') {
-      config.onChange(getConsent());
+      try { config.onChange(getConsent()); }
+      catch (err) {
+        if (root.console && typeof root.console.error === 'function') root.console.error('[CookieConsent by Brendigo] onChange callback error', err);
+      }
     }
   }
   function getConsent() {
@@ -227,6 +324,7 @@
     if (previous && CATEGORIES.some(function (cat) { return previous[cat] && !consent[cat] && cat !== 'necessary'; })) {
       emit('revoked');
     }
+    syncProviders();
     applyGatedResources();
     showBanner();
     closePreferences();
@@ -234,8 +332,13 @@
   }
   function reset() {
     if (!config) return;
+    var old = getConsent();
     consent = null;
     root.document.cookie = config.cookieName + '=; Path=/; Max-Age=0; SameSite=Lax';
+    emit('change');
+    if (old && CATEGORIES.some(function (category) { return category !== 'necessary' && old[category]; })) emit('revoked');
+    syncProviders();
+    applyGatedResources(); // clears gated iframe src attributes
     showBanner();
     closePreferences();
   }
@@ -272,6 +375,29 @@
       checkbox.disabled = category === 'necessary' || (category === 'marketing' && isGpc());
       checkbox.setAttribute('aria-label', t[category]);
       checkbox.addEventListener('change', function () { draft[category] = checkbox.checked; });
+      var related = config.services.filter(function (service) { return service.category === category; });
+      if (related.length) {
+        var details = element('span', 'bcc-services');
+        details.appendChild(element('span', 'bcc-services-heading', t.servicesHeading));
+        related.forEach(function (service) {
+          var serviceInfo = element('span', 'bcc-service');
+          serviceInfo.appendChild(element('strong', '', service.name));
+          if (service.purpose) serviceInfo.appendChild(element('small', '', service.purpose));
+          if (service.cookies) serviceInfo.appendChild(element('small', '', 'Cookies: ' + service.cookies));
+          if (service.duration) serviceInfo.appendChild(element('small', '', service.duration));
+          var url = safeHttpUrl(service.privacyUrl);
+          if (url) {
+            var link = element('a', 'bcc-service-policy', t.providerPolicy);
+            link.href = url;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.addEventListener('click', function (event) { event.stopPropagation(); });
+            serviceInfo.appendChild(link);
+          }
+          details.appendChild(serviceInfo);
+        });
+        description.appendChild(details);
+      }
       row.appendChild(description);
       row.appendChild(checkbox);
       list.appendChild(row);
@@ -353,6 +479,7 @@
     nodes.banner = banner;
     showBanner();
     emit('ready'); // Returning consent is propagated before third-party tag activation.
+    syncProviders();
     applyGatedResources();
     if (!listenersAttached) {
       root.document.addEventListener('click', function (event) {
@@ -373,6 +500,7 @@
       accentColor: sanitizeColor(options.accentColor, '#4357e8'),
       surfaceColor: sanitizeColor(options.surfaceColor, '#ffffff'),
       textColor: sanitizeColor(options.textColor, '#17223e'),
+      services: normalizeServices(options.services),
       consentDays: options.consentDays || 180,
       revision: String(options.revision || '1'),
       cookieName: /^[-_a-zA-Z0-9]{1,60}$/.test(options.cookieName || '') ? options.cookieName : 'bcc_consent',
@@ -388,11 +516,13 @@
     version: VERSION,
     init: init, getConsent: getConsent, hasConsent: hasConsent,
     setConsent: setConsent, reset: reset, openPreferences: openPreferences,
+    registerProvider: registerProvider,
     refresh: applyGatedResources,
     utils: {
       normalizeConsent: normalizeConsent, encodeRecord: encodeRecord, parseRecord: parseRecord,
       sanitizePosition: sanitizePosition, sanitizeColor: sanitizeColor,
-      contrastRatio: contrastRatio, accessibleText: accessibleText
+      contrastRatio: contrastRatio, accessibleText: accessibleText,
+      normalizeServices: normalizeServices
     }
   };
   return api;
