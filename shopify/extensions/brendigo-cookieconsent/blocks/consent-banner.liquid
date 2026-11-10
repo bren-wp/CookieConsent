@@ -1,0 +1,62 @@
+{% comment %}
+  CookieConsent by Brendigo — Shopify app embed (requires registered Shopify app).
+  Settings are Liquid JSON-escaped before entering JavaScript.
+{% endcomment %}
+<link rel="stylesheet" href="{{ 'brendigo-cookieconsent.css' | asset_url }}">
+<script>
+  window.BCC_SITE_CONFIG = {
+    language: {{ block.settings.language | json }},
+    position: {{ block.settings.position | json }},
+    policyUrl: {{ block.settings.policy_url | json }},
+    revision: {{ block.settings.revision | json }},
+    accentColor: {{ block.settings.accent_color | json }},
+    onDecision: function(result) {
+      if (window.BrendigoShopifyPrivacyBridge && result && result.receipt) {
+        window.BrendigoShopifyPrivacyBridge.apply(result.receipt.categories);
+      }
+    }
+  };
+</script>
+<script defer src="{{ 'shopify-privacy-bridge.js' | asset_url }}"></script>
+<script defer src="{{ 'brendigo-cookieconsent.js' | asset_url }}"></script>
+{% schema %}
+{
+  "name": "Consent banner",
+  "target": "compliance_head",
+  "settings": [
+    {
+      "type": "select",
+      "id": "language",
+      "label": "Language",
+      "default": "auto",
+      "options": [
+        {"value":"auto","label":"Auto"},
+        {"value":"hr","label":"Hrvatski"},
+        {"value":"en","label":"English"},
+        {"value":"de","label":"Deutsch"},
+        {"value":"it","label":"Italiano"},
+        {"value":"es","label":"Español"},
+        {"value":"fr","label":"Français"},
+        {"value":"ar","label":"العربية"}
+      ]
+    },
+    {
+      "type":"select","id":"position","label":"Banner position","default":"bottom-center",
+      "options":[
+        {"value":"bottom-center","label":"Bottom center"},
+        {"value":"bottom-left","label":"Bottom left"},
+        {"value":"bottom-right","label":"Bottom right"},
+        {"value":"bottom-bar","label":"Bottom bar"},
+        {"value":"top-center","label":"Top center"},
+        {"value":"top-left","label":"Top left"},
+        {"value":"top-right","label":"Top right"},
+        {"value":"top-bar","label":"Top bar"},
+        {"value":"center","label":"Center"}
+      ]
+    },
+    {"type":"text","id":"policy_url","label":"Cookie policy URL / path","default":"/pages/cookie-policy"},
+    {"type":"text","id":"revision","label":"Consent revision","default":"1"},
+    {"type":"color","id":"accent_color","label":"Accent color","default":"#4357e8"}
+  ]
+}
+{% endschema %}

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="plugin" group="system" method="upgrade">
+  <name>plg_system_brendigocookieconsent</name>
+  <author>Brendigo</author>
+  <authorUrl>https://brendigo.com</authorUrl>
+  <version>0.10.0</version>
+  <creationDate>2026-11-10</creationDate>
+  <copyright>Copyright (C) 2026 Brendigo</copyright>
+  <license>MIT</license>
+  <description>CookieConsent by Brendigo — website privacy choices</description>
+  <namespace path="src">Brendigo\Plugin\System\CookieConsent</namespace>
+  <files>
+    <folder plugin="brendigocookieconsent">services</folder>
+    <folder>src</folder>
+  </files>
+  <media folder="media" destination="plg_system_brendigocookieconsent">
+    <folder>js</folder>
+    <folder>css</folder>
+  </media>
+  <config>
+    <fields name="params">
+      <fieldset name="basic" label="CookieConsent by Brendigo">
+        <field name="language" type="list" label="Language" default="auto">
+          <option value="auto">Auto</option><option value="hr">Hrvatski</option>
+          <option value="en">English</option><option value="de">Deutsch</option>
+          <option value="it">Italiano</option><option value="es">Español</option>
+          <option value="fr">Français</option><option value="ar">العربية</option>
+        </field>
+        <field name="position" type="list" label="Banner position" default="bottom-center">
+          <option value="bottom-center">Bottom center</option>
+          <option value="bottom-left">Bottom left</option><option value="bottom-right">Bottom right</option>
+          <option value="bottom-bar">Bottom bar</option><option value="top-center">Top center</option>
+          <option value="top-left">Top left</option><option value="top-right">Top right</option>
+          <option value="top-bar">Top bar</option><option value="center">Center</option>
+        </field>
+        <field name="policy_url" type="text" label="Cookie policy URL" default="/politika-kolacica" filter="string"/>
+        <field name="revision" type="text" label="Consent revision" default="1" filter="string" maxlength="40"/>
+        <field name="accent_color" type="color" label="Accent color" default="#4357e8"/>
+        <field name="consent_days" type="number" label="Consent retention (days)" default="180" min="1" max="365" step="1"/>
+      </fieldset>
+    </fields>
+  </config>
+</extension>

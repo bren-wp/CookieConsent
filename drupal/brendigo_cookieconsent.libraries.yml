@@ -1,0 +1,14 @@
+bootstrap:
+  js:
+    js/bootstrap.js: { weight: -100 }
+  dependencies:
+    - core/drupalSettings
+consent:
+  version: '0.10.0'
+  css:
+    theme:
+      css/brendigo-cookieconsent.css: {}
+  js:
+    js/brendigo-cookieconsent.js: { weight: -90, attributes: { defer: true } }
+  dependencies:
+    - brendigo_cookieconsent/bootstrap

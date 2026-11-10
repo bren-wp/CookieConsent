@@ -1,0 +1,7 @@
+brendigo_cookieconsent.settings:
+  path: '/admin/config/system/brendigo-cookieconsent'
+  defaults:
+    _form: '\Drupal\brendigo_cookieconsent\Form\SettingsForm'
+    _title: 'CookieConsent by Brendigo'
+  requirements:
+    _permission: 'administer site configuration'

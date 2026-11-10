@@ -1,0 +1,25 @@
+brendigo_cookieconsent.settings:
+  type: config_object
+  label: 'CookieConsent by Brendigo settings'
+  mapping:
+    enabled:
+      type: boolean
+      label: 'Enabled'
+    language:
+      type: string
+      label: 'Language'
+    position:
+      type: string
+      label: 'Position'
+    policy_url:
+      type: string
+      label: 'Policy URL'
+    revision:
+      type: string
+      label: 'Policy revision'
+    consent_days:
+      type: integer
+      label: 'Consent days'
+    accent_color:
+      type: string
+      label: 'Accent color'

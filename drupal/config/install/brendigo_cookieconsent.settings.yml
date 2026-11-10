@@ -1,0 +1,7 @@
+enabled: true
+language: auto
+position: bottom-center
+policy_url: /politika-kolacica
+revision: '1'
+consent_days: 180
+accent_color: '#4357e8'
