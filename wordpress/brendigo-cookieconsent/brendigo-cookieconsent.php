@@ -3,7 +3,7 @@
  * Plugin Name: CookieConsent by Brendigo
  * Plugin URI: https://brendigo.com
  * Description: Self-hosted, privacy-first cookie consent banner and preference manager.
- * Version: 0.2.0
+ * Version: 0.3.0
  * Requires at least: 6.2
  * Requires PHP: 7.4
  * Author: Brendigo
@@ -16,7 +16,7 @@ namespace Brendigo\CookieConsent;
 
 defined('ABSPATH') || exit;
 
-const VERSION = '0.2.0';
+const VERSION = '0.3.0';
 const OPTION = 'brendigo_cookieconsent_options';
 
 function defaults(): array {
@@ -31,6 +31,8 @@ function defaults(): array {
         'consent_days' => 180,
         'revision' => '1',
         'blocked_handles' => '',
+        'services_catalog' => '',
+        'google_basic' => 0,
     ];
 }
 
@@ -61,9 +63,51 @@ function sanitize_options($input): array {
         'consent_days' => isset($input['consent_days']) ? max(1, min(365, absint($input['consent_days']))) : 180,
         'revision' => isset($input['revision']) ? substr(sanitize_text_field($input['revision']), 0, 40) : '1',
         'blocked_handles' => substr($handles, 0, 4000),
+        'services_catalog' => sanitize_service_catalog(isset($input['services_catalog']) ? $input['services_catalog'] : ''),
+        'google_basic' => empty($input['google_basic']) ? 0 : 1,
     ];
 }
 
+/**
+ * Expected line format: category|name|purpose|cookies|duration|https://provider.example/privacy
+ * Invalid entries are omitted; this inventory never authorizes script loading.
+ */
+function parse_services($raw): array {
+    if (!is_string($raw)) return [];
+    $services = [];
+    foreach (preg_split('/\\r\\n|\\r|\\n/', $raw) as $line) {
+        if (count($services) >= 50) break;
+        $parts = array_map('trim', explode('|', $line, 6));
+        if (count($parts) !== 6) continue;
+        [$category, $name, $purpose, $cookies, $duration, $privacy] = $parts;
+        $category = sanitize_key($category);
+        if (!in_array($category, ['necessary', 'preferences', 'analytics', 'marketing'], true)) continue;
+        $name = substr(sanitize_text_field($name), 0, 120);
+        if ($name === '') continue;
+        $purpose = substr(sanitize_text_field($purpose), 0, 350);
+        $cookies = substr(sanitize_text_field($cookies), 0, 300);
+        $duration = substr(sanitize_text_field($duration), 0, 120);
+        $privacy = $privacy === '' ? '' : esc_url_raw($privacy, ['http', 'https']);
+        $services[] = [
+            'category' => $category, 'name' => $name, 'purpose' => $purpose,
+            'cookies' => $cookies, 'duration' => $duration, 'privacyUrl' => $privacy,
+        ];
+    }
+    return $services;
+}
+function sanitize_service_catalog($raw): string {
+    $items = parse_services(is_string($raw) ? substr($raw, 0, 18000) : '');
+    $lines = [];
+    foreach ($items as $service) {
+        $lines[] = implode('|', array_map(static function ($part) {
+            return str_replace('|', ' ', $part);
+        }, [
+            $service['category'], $service['name'], $service['purpose'],
+            $service['cookies'], $service['duration'], $service['privacyUrl'],
+        ]));
+    }
+    return implode("\n", $lines);
+}
 function register_settings(): void {
     register_setting('brendigo_cookieconsent', OPTION, [
         'sanitize_callback' => __NAMESPACE__ . '\\sanitize_options',
@@ -148,6 +192,20 @@ function render_settings(): void {
                         <p class="description"><?php esc_html_e('Change this when your tracking policy changes to request consent again.', 'brendigo-cookieconsent'); ?></p></td>
                 </tr>
                 <tr>
+                    <th scope="row"><label for="bcc-services"><?php esc_html_e('Services and cookie inventory', 'brendigo-cookieconsent'); ?></label></th>
+                    <td>
+                        <textarea id="bcc-services" class="large-text code" rows="8" name="<?php echo esc_attr(OPTION); ?>[services_catalog]" placeholder="analytics|Example Analytics|Measures page visits|_example_analytics|13 months|https://example.com/privacy"><?php echo esc_textarea($o['services_catalog']); ?></textarea>
+                        <p class="description"><?php esc_html_e('One service per line: category|name|purpose|cookie names|duration|privacy policy URL. Maximum 50 entries. Display only: does not activate or automatically block services.', 'brendigo-cookieconsent'); ?></p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><?php esc_html_e('Google Consent Mode v2 Basic', 'brendigo-cookieconsent'); ?></th>
+                    <td>
+                        <label><input type="checkbox" name="<?php echo esc_attr(OPTION); ?>[google_basic]" value="1" <?php checked($o['google_basic'], 1); ?>> <?php esc_html_e('Include local/CDN default-denied Google Basic adapter', 'brendigo-cookieconsent'); ?></label>
+                        <p class="description"><?php esc_html_e('Google tags must be blocked separately until permitted. Consent Mode is not a substitute for correctly gating tags. Test ordering with Tag Assistant.', 'brendigo-cookieconsent'); ?></p>
+                    </td>
+                </tr>
+                <tr>
                     <th scope="row"><label for="bcc-handles"><?php esc_html_e('Gate WordPress script handles', 'brendigo-cookieconsent'); ?></label></th>
                     <td><textarea id="bcc-handles" class="large-text code" rows="7" name="<?php echo esc_attr(OPTION); ?>[blocked_handles]" placeholder="analytics:my-analytics&#10;marketing:my-ad-script"><?php echo esc_textarea($o['blocked_handles']); ?></textarea>
                         <p class="description"><?php esc_html_e('One category:registered-script-handle per line. Allowed categories: preferences, analytics, marketing. This only gates registered script tags; audit inline scripts, embeds and other plugins separately.', 'brendigo-cookieconsent'); ?></p>
@@ -170,6 +228,10 @@ function frontend_assets(): void {
         ? 'https://cookie.brendigo.com/v' . VERSION . '/'
         : plugin_dir_url(__FILE__) . 'assets/';
     wp_enqueue_style('brendigo-cookieconsent', $base . 'brendigo-cookieconsent.css', [], VERSION);
+    if (!empty($o['google_basic'])) {
+        // Enqueue this early in <head>. Actual Google tags must remain gated separately.
+        wp_enqueue_script('brendigo-cookieconsent-google-basic', $base . 'google-consent-basic.js', [], VERSION, false);
+    }
     wp_enqueue_script('brendigo-cookieconsent', $base . 'brendigo-cookieconsent.js', [], VERSION, true);
     $config = [
         'language' => $o['language'],
@@ -177,6 +239,7 @@ function frontend_assets(): void {
         'surfaceColor' => $o['surface_color'],
         'textColor' => $o['text_color'],
         'position' => $o['position'],
+        'services' => parse_services($o['services_catalog']),
         'policyUrl' => $o['policy_url'] ?: home_url('/cookie-policy/'),
         'consentDays' => (int) $o['consent_days'],
         'revision' => (string) $o['revision'],
@@ -206,6 +269,13 @@ function gate_enqueued_script(string $tag, string $handle, string $src): string 
         if (!$processor->next_tag('script')) return $tag;
         $processor->set_attribute('type', 'text/plain');
         $processor->set_attribute('data-bcc-category', $category);
+        // Preserve security-relevant attributes when the inert tag is reactivated.
+        foreach (['nonce', 'integrity', 'crossorigin', 'referrerpolicy'] as $attribute) {
+            $value = $processor->get_attribute($attribute);
+            if (is_string($value) && $value !== '') {
+                $processor->set_attribute('data-bcc-' . $attribute, $value);
+            }
+        }
         if ($src !== '') {
             $processor->set_attribute('data-bcc-src', $src);
             $processor->remove_attribute('src');
