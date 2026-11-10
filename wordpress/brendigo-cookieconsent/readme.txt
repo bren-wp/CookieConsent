@@ -3,7 +3,7 @@ Contributors: bren-wp
 Tags: cookie, consent, privacy, preference-manager, gdpr
 Requires at least: 6.2
 Requires PHP: 7.4
-Stable tag: 0.8.0
+Stable tag: 0.8.1
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
@@ -55,7 +55,7 @@ No central consent API is included. A user-owned first-party cookie stores their
 
 == Changelog ==
 
-= 0.8.0 =
+= 0.8.1 =
 * Local user-readable consent receipt with JSON download.
 * Same-origin tab synchronization.
 * Editable banner text per language in the WordPress settings.
@@ -70,5 +70,5 @@ No central consent API is included. A user-owned first-party cookie stores their
 
 == Upgrade Notice ==
 
-= 0.8.0 =
+= 0.8.1 =
 Back up the WordPress configuration before upgrading. Re-test script gating, policy revision and all connected third-party services.
