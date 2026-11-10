@@ -34,6 +34,7 @@ function defaults(): array {
         'revision' => '1',
         'blocked_handles' => '',
         'services_catalog' => '',
+        'cookie_cleanup_rules' => '',
         'google_basic' => 0,
     ];
 }
@@ -70,6 +71,7 @@ function sanitize_options($input): array {
         'revision' => isset($input['revision']) ? substr(sanitize_text_field($input['revision']), 0, 40) : '1',
         'blocked_handles' => substr($handles, 0, 4000),
         'services_catalog' => sanitize_service_catalog(isset($input['services_catalog']) ? $input['services_catalog'] : ''),
+        'cookie_cleanup_rules' => sanitize_cleanup_rules($input['cookie_cleanup_rules'] ?? ''),
         'google_basic' => empty($input['google_basic']) ? 0 : 1,
     ];
 }
@@ -83,9 +85,11 @@ function parse_services($raw): array {
     $services = [];
     foreach (preg_split('/\\r\\n|\\r|\\n/', $raw) as $line) {
         if (count($services) >= 50) break;
-        $parts = array_map('trim', explode('|', $line, 6));
-        if (count($parts) !== 6) continue;
+        $parts = array_map('trim', explode('|', $line, 7));
+        if (count($parts) !== 6 && count($parts) !== 7) continue;
         [$category, $name, $purpose, $cookies, $duration, $privacy] = $parts;
+        $id = $parts[6] ?? '';
+        if (!preg_match('/^[a-zA-Z0-9._-]{1,64}$/', $id)) $id = '';
         $category = sanitize_key($category);
         if (!in_array($category, ['necessary', 'preferences', 'analytics', 'marketing'], true)) continue;
         $name = substr(sanitize_text_field($name), 0, 120);
@@ -97,6 +101,7 @@ function parse_services($raw): array {
         $services[] = [
             'category' => $category, 'name' => $name, 'purpose' => $purpose,
             'cookies' => $cookies, 'duration' => $duration, 'privacyUrl' => $privacy,
+            'id' => $id, 'toggleable' => $id !== '' && $category !== 'necessary',
         ];
     }
     return $services;
@@ -110,7 +115,44 @@ function sanitize_service_catalog($raw): string {
         }, [
             $service['category'], $service['name'], $service['purpose'],
             $service['cookies'], $service['duration'], $service['privacyUrl'],
+            $service['id'],
         ]));
+    }
+    return implode("\n", $lines);
+}
+/**
+ * category|exact|cookie_name|[service_id] or category|prefix|cookie_prefix|[service_id]
+ * Only JavaScript-visible first-party cookies matching explicit rules can be deleted.
+ */
+function parse_cleanup_rules($raw): array {
+    if (!is_string($raw)) return [];
+    $rules = [];
+    foreach (preg_split('/\\r\\n|\\r|\\n/', substr($raw, 0, 12000)) as $line) {
+        if (count($rules) >= 100) break;
+        $parts = array_map('trim', explode('|', $line, 4));
+        if (count($parts) < 3) continue;
+        [$category, $match, $value] = $parts;
+        $category = sanitize_key($category);
+        $match = sanitize_key($match);
+        $id = $parts[3] ?? '';
+        if (!in_array($category, ['preferences', 'analytics', 'marketing'], true) ||
+            !in_array($match, ['exact', 'prefix'], true) ||
+            !preg_match('/^[a-zA-Z0-9_.-]{1,120}$/', $value) ||
+            ($id !== '' && !preg_match('/^[a-zA-Z0-9._-]{1,64}$/', $id))) continue;
+        $rule = ['category' => $category, 'path' => '/'];
+        $rule[$match === 'exact' ? 'name' : 'prefix'] = $value;
+        if ($id !== '') $rule['serviceId'] = $id;
+        $rules[] = $rule;
+    }
+    return $rules;
+}
+function sanitize_cleanup_rules($raw): string {
+    $lines = [];
+    foreach (parse_cleanup_rules($raw) as $rule) {
+        $match = isset($rule['name']) ? 'exact' : 'prefix';
+        $lines[] = implode('|', [
+            $rule['category'], $match, $rule['name'] ?? $rule['prefix'], $rule['serviceId'] ?? ''
+        ]);
     }
     return implode("\n", $lines);
 }
@@ -279,7 +321,14 @@ function render_settings(): void {
                     <th scope="row"><label for="bcc-services"><?php esc_html_e('Services and cookie inventory', 'brendigo-cookieconsent'); ?></label></th>
                     <td>
                         <textarea id="bcc-services" class="large-text code" rows="8" name="<?php echo esc_attr(OPTION); ?>[services_catalog]" placeholder="analytics|Example Analytics|Measures page visits|_example_analytics|13 months|https://example.com/privacy"><?php echo esc_textarea($o['services_catalog']); ?></textarea>
-                        <p class="description"><?php esc_html_e('One service per line: category|name|purpose|cookie names|duration|privacy policy URL. Maximum 50 entries. Display only: does not activate or automatically block services.', 'brendigo-cookieconsent'); ?></p>
+                        <p class="description"><?php esc_html_e('One service per line: category|name|purpose|cookie names|duration|privacy URL|optional unique service ID. Add a service ID to offer an individual toggle. Services without IDs remain informational. Maximum 50 entries.', 'brendigo-cookieconsent'); ?></p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="bcc-cookie-cleanup"><?php esc_html_e('First-party cookie cleanup rules', 'brendigo-cookieconsent'); ?></label></th>
+                    <td>
+                        <textarea id="bcc-cookie-cleanup" class="large-text code" rows="5" name="<?php echo esc_attr(OPTION); ?>[cookie_cleanup_rules]" placeholder="analytics|exact|_gid|&#10;analytics|prefix|_ga|ga4"><?php echo esc_textarea($o['cookie_cleanup_rules']); ?></textarea>
+                        <p class="description"><?php esc_html_e('One rule per line: category|exact-or-prefix|cookie-name|optional-service-ID. Only visible first-party cookies can be deleted. The site consent cookie is protected. Verify names and cleanup ownership before production use.', 'brendigo-cookieconsent'); ?></p>
                     </td>
                 </tr>
                 <tr>
@@ -389,6 +438,7 @@ function frontend_assets(): void {
         'position' => $o['position'],
         'bannerStyle' => $o['banner_style'],
         'services' => array_merge(woocommerce_services(), parse_services($o['services_catalog'])),
+        'cookieCleanupRules' => parse_cleanup_rules($o['cookie_cleanup_rules']),
         'policyUrl' => $o['policy_url'] ?: home_url('/cookie-policy/'),
         'consentDays' => (int) $o['consent_days'],
         'revision' => (string) $o['revision'],
