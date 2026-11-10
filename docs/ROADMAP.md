@@ -33,6 +33,9 @@ Projekt razlikuje **implementirano**, **automatizirano provjereno**, **ovisno o 
 - [x] OpenCart 4 native extension s administracijom i eventom za storefront header.
 - [x] PrestaShop 8/9 modul s nativnim hookovima i administratorskim obrascem.
 - [x] Reproducibilno pakiranje svih šest integracija te statičke provjere PHP/XML/JSON/Shopify schema datoteka.
+- [x] Izolirani runtime PHP stub testovi: Joomla, Drupal, Magento, OpenCart i PrestaShop; Shopify Customer Privacy simulacija.
+- [x] Ispravljeni OpenCart apsolutni store-root resursi, inertna CSP konfiguracija i Shopify bridge inicijalizacija.
+- [x] HTTP/HTTPS web/CDN validator s manifestom, MIME provjerama i SHA-256 te lokalni test validatora.
 - [ ] Runtime instalacijski i checkout testovi na stvarnim Joomla, Drupal, Shopify, Magento, OpenCart i PrestaShop trgovinama.
 - [ ] Shopify aplikaciju registrirati/objaviti preko Shopify CLI i potvrditi Customer Privacy API ponašanje u development storeu.
 - [ ] Testirati stvarni cache, CSP, teme, automatizirano blokiranje i opoziv svih vanjskih servisnih dodataka po platformi.

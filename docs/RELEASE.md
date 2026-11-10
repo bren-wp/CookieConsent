@@ -32,6 +32,7 @@ php tests/wp-settings.php
 npm run build:cdn
 npm run build:wporg
 npm run audit:source
+npm run validate:platforms
 python3 tools/package.py
 python3 tools/package.py --verify
 ~~~
@@ -59,3 +60,7 @@ Provjerite status svih poslova **prije** preuzimanja konačnih paketa. CI ne pos
 ## Potpis i licencija
 
 Službena distribucija prikazuje `by Brendigo` bez konfiguracijskog prekidača. MIT licencija dopušta modifikacije izvornog koda i ne omogućuje tehničko jamstvo neuklonjivosti. Sačuvajte zakonski potrebnu licencnu obavijest.
+
+## Provjera objavljenog weba i CDN-a
+
+Nakon postavljanja HTML i CDN datoteka na stvarni server pokrenite `npm run verify:deployment -- https://cookie.brendigo.com`. Skripta **ne objavljuje** datoteke i ne mijenja DNS. [Deployment](DEPLOY.hr.md).

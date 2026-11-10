@@ -214,3 +214,7 @@ U službenoj distribuciji stalno se prikazuje **by Brendigo** i ne postoji posta
 ---
 
 **CookieConsent by Brendigo** · © 2026 **[Brendigo](https://brendigo.com)** · [MIT licencija](LICENSE) · [GitHub projekt](https://github.com/bren-wp/CookieConsent)
+
+## Provjera stvarne javne isporuke
+
+Za postavljeni web i CDN: `npm run verify:deployment -- https://cookie.brendigo.com`. Validator provjerava HTML stranice, točne verzionirane JS/CSS/loader datoteke, MIME i SHA-256 s CDN manifestom. **Ne postavlja DNS niti hosting.** Upute: [DEPLOY.hr.md](docs/DEPLOY.hr.md) · [Matrica testova](docs/QUALITY-GATES.hr.md).

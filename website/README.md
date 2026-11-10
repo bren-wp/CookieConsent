@@ -29,3 +29,7 @@ Projekt samostalno **ne** postavlja DNS, certifikate ili poslužiteljski hosting
 ## CMS integracije
 
 Na naslovnici je katalog platformskih dodataka: Joomla, Drupal, Shopify Theme App Extension, Magento, OpenCart i PrestaShop. Instalacija se provodi prema vodiču [docs/CMS-INTEGRATIONS.hr.md](../docs/CMS-INTEGRATIONS.hr.md) i zahtijeva odgovarajuću platformu.
+
+## Provjera javnog URL-a
+
+Nakon postavljanja na domenu pokrenite iz korijena izvornog repozitorija `npm run verify:deployment -- https://cookie.brendigo.com`. Validator provjerava HTTP status, MIME tipove, verzionirane resurse, CDN manifest i SHA-256, bez promjene hostinga. [Detaljne upute](../docs/DEPLOY.hr.md).

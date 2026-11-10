@@ -56,3 +56,7 @@ Loader čita verzionirani URL vlastite datoteke i uključuje CSS i jezgru s isto
 Adapter nije certificirani CMP, ne implementira IAB TCF i ne blokira automatski sve načine uključivanja Google oznaka. Testirajte redoslijed i mrežne zahtjeve na ciljnoj stranici.
 
 [Integracije](INTEGRATIONS.hr.md) · [Distribucija](RELEASE.md).
+
+## Automatizirani HTTP/HTTPS prihvat nakon deploya
+
+Iz kloniranog repozitorija pokrenite `npm run verify:deployment -- https://cookie.brendigo.com`. Skripta provjerava stvarne HTTP statusne kodove, MIME, javnu dostupnost, deklarirani CDN manifest i SHA-256 sadržaja. Za javne domene obvezan je HTTPS. [Potpune upute](DEPLOY.hr.md).
