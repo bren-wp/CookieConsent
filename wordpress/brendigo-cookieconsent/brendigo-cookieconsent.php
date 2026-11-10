@@ -167,6 +167,10 @@ function gate_enqueued_script(string $tag, string $handle, string $src): string 
         if (!$processor->next_tag('script')) return $tag;
         $processor->set_attribute('type', 'text/plain');
         $processor->set_attribute('data-bcc-category', $category);
+        if ($src !== '') {
+            $processor->set_attribute('data-bcc-src', $src);
+            $processor->remove_attribute('src');
+        }
         return $processor->get_updated_html();
     }
     return $tag;

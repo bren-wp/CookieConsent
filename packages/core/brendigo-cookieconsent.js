@@ -127,8 +127,13 @@
   }
   function addPolicyLink(node, t) {
     if (!config.policyUrl) return;
+    var safeUrl;
+    try {
+      safeUrl = new root.URL(config.policyUrl, root.location.href);
+      if (safeUrl.protocol !== 'http:' && safeUrl.protocol !== 'https:') return;
+    } catch (_) { return; }
     var link = element('a', 'bcc-policy', t.policy);
-    link.href = config.policyUrl;
+    link.href = safeUrl.href;
     node.appendChild(link);
   }
   function emit(type) {
@@ -226,7 +231,9 @@
     headText.appendChild(heading);
     headText.appendChild(element('p', 'bcc-muted', t.descriptionPrefs));
     header.appendChild(headText);
-    header.appendChild(button('×', 'bcc-icon-button', closePreferences));
+    var closeButton = button('×', 'bcc-icon-button', closePreferences);
+    closeButton.setAttribute('aria-label', t.close);
+    header.appendChild(closeButton);
     panel.appendChild(header);
     var list = element('div', 'bcc-category-list');
     CATEGORIES.forEach(function (category) {
@@ -247,7 +254,7 @@
     panel.appendChild(list);
     if (isGpc()) panel.appendChild(element('p', 'bcc-notice', t.gpc));
     var actions = element('div', 'bcc-actions');
-    actions.appendChild(button(t.reject, 'bcc-secondary', function () { setConsent({}); }));
+    actions.appendChild(button(t.reject, 'bcc-primary', function () { setConsent({}); }));
     actions.appendChild(button(t.accept, 'bcc-secondary', function () {
       setConsent({ preferences: true, analytics: true, marketing: true });
     }));
@@ -300,7 +307,7 @@
     content.appendChild(footer);
     banner.appendChild(content);
     var actions = element('div', 'bcc-banner-actions');
-    actions.appendChild(button(t.reject, 'bcc-secondary', function () { setConsent({}); }));
+    actions.appendChild(button(t.reject, 'bcc-primary', function () { setConsent({}); }));
     actions.appendChild(button(t.settings, 'bcc-secondary', openPreferences));
     actions.appendChild(button(t.accept, 'bcc-primary', function () {
       setConsent({ preferences: true, analytics: true, marketing: true });
