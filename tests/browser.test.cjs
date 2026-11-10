@@ -119,6 +119,10 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
             assert.equal(await page.locator('.bcc-banner .bcc-credit').isVisible(),true);
             assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,
               'horizontal overflow at '+position);
+            await page.evaluate(()=>BrendigoCookieConsent.setConsent({}));
+            await page.locator('.bcc-banner').waitFor({state:'hidden'});
+            assert.equal(await page.locator('.bcc-banner').isVisible(),false,
+              'consented banner must be hidden at '+position);
           }
           for(const [lang,expected] of [['hr','Odbij sve'],['en','Reject all'],
             ['de','Alle ablehnen'],['it','Rifiuta tutti'],['ar','رفض الكل']]){

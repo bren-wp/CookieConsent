@@ -136,3 +136,9 @@
 
 /* The HTML hidden attribute must beat all position/layout display overrides. */
 .bcc-root .bcc-banner[hidden],.bcc-root .bcc-reopen[hidden]{display:none!important}
+
+/* Force the native hidden state at every position/layout.
+ * Position-specific display:block rules must never reveal a consented banner.
+ */
+.bcc-root .bcc-banner[hidden],
+.bcc-root .bcc-reopen[hidden]{display:none!important}
