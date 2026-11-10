@@ -67,3 +67,73 @@ jobs:
           php -v
           php -l wordpress/brendigo-cookieconsent/brendigo-cookieconsent.php
           php tests/wp-settings.php
+
+  wordpress-integration:
+    name: Real WordPress ${{ matrix.wordpress }} smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        wordpress: ['6.2', 'latest']
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: wordpress
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -proot"
+          --health-interval=10s --health-timeout=5s --health-retries=15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mysqli, mbstring, curl, zip
+          coverage: none
+      - name: Install WP-CLI and real WordPress
+        run: |
+          mkdir -p "$RUNNER_TEMP/bin" "$RUNNER_TEMP/wordpress"
+          curl -fsSL https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar -o "$RUNNER_TEMP/bin/wp"
+          chmod +x "$RUNNER_TEMP/bin/wp"
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+          php "$RUNNER_TEMP/bin/wp" core download --version="${{ matrix.wordpress }}" --path="$RUNNER_TEMP/wordpress" --allow-root
+          php "$RUNNER_TEMP/bin/wp" config create --path="$RUNNER_TEMP/wordpress" \
+            --dbname=wordpress --dbuser=root --dbpass=root --dbhost=127.0.0.1 --allow-root
+          php "$RUNNER_TEMP/bin/wp" core install --path="$RUNNER_TEMP/wordpress" \
+            --url=http://127.0.0.1:8080 --title="CookieConsent test" \
+            --admin_user=admin --admin_password=TestOnly_1234 \
+            --admin_email=admin@example.org --skip-email --allow-root
+          cp -R wordpress/brendigo-cookieconsent "$RUNNER_TEMP/wordpress/wp-content/plugins/"
+          php "$RUNNER_TEMP/bin/wp" --path="$RUNNER_TEMP/wordpress" plugin activate brendigo-cookieconsent --allow-root
+      - name: Smoke test public catalog, assets and plugin APIs
+        run: |
+          php "$RUNNER_TEMP/bin/wp" --path="$RUNNER_TEMP/wordpress" eval-file "$GITHUB_WORKSPACE/tests/wp-live.php" --allow-root
+          php "$RUNNER_TEMP/bin/wp" --path="$RUNNER_TEMP/wordpress" server \
+            --host=127.0.0.1 --port=8080 --allow-root > "$RUNNER_TEMP/wp-http.log" 2>&1 &
+          sleep 3
+          curl -fsS --retry 8 --retry-delay 2 --retry-all-errors http://127.0.0.1:8080/ -o "$RUNNER_TEMP/front.html"
+          grep -q 'brendigo-cookieconsent.js' "$RUNNER_TEMP/front.html"
+          grep -q 'brendigo-cookieconsent.css' "$RUNNER_TEMP/front.html"
+      - name: WooCommerce activation and essentials smoke (latest WP)
+        if: matrix.wordpress == 'latest'
+        run: |
+          php "$RUNNER_TEMP/bin/wp" --path="$RUNNER_TEMP/wordpress" plugin install woocommerce --activate --allow-root
+          php "$RUNNER_TEMP/bin/wp" --path="$RUNNER_TEMP/wordpress" eval-file "$GITHUB_WORKSPACE/tests/wp-live.php" --allow-root
+      - name: Official Plugin Check report (review aid, not approval)
+        if: matrix.wordpress == 'latest'
+        run: |
+          php "$RUNNER_TEMP/bin/wp" --path="$RUNNER_TEMP/wordpress" plugin install plugin-check --activate --allow-root
+          php "$RUNNER_TEMP/bin/wp" --path="$RUNNER_TEMP/wordpress" plugin check brendigo-cookieconsent \
+            --format=table --allow-root > "$RUNNER_TEMP/plugin-check.txt" 2>&1 || true
+          cat "$RUNNER_TEMP/plugin-check.txt"
+      - name: Upload official Plugin Check report
+        if: always() && matrix.wordpress == 'latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: wordpress-plugin-check-report
+          path: ${{ runner.temp }}/plugin-check.txt
+          if-no-files-found: ignore
