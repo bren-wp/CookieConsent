@@ -3,7 +3,7 @@
  * Plugin Name: CookieConsent by Brendigo
  * Plugin URI: https://brendigo.com
  * Description: Self-hosted, privacy-first cookie consent banner and preference manager.
- * Version: 0.7.0
+ * Version: 0.8.0
  * Requires at least: 6.2
  * Requires PHP: 7.4
  * Author: Brendigo
@@ -16,7 +16,7 @@ namespace Brendigo\CookieConsent;
 
 defined('ABSPATH') || exit;
 
-const VERSION = '0.7.0';
+const VERSION = '0.8.0';
 const OPTION = 'brendigo_cookieconsent_options';
 
 function defaults(): array {
