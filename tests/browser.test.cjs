@@ -175,7 +175,7 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
           });
           assert.equal(await preview.locator('.bcc-root').getAttribute('class').then(x=>x.includes('bcc-theme-dark')),true);
           assert.equal(await preview.locator('.bcc-banner h2').textContent(),'Privacy settings by Brendigo');
-          assert.equal(await preview.getByRole('button',{name:'Reject optional services'}).count(),1);
+          await preview.getByRole('button',{name:'Reject optional services'}).waitFor({state:'visible'});
           const exported=await page.locator('#snippet').inputValue();
           assert.ok(exported.includes('"theme": "dark"'));
           assert.ok(exported.includes('"preferencesPosition": "right"'));
