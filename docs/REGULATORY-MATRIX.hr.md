@@ -39,7 +39,7 @@ Nakon opoziva, jezgra javlja `brendigo:consentrevoked`, poziva registrirani `onR
 - [CPPA — Global Privacy Control](https://cppa.ca.gov/announcements/2025/20250909.html)
 
 
-## Tehnički dodaci u izdanju 0.8.0
+## Tehnički dodaci u izdanju 0.8.1
 
 - Korisnik može dobiti lokalnu JSON potvrdu odabira; potvrda nije digitalno ovjerena i ne zamjenjuje evidenciju kada je ona propisana.
 - Odabir se sinkronizira među otvorenim karticama istog origina ako je dostupna podrška preglednika.

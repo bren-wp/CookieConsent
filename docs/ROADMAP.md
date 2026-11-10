@@ -1,6 +1,6 @@
 # Razvojni plan — CookieConsent by Brendigo
 
-**Aktualno izdanje: 0.8.0 (testno)** · Ažurirano: 10. 11. 2026. · [Dokumentacija](README.md) · [Promjene](CHANGELOG.md)
+**Aktualno izdanje: 0.8.1 (testno)** · Ažurirano: 10. 11. 2026. · [Dokumentacija](README.md) · [Promjene](CHANGELOG.md)
 
 Ovaj plan razlikuje **implementirano u kodu**, **automatizirano testirano** i **neprovjereno u stvarnoj produkciji**. Dokumentacija ne predstavlja potvrdu regulatorne certifikacije.
 
@@ -57,4 +57,4 @@ Ovaj plan razlikuje **implementirano u kodu**, **automatizirano testirano** i **
 
 Izdanje se ne proglašava stabilnim samo zbog zelenog CI-a: potrebne su potvrđene stvarne instalacije, bez regresija prihvaćanja/odbijanja/opoziva, provjereni scenariji s pružateljima i održiv proces sigurnosnih nadogradnji.
 
-**Neposredan sljedeći korak:** završiti aktualne regresijske testove i objaviti usklađene distribucijske pakete v0.8.0, nakon čega slijedi testiranje na stvarnom WordPressu.
+**Neposredan sljedeći korak:** završiti aktualne regresijske testove i objaviti usklađene distribucijske pakete v0.8.1, nakon čega slijedi testiranje na stvarnom WordPressu.

@@ -2,7 +2,10 @@
 
 Ovdje se opisuje funkcionalni razvoj službene grane. Zapisi označeni kao testne verzije nisu tvrdnja da je sva produkcijska ili regulatorna validacija obavljena.
 
-## 0.8.0 — testno izdanje
+## 0.8.1 — testno izdanje
+
+- Korektivno izdanje: dokumentacija, jezgra, WordPress dodatak i CDN ponovno su usklađeni na istu verziju.
+- Dodana je provjera usklađenosti verzija koja se mora izvršiti prije objave.
 
 - Lokalna JSON potvrda korisnikova odabira s datumom i revizijom; preuzimanje u dijalogu postavki.
 - `onFirstConsent`, `onConsent` i `onDecision` callbackovi.

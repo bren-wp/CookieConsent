@@ -1,6 +1,6 @@
 # Konfiguracija — CookieConsent by Brendigo
 
-**Izdanje:** 0.8.0 · [Dokumentacijski indeks](README.md) · [API](API.hr.md)
+**Izdanje:** 0.8.1 · [Dokumentacijski indeks](README.md) · [API](API.hr.md)
 
 Konfiguracija se postavlja u `window.BCC_SITE_CONFIG` prije učitavanja `brendigo-cookieconsent.js`. Parametri se učitavaju jednom pri inicijalizaciji. U WordPressu dostupni su kroz **Postavke → CookieConsent**, osim tamo gdje je izričito navedeno da je potrebna prilagođena integracija.
 

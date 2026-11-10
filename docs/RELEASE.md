@@ -2,13 +2,17 @@
 
 ## Verzije i paketi
 
-Aktualna testna verzija: **0.8.0**. Službeno izdanje koristi GitHub tag `v0.8.0` i sadrži tri različita ZIP paketa.
+Aktualna testna verzija: **0.8.1**. Službeno izdanje koristi GitHub tag `v0.8.1` i sadrži tri različita ZIP paketa.
 
 | Paket | Namjena |
 |---|---|
 | `cookieconsent-brendigo-standalone.zip` | HTML/PHP stranice i ostali CMS templateovi |
 | `brendigo-cookieconsent-wordpress.zip` | instalacija kroz WordPress administrator |
 | `brendigo-cookieconsent-cdn.zip` | verzionirani direktorij za vlastiti CDN hosting |
+
+## Usklađenost verzija
+
+`npm run check` provjerava da su `package.json`, jezgreni JavaScript/PHP, WordPress readme, CDN loader, testovi, dokumentacijski URL-ovi i CI build putanje usklađeni. Izdanje mora koristiti **isti SHA** koji je prošao CI. Prije stvarne produkcije potreban je poseban instalacijski i sigurnosni audit.
 
 ## Lokalna provjera
 

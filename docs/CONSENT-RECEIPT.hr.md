@@ -1,6 +1,6 @@
 # Lokalna potvrda korisnikova izbora
 
-**CookieConsent by Brendigo v0.8.0** omogućuje korisniku preuzimanje vlastite kopije aktivnog izbora iz prozora postavki privole.
+**CookieConsent by Brendigo v0.8.1** omogućuje korisniku preuzimanje vlastite kopije aktivnog izbora iz prozora postavki privole.
 
 ## Sadržaj
 

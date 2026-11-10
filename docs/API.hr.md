@@ -1,6 +1,6 @@
 # JavaScript API — CookieConsent by Brendigo
 
-**Izdanje:** 0.8.0 · [Konfiguracija](CONFIGURATION.hr.md) · [Integracije](INTEGRATIONS.hr.md)
+**Izdanje:** 0.8.1 · [Konfiguracija](CONFIGURATION.hr.md) · [Integracije](INTEGRATIONS.hr.md)
 
 ## Inicijalizacija
 
