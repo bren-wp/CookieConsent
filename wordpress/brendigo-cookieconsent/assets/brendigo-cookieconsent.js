@@ -1,5 +1,5 @@
 /*!
- * CookieConsent by Brendigo — v0.6.0
+ * CookieConsent by Brendigo — v0.7.0
  * Copyright (c) 2026 Brendigo · MIT License
  * Zero-dependency, self-hosted consent manager.
  */
@@ -14,7 +14,7 @@
 })(typeof window !== 'undefined' ? window : globalThis, function (root) {
   'use strict';
 
-  var VERSION = '0.6.0';
+  var VERSION = '0.7.0';
   var CATEGORIES = ['necessary', 'preferences', 'analytics', 'marketing'];
   var POSITIONS = ['bottom-center', 'bottom-left', 'bottom-right',
     'bottom-bar', 'top-center', 'top-left', 'top-right', 'top-bar', 'center'];
