@@ -185,6 +185,91 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
           assert.equal(download.suggestedFilename(),'brendigo-cookieconsent-config.json');
         } finally {await context.close();}
       });
+      await t.test('individual service switches control only the selected tracker',async()=>{
+        const context=await browser.newContext();
+        try{
+          const page=await context.newPage();
+          await page.goto(origin+'/demo/services.html');
+          await page.locator('.bcc-banner').waitFor({state:'visible'});
+          assert.equal(await page.locator('#a-status').textContent(),'not loaded');
+          assert.equal(await page.locator('#b-status').textContent(),'not loaded');
+          await page.locator('.bcc-banner-actions').getByRole('button',{name:'Customize'}).click();
+          await page.getByRole('dialog').getByRole('checkbox',{name:'Service A'}).check();
+          await page.getByRole('dialog').getByRole('button',{name:'Save my choices'}).click();
+          assert.equal(await page.locator('#a-status').textContent(),'loaded');
+          assert.equal(await page.locator('#b-status').textContent(),'not loaded');
+          assert.equal(await page.locator('#a-frame').getAttribute('src'),
+            new URL('/demo/configurator.html',origin).href);
+          assert.equal(await page.locator('#b-frame').getAttribute('src'),null);
+          const state=await page.evaluate(()=>BrendigoCookieConsent.getServiceConsent());
+          assert.equal(state['stats-a'],true);assert.equal(state['stats-b'],false);
+          assert.equal(await page.evaluate(()=>window.unknownServiceExecuted),undefined);
+          await page.reload();
+          assert.equal(await page.locator('.bcc-banner').isVisible(),false);
+          const saved=await page.evaluate(()=>BrendigoCookieConsent.getServiceConsent());
+          assert.equal(saved['stats-a'],true);assert.equal(saved['stats-b'],false);
+          assert.equal(await page.locator('#b-status').textContent(),'not loaded');
+        }finally{await context.close();}
+      });
+      await t.test('first-party cleanup honors service IDs and protects the consent cookie',async()=>{
+        const context=await browser.newContext();
+        try{
+          const page=await context.newPage();
+          await page.goto(origin+'/demo/services.html');
+          await page.locator('.bcc-banner').waitFor({state:'visible'});
+          await page.evaluate(()=>{
+            BrendigoCookieConsent.setDetailedConsent({
+              categories:{analytics:true},
+              services:{'stats-a':true,'stats-b':true}
+            });
+            document.cookie='bcc_test_analytics_a=1; Path=/; SameSite=Lax';
+            document.cookie='bcc_test_analytics_b=1; Path=/; SameSite=Lax';
+            document.cookie='bcc_test_global_one=1; Path=/; SameSite=Lax';
+          });
+          const events=await page.evaluate(()=>{
+            window.bccServiceEvents=[];
+            const unregister=BrendigoCookieConsent.registerProvider({
+              id:'service-check',category:'analytics',serviceId:'stats-a',
+              onGrant:()=>bccServiceEvents.push('grant'),
+              onRevoke:()=>bccServiceEvents.push('revoke')
+            });
+            BrendigoCookieConsent.setDetailedConsent({
+              categories:{analytics:true},
+              services:{'stats-a':false,'stats-b':true}
+            });
+            unregister();
+            return window.bccServiceEvents;
+          });
+          assert.deepEqual(events,['grant','revoke']);
+          const cookies=await page.evaluate(()=>document.cookie);
+          assert.ok(!cookies.includes('bcc_test_analytics_a='));
+          assert.ok(cookies.includes('bcc_test_analytics_b='));
+          assert.ok(cookies.includes('bcc_test_global_one='));
+          assert.ok(cookies.includes('bcc_consent='));
+          assert.equal(await page.locator('#a-frame').getAttribute('src'),null);
+          assert.ok((await page.locator('#b-frame').getAttribute('src')).includes('/demo/configurator.html'));
+          await page.evaluate(()=>BrendigoCookieConsent.setConsent({}));
+          const after=await page.evaluate(()=>document.cookie);
+          assert.ok(!after.includes('bcc_test_analytics_b='));
+          assert.ok(!after.includes('bcc_test_global_one='));
+          assert.ok(after.includes('bcc_consent='));
+        }finally{await context.close();}
+      });
+      await t.test('rejecting before choice also clears explicitly listed first-party cookies',async()=>{
+        const context=await browser.newContext();
+        try{
+          const page=await context.newPage();
+          await page.goto(origin+'/demo/services.html');
+          await page.locator('.bcc-banner').waitFor({state:'visible'});
+          await page.evaluate(()=>{
+            document.cookie='bcc_test_analytics_a=1; Path=/; SameSite=Lax';
+            BrendigoCookieConsent.setConsent({});
+          });
+          const after=await page.evaluate(()=>document.cookie);
+          assert.ok(!after.includes('bcc_test_analytics_a='));
+          assert.ok(after.includes('bcc_consent='));
+        }finally{await context.close();}
+      });
       await t.test('cookie inventory does not send data and focus remains within dialog',async()=>{
         const context=await browser.newContext();
         try{
