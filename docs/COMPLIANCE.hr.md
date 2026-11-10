@@ -15,7 +15,7 @@
 
 ## UK
 
-ICO jasno navodi da odbijanje neizuzetih tehnologija treba biti jednako jednostavno kao prihvaćanje. Za neizuzete tehnologije potrebni su informiranje i pozitivna radnja korisnika.
+Aktualizirane ICO smjernice za tehnologije pohrane i pristupa završene su 29. travnja 2026. Neke iznimke i obveze promijenile su se kroz UK Data (Use and Access) Act: za pojedine tehnologije može vrijediti poseban režim, pa se ne smije automatski tvrditi da je privola uvijek jedina pravna osnova. Odbijanje neizuzetih tehnologija mora ostati jednako jednostavno kao prihvaćanje. Smjernice: https://ico.org.uk/for-organisations/direct-marketing-and-privacy-and-electronic-communications/guidance-on-the-use-of-storage-and-access-technologies/
 
 ## SAD
 
@@ -30,7 +30,7 @@ Za LGPD i ostala nacionalna pravila zasebno provjerite pravnu osnovu, obavijesti
 - Nema automatskog skenera ili automatskog blokiranja neoznačenih trackera.
 - Nema brisanja kolačića trećih strana ni poništavanja već izvršenog JavaScripta.
 - Nema server-side revizijskog dnevnika.
-- Nema automatskog Google Consent Mode v2, IAB TCF ili certificiranog Google CMP statusa.
+- Opt-in Google Consent Mode v2 Basic adapter uključen je kao zasebna integracija. Ne učitava Google tagove; sam ne može automatski blokirati sve njihove načine ubacivanja. IAB TCF i certificirani Google CMP status nisu implementirani.
 - Nema GeoIP segmentacije ili cjelovitog opt-out postupka za američke propise.
 
 ## Referentni izvori
@@ -42,3 +42,7 @@ Za LGPD i ostala nacionalna pravila zasebno provjerite pravnu osnovu, obavijesti
 - [Google consent mode guidance](https://developers.google.com/tag-platform/security/guides/consent)
 
 Provjerite novije propise i smjernice prije svake produkcijske implementacije.
+
+## CDN i službeni potpis
+
+CDN domena u produkciji može obrađivati IP adrese posjetitelja i metapodatke zahtjeva i zato zahtijeva odgovarajuću obavijest, konfiguraciju logiranja, sigurnost prijenosa i ugovorne procjene. Potpis **by Brendigo** mora se pojaviti u službenom prikazu; vizualni kredit nije pravno potreban za valjanu privolu. Postojeća MIT licencija zahtijeva očuvanje licencne obavijesti, ali ne jamči da vlasnik modificirane kopije neće sakriti vidljivi kredit.

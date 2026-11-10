@@ -13,8 +13,11 @@
 | `policyUrl` | `/cookie-policy` | URL politike kolačića |
 | `accentColor` | `#4357e8` | Hex boja |
 | `revision` | `1` | Promjena zahtijeva novu privolu |
-| `showBranding` | `true` | Potpis by Brendigo |
-| `showSettingsButton` | `true` | Stalni gumb za ponovno otvaranje postavki |
+| `position` | `bottom-center` | Jedna od 9 pozicija |
+| `surfaceColor` | `#ffffff` | Boja pozadine bannera |
+| `textColor` | `#17223e` | Boja teksta; nizak kontrast automatski se ispravlja |
+| `by Brendigo` | uvijek vidljivo | Nema opcije skrivanja potpisa u UI-u ni API-ju |
+| ponovno otvaranje | uvijek dostupno | Trajni gumb za postavke privole |
 | `consentDays` | `180` | Ograničeno na 1–365 dana |
 | `cookieName` | `bcc_consent` | First-party kolačić |
 | `translations` | — | Prilagođeni tekstovi po jeziku |
@@ -47,7 +50,7 @@ Zahtjevi: WordPress 6.2+, PHP 7.4+.
 
 - ZIP mora sadržavati mapu `brendigo-cookieconsent` i cijelu podmapu `assets`.
 - Instalirajte preko administratorskog izbornika Dodaci; aktivirajte plugin.
-- Pod **Postavke → CookieConsent** podesite boju, jezik, link, rok i reviziju privole.
+- Pod **Postavke → CookieConsent** podesite 9 položaja bannera, tri boje, jezik, link, rok i reviziju privole. Odaberite Local ili CDN nakon objave verzioniranog paketa. Potpis je uvijek uključen.
 - Za prijavljene WP skripte upišite `analytics:my-handle` ili `marketing:my-ad-handle` po retku.
 - Dodajte `<button type="button" data-bcc-open>Postavke kolačića</button>` u footer.
 
@@ -69,3 +72,7 @@ Nakon revokacije nije moguće automatski poništiti već izvršeni JS. Implement
 Privola se sprema u first-party cookie sa SameSite=Lax, Path=/ i Secure na HTTPS-u. Ne postoji centralni audit trail ili mrežna usluga.
 
 **Za produkciju obvezno provjerite konkretne servise i primjenjive zakone.**
+
+## CDN i Google Basic adapter
+
+Upute za objavu `cookie.brendigo.com`, skriptni loader, DNS/TLS i opcionalni Consent Mode v2 adapter: [CDN vodič](CDN.hr.md). Koristite lokalni način kao zadani dok CDN nije provjeren.

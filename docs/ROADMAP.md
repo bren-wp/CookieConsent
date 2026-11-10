@@ -9,7 +9,12 @@
 - [x] Lokalni demo i osnovni jedinični testovi
 - [ ] Potpuni browser i accessibility regresijski testovi
 
-## v0.2 — integracije
+## v0.2 — integracije i prilagodba
+- [x] Devet pozicija bannera, prilagodljive boje i automatski tekst visokog kontrasta
+- [x] U službenoj distribuciji trajni by Brendigo potpis bez opcije isključivanja
+- [x] Verzionirani CDN build, loader i opcija lokalni/CDN u WordPressu
+- [x] Opt-in Google Consent Mode v2 Basic adapter sa zadanim denied stanjem
+- [x] CI provjere za v0.2 kod i izradu CDN paketa (provjeriti aktualni run)
 - [ ] Puni lifecycle za revokaciju i upravljanje aktivnim trackerima
 - [ ] Google Consent Mode v2 (basic) integracija i testiranje redoslijeda
 - [ ] WooCommerce i registrirani WP provider adapteri

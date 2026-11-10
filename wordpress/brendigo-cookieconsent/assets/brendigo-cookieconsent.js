@@ -222,13 +222,14 @@
     var previous = getConsent();
     consent = normalizeConsent(choice, isGpc());
     persist();
-    applyGatedResources();
-    showBanner();
-    closePreferences();
+    // Notify consent adapters BEFORE any deferred script starts.
     emit('change');
     if (previous && CATEGORIES.some(function (cat) { return previous[cat] && !consent[cat] && cat !== 'necessary'; })) {
       emit('revoked');
     }
+    applyGatedResources();
+    showBanner();
+    closePreferences();
     return getConsent();
   }
   function reset() {
@@ -351,6 +352,7 @@
     nodes.root = holder;
     nodes.banner = banner;
     showBanner();
+    emit('ready'); // Returning consent is propagated before third-party tag activation.
     applyGatedResources();
     if (!listenersAttached) {
       root.document.addEventListener('click', function (event) {
@@ -359,7 +361,6 @@
       });
       listenersAttached = true;
     }
-    emit('ready');
   }
   function init(options) {
     if (!root.document) return api;

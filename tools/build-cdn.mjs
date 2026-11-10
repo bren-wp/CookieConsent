@@ -2,9 +2,13 @@
 'use strict';
 // Builds a self-contained versioned folder. The generated folder can be uploaded
 // to an existing HTTPS origin; this script never deploys or changes DNS.
-const fs = require('node:fs');
-const path = require('node:path');
-const crypto = require('node:crypto');
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import {fileURLToPath} from 'node:url';
+import {createRequire} from 'node:module';
+const require = createRequire(import.meta.url);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '..');
 const version = require(path.join(root, 'package.json')).version;
 if (!/^\d+\.\d+\.\d+$/.test(version)) throw new Error('Invalid semver version');
