@@ -113,3 +113,23 @@
 .bcc-service-option input{min-width:18px;min-height:18px;accent-color:var(--bcc-accent)}
 .bcc-service-option strong{overflow-wrap:anywhere}
 .bcc-root[dir="rtl"] .bcc-service-option{direction:rtl}
+
+/* Additional original Brendigo design controls: side preferences, themes and buttons */
+.bcc-preferences-left{justify-content:flex-start;padding:0}
+.bcc-preferences-right{justify-content:flex-end;padding:0}
+.bcc-preferences-left .bcc-panel,.bcc-preferences-right .bcc-panel{
+  width:min(100%,540px);height:100dvh;max-height:100dvh;border-radius:0;padding:clamp(18px,3vw,36px)
+}
+.bcc-theme-dark .bcc-icon-button,.bcc-theme-dark .bcc-secondary{
+  background:#293754;color:#f7f8ff
+}
+.bcc-theme-dark .bcc-category-list{border-color:#526184}
+.bcc-theme-dark .bcc-category:not(:last-child){border-color:#526184}
+.bcc-theme-dark .bcc-notice{background:#293754;color:#f7f8ff}
+.bcc-equal-buttons .bcc-banner-actions .bcc-primary{flex:1 1 130px}
+.bcc-no-motion *,.bcc-no-motion *::before,.bcc-no-motion *::after{animation:none!important;transition:none!important}
+@media(max-width:780px){
+ .bcc-preferences-left .bcc-panel,.bcc-preferences-right .bcc-panel{
+   width:min(100%,540px);height:100dvh;max-height:100dvh;border-radius:0
+ }
+}

@@ -28,6 +28,11 @@ function defaults(): array {
         'text_color' => '#17223e',
         'position' => 'bottom-center',
         'banner_style' => 'standard',
+        'theme' => 'custom',
+        'preferences_position' => 'center',
+        'flip_buttons' => 0,
+        'equal_weight_buttons' => 1,
+        'disable_animations' => 0,
         'asset_source' => 'local',
         'policy_url' => '',
         'consent_days' => 180,
@@ -55,6 +60,8 @@ function sanitize_options($input): array {
     $positions = ['bottom-center','bottom-left','bottom-right','bottom-bar','top-center','top-left','top-right','top-bar','center'];
     $asset_source = isset($input['asset_source']) ? sanitize_key($input['asset_source']) : 'local';
     $style = isset($input['banner_style']) ? sanitize_key($input['banner_style']) : 'standard';
+    $theme = isset($input['theme']) ? sanitize_key($input['theme']) : 'custom';
+    $preferences_position = isset($input['preferences_position']) ? sanitize_key($input['preferences_position']) : 'center';
     $policy = isset($input['policy_url']) ? esc_url_raw($input['policy_url'], ['http', 'https']) : '';
     $handles = isset($input['blocked_handles']) ? sanitize_textarea_field($input['blocked_handles']) : '';
     return [
@@ -65,6 +72,11 @@ function sanitize_options($input): array {
         'text_color' => $text_color ?: '#17223e',
         'position' => in_array($position, $positions, true) ? $position : 'bottom-center',
         'banner_style' => in_array($style, ['standard', 'compact', 'minimal'], true) ? $style : 'standard',
+        'theme' => in_array($theme, ['custom', 'light', 'dark'], true) ? $theme : 'custom',
+        'preferences_position' => in_array($preferences_position, ['center', 'left', 'right'], true) ? $preferences_position : 'center',
+        'flip_buttons' => empty($input['flip_buttons']) ? 0 : 1,
+        'equal_weight_buttons' => empty($input['equal_weight_buttons']) ? 0 : 1,
+        'disable_animations' => empty($input['disable_animations']) ? 0 : 1,
         'asset_source' => in_array($asset_source, ['local','cdn'], true) ? $asset_source : 'local',
         'policy_url' => $policy,
         'consent_days' => isset($input['consent_days']) ? max(1, min(365, absint($input['consent_days']))) : 180,
@@ -294,6 +306,30 @@ function render_settings(): void {
                     </select></td>
                 </tr>
                 <tr>
+                    <th scope="row"><label for="bcc-theme"><?php esc_html_e('Color theme', 'brendigo-cookieconsent'); ?></label></th>
+                    <td><select id="bcc-theme" name="<?php echo esc_attr(OPTION); ?>[theme]">
+                        <?php foreach (['custom' => 'Custom colors', 'light' => 'Light', 'dark' => 'Dark'] as $value => $label) : ?>
+                            <option value="<?php echo esc_attr($value); ?>" <?php selected($o['theme'], $value); ?>><?php echo esc_html($label); ?></option>
+                        <?php endforeach; ?>
+                    </select></td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="bcc-preferences-position"><?php esc_html_e('Preferences dialog position', 'brendigo-cookieconsent'); ?></label></th>
+                    <td><select id="bcc-preferences-position" name="<?php echo esc_attr(OPTION); ?>[preferences_position]">
+                        <?php foreach (['center' => 'Center', 'left' => 'Left drawer', 'right' => 'Right drawer'] as $value => $label) : ?>
+                            <option value="<?php echo esc_attr($value); ?>" <?php selected($o['preferences_position'], $value); ?>><?php echo esc_html($label); ?></option>
+                        <?php endforeach; ?>
+                    </select></td>
+                </tr>
+                <tr>
+                    <th scope="row"><?php esc_html_e('Banner button layout', 'brendigo-cookieconsent'); ?></th>
+                    <td>
+                        <label><input id="bcc-flip" type="checkbox" name="<?php echo esc_attr(OPTION); ?>[flip_buttons]" value="1" <?php checked($o['flip_buttons'], 1); ?>> <?php esc_html_e('Reverse the accept and reject button order', 'brendigo-cookieconsent'); ?></label>
+                        <p><label><input id="bcc-equal" type="checkbox" name="<?php echo esc_attr(OPTION); ?>[equal_weight_buttons]" value="1" <?php checked($o['equal_weight_buttons'], 1); ?>> <?php esc_html_e('Give accept and reject equally prominent widths (recommended)', 'brendigo-cookieconsent'); ?></label></p>
+                        <p><label><input id="bcc-no-motion" type="checkbox" name="<?php echo esc_attr(OPTION); ?>[disable_animations]" value="1" <?php checked($o['disable_animations'], 1); ?>> <?php esc_html_e('Disable all banner animations', 'brendigo-cookieconsent'); ?></label></p>
+                    </td>
+                </tr>
+                <tr>
                     <th scope="row"><label for="bcc-assets"><?php esc_html_e('Asset delivery', 'brendigo-cookieconsent'); ?></label></th>
                     <td><select id="bcc-assets" name="<?php echo esc_attr(OPTION); ?>[asset_source]">
                         <option value="local" <?php selected($o['asset_source'], 'local'); ?>><?php esc_html_e('Local files (recommended)', 'brendigo-cookieconsent'); ?></option>
@@ -437,6 +473,11 @@ function frontend_assets(): void {
         'textColor' => $o['text_color'],
         'position' => $o['position'],
         'bannerStyle' => $o['banner_style'],
+        'theme' => $o['theme'],
+        'preferencesPosition' => $o['preferences_position'],
+        'flipButtons' => (bool) $o['flip_buttons'],
+        'equalWeightButtons' => (bool) $o['equal_weight_buttons'],
+        'disableAnimations' => (bool) $o['disable_animations'],
         'services' => array_merge(woocommerce_services(), parse_services($o['services_catalog'])),
         'cookieCleanupRules' => parse_cleanup_rules($o['cookie_cleanup_rules']),
         'policyUrl' => $o['policy_url'] ?: home_url('/cookie-policy/'),

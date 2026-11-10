@@ -23,6 +23,11 @@
   }
 
   var STYLES = ['standard', 'compact', 'minimal'];
+  var THEMES = ['custom', 'light', 'dark'];
+  function sanitizeTheme(theme) { return THEMES.indexOf(theme) !== -1 ? theme : 'custom'; }
+  function sanitizePreferencesPosition(value) {
+    return ['center', 'left', 'right'].indexOf(value) !== -1 ? value : 'center';
+  }
   function sanitizeStyle(style) {
     return STYLES.indexOf(style) !== -1 ? style : 'standard';
   }
@@ -121,6 +126,36 @@
       reopen: 'إعدادات ملفات تعريف الارتباط',
       servicesHeading: 'الخدمات وملفات تعريف الارتباط',
       providerPolicy: 'سياسة خصوصية مزوّد الخدمة'
+    },
+    es: {
+      heading: 'Tu privacidad, tu elección.',
+      intro: 'Utilizamos cookies necesarias para el funcionamiento del sitio. Solo usamos tecnologías opcionales con tu consentimiento. Puedes cambiar tu elección en cualquier momento.',
+      accept: 'Aceptar todo', reject: 'Rechazar todo', settings: 'Personalizar',
+      headingPrefs: 'Preferencias de privacidad', descriptionPrefs: 'Elige las categorías permitidas. Las cookies necesarias permanecen activadas.',
+      save: 'Guardar selección', close: 'Cerrar', policy: 'Política de cookies',
+      necessary: 'Necesarias', preferences: 'Funcionales', analytics: 'Analíticas', marketing: 'Marketing',
+      necessaryDesc: 'Necesarias para las funciones básicas y la seguridad.',
+      preferencesDesc: 'Recuerdan la configuración opcional.',
+      analyticsDesc: 'Ayudan a comprender el uso del sitio.',
+      marketingDesc: 'Se usan para publicidad y medición de campañas.',
+      gpc: 'Global Privacy Control está activo. El marketing permanece desactivado.',
+      reopen: 'Configurar cookies', servicesHeading: 'Servicios y cookies',
+      providerPolicy: 'Privacidad del proveedor'
+    },
+    fr: {
+      heading: 'Votre vie privée, votre choix.',
+      intro: 'Nous utilisons des cookies nécessaires au fonctionnement du site. Les technologies facultatives ne sont utilisées qu’avec votre consentement, que vous pouvez modifier à tout moment.',
+      accept: 'Tout accepter', reject: 'Tout refuser', settings: 'Personnaliser',
+      headingPrefs: 'Préférences de confidentialité', descriptionPrefs: 'Choisissez les catégories autorisées. Les cookies nécessaires restent activés.',
+      save: 'Enregistrer mes choix', close: 'Fermer', policy: 'Politique des cookies',
+      necessary: 'Nécessaires', preferences: 'Fonctionnels', analytics: 'Analytiques', marketing: 'Marketing',
+      necessaryDesc: 'Nécessaires aux fonctions de base et à la sécurité.',
+      preferencesDesc: 'Conservent les paramètres facultatifs.',
+      analyticsDesc: 'Aident à comprendre l’utilisation du site.',
+      marketingDesc: 'Servent à la publicité et à la mesure des campagnes.',
+      gpc: 'Global Privacy Control est activé. Le marketing reste désactivé.',
+      reopen: 'Paramètres des cookies', servicesHeading: 'Services et cookies',
+      providerPolicy: 'Confidentialité du fournisseur'
     }
   };
   var config = null;
@@ -303,24 +338,34 @@
         ((typeof item.name === 'string' && /^[a-zA-Z0-9_.-]{1,120}$/.test(item.name)) ||
          (typeof item.prefix === 'string' && /^[a-zA-Z0-9_.-]{1,120}$/.test(item.prefix)));
     }).map(function (item) {
+      var serviceId = typeof item.serviceId === 'string' && /^[a-zA-Z0-9._-]{1,64}$/.test(item.serviceId)
+        ? item.serviceId : '';
       var rawPath = typeof item.path === 'string' ? item.path : '/';
       var path = rawPath.length <= 150 && /^\/[a-zA-Z0-9/_-]*$/.test(rawPath) ? rawPath : '/';
       return {
         category: item.category, name: typeof item.name === 'string' ? item.name : '',
         prefix: typeof item.prefix === 'string' ? item.prefix : '',
-        path: path
+        serviceId: serviceId, path: path
       };
     });
   }
-  function clearConfiguredCookies(previous, current) {
+  function clearConfiguredCookies(previous, current, oldServices, nextServices) {
     if (!config || !config.cookieCleanupRules.length || !root.document) return;
     var visible = (root.document.cookie || '').split(';').map(function (part) {
       return part.trim().split('=')[0];
     }).filter(Boolean);
     config.cookieCleanupRules.forEach(function (rule) {
-      if (current && current[rule.category]) return;
-      // Clean on first rejection as well as explicit withdrawal.
-      if (previous && !previous[rule.category]) return;
+      if (rule.serviceId) {
+        var declared = config.services.some(function (service) {
+          return service.id === rule.serviceId && service.toggleable && service.category === rule.category;
+        });
+        if (!declared || (nextServices && nextServices[rule.serviceId])) return;
+        if (previous && oldServices && !oldServices[rule.serviceId]) return;
+      } else {
+        if (current && current[rule.category]) return;
+        // Clean on first rejection as well as explicit withdrawal.
+        if (previous && !previous[rule.category]) return;
+      }
       visible.forEach(function (name) {
         if (name === config.cookieName) return;
         if (!(rule.name && rule.name === name) && !(rule.prefix && name.indexOf(rule.prefix) === 0)) return;
@@ -466,16 +511,20 @@
   function saveChoice(choice, services) {
     if (!config) throw new Error('Initialize CookieConsent before setting consent.');
     var previous = getConsent();
+    var oldServices = getServiceConsent();
     consent = normalizeConsent(choice, isGpc());
     serviceConsent = normalizeServiceChoices(consent, services);
     persist();
-    clearConfiguredCookies(previous, consent);
+    clearConfiguredCookies(previous, consent, oldServices, serviceConsent);
     // Adapters receive the complete decision before any gated script starts.
     emit('change');
     var revokedCategories = previous && CATEGORIES.some(function (cat) {
       return previous[cat] && !consent[cat] && cat !== 'necessary';
     });
-    if (revokedCategories) emit('revoked');
+    var revokedServices = Object.keys(oldServices).some(function (id) {
+      return oldServices[id] === true && serviceConsent[id] !== true;
+    });
+    if (revokedCategories || revokedServices) emit('revoked');
     syncProviders();
     applyGatedResources();
     showBanner();
@@ -490,12 +539,14 @@
   function reset() {
     if (!config) return;
     var old = getConsent();
+    var oldServices = getServiceConsent();
     consent = null;
     serviceConsent = Object.create(null);
     root.document.cookie = config.cookieName + '=; Path=/; Max-Age=0; SameSite=Lax';
-    clearConfiguredCookies(old, null);
+    clearConfiguredCookies(old, null, oldServices, serviceConsent);
     emit('change');
-    if (old && CATEGORIES.some(function (category) { return category !== 'necessary' && old[category]; })) emit('revoked');
+    if ((old && CATEGORIES.some(function (category) { return category !== 'necessary' && old[category]; })) ||
+        Object.keys(oldServices).some(function (id) { return oldServices[id]; })) emit('revoked');
     syncProviders();
     applyGatedResources(); // clears gated iframe src attributes
     showBanner();
@@ -508,7 +559,7 @@
     var draftServices = Object.assign({}, serviceConsent);
     var categoryCheckboxes = {};
     lastFocused = root.document.activeElement;
-    var overlay = element('div', 'bcc-overlay');
+    var overlay = element('div', 'bcc-overlay bcc-preferences-' + config.preferencesPosition);
     var panel = element('section', 'bcc-panel');
     panel.setAttribute('role', 'dialog');
     panel.setAttribute('aria-modal', 'true');
@@ -595,13 +646,16 @@
     panel.appendChild(list);
     if (isGpc()) panel.appendChild(element('p', 'bcc-notice', t.gpc));
     var actions = element('div', 'bcc-actions');
-    actions.appendChild(button(t.reject, 'bcc-primary', function () { setConsent({}); }));
-    actions.appendChild(button(t.accept, 'bcc-secondary', function () {
+    var reject = button(t.reject, 'bcc-primary', function () { setConsent({}); });
+    var accept = button(t.accept, 'bcc-primary', function () {
       setConsent({ preferences: true, analytics: true, marketing: true });
-    }));
-    actions.appendChild(button(t.save, 'bcc-primary', function () {
+    });
+    var save = button(t.save, 'bcc-secondary', function () {
       setDetailedConsent({categories: draft, services: draftServices});
-    }));
+    });
+    (config.flipButtons ? [accept, reject, save] : [reject, accept, save]).forEach(function (node) {
+      actions.appendChild(node);
+    });
     panel.appendChild(actions);
     var footer = element('div', 'bcc-footer');
     addPolicyLink(footer, t);
@@ -633,14 +687,18 @@
   function mount() {
     if (nodes.root) return;
     var t = translations();
-    var holder = element('div', 'bcc-root bcc-position-' + config.position + ' bcc-style-' + config.bannerStyle);
+    var holder = element('div', 'bcc-root bcc-position-' + config.position + ' bcc-style-' + config.bannerStyle +
+      ' bcc-theme-' + config.theme + (config.equalWeightButtons ? ' bcc-equal-buttons' : '') +
+      (config.disableAnimations ? ' bcc-no-motion' : ''));
     holder.setAttribute('dir', getDirection());
+    var surfaceColor = config.theme === 'dark' ? '#171f34' : config.theme === 'light' ? '#ffffff' : config.surfaceColor;
+    var textColor = config.theme === 'dark' ? '#f7f8ff' : config.theme === 'light' ? '#17223e' : config.textColor;
     holder.style.setProperty('--bcc-accent', config.accentColor);
     holder.style.setProperty('--bcc-button-text', accessibleText('#ffffff', config.accentColor));
-    holder.style.setProperty('--bcc-bg', config.surfaceColor);
-    holder.style.setProperty('--bcc-text', accessibleText(config.textColor, config.surfaceColor));
-    holder.style.setProperty('--bcc-subtle', accessibleText('#66708c', config.surfaceColor));
-    holder.style.setProperty('--bcc-link', accessibleText(config.accentColor, config.surfaceColor));
+    holder.style.setProperty('--bcc-bg', surfaceColor);
+    holder.style.setProperty('--bcc-text', accessibleText(textColor, surfaceColor));
+    holder.style.setProperty('--bcc-subtle', accessibleText('#66708c', surfaceColor));
+    holder.style.setProperty('--bcc-link', accessibleText(config.accentColor, surfaceColor));
     var banner = element('section', 'bcc-banner');
     banner.setAttribute('role', 'region');
     banner.setAttribute('aria-label', t.heading);
@@ -654,11 +712,14 @@
     content.appendChild(footer);
     banner.appendChild(content);
     var actions = element('div', 'bcc-banner-actions');
-    actions.appendChild(button(t.reject, 'bcc-primary', function () { setConsent({}); }));
-    actions.appendChild(button(t.settings, 'bcc-secondary', openPreferences));
-    actions.appendChild(button(t.accept, 'bcc-primary', function () {
+    var reject = button(t.reject, 'bcc-primary', function () { setConsent({}); });
+    var customize = button(t.settings, 'bcc-secondary', openPreferences);
+    var accept = button(t.accept, 'bcc-primary', function () {
       setConsent({ preferences: true, analytics: true, marketing: true });
-    }));
+    });
+    (config.flipButtons ? [accept, customize, reject] : [reject, customize, accept]).forEach(function (node) {
+      actions.appendChild(node);
+    });
     banner.appendChild(actions);
     holder.appendChild(banner);
     {
@@ -691,6 +752,11 @@
       policyUrl: typeof options.policyUrl === 'string' ? options.policyUrl : '/cookie-policy',
       position: sanitizePosition(options.position),
       bannerStyle: sanitizeStyle(options.bannerStyle),
+      theme: sanitizeTheme(options.theme),
+      preferencesPosition: sanitizePreferencesPosition(options.preferencesPosition),
+      flipButtons: options.flipButtons === true,
+      equalWeightButtons: options.equalWeightButtons !== false,
+      disableAnimations: options.disableAnimations === true,
       direction: sanitizeDirection(options.direction),
       accentColor: sanitizeColor(options.accentColor, '#4357e8'),
       surfaceColor: sanitizeColor(options.surfaceColor, '#ffffff'),
@@ -720,6 +786,7 @@
     utils: {
       normalizeConsent: normalizeConsent, encodeRecord: encodeRecord, parseRecord: parseRecord,
       sanitizePosition: sanitizePosition, sanitizeStyle: sanitizeStyle,
+      sanitizeTheme: sanitizeTheme, sanitizePreferencesPosition: sanitizePreferencesPosition,
       sanitizeDirection: sanitizeDirection, sanitizeColor: sanitizeColor,
       contrastRatio: contrastRatio, accessibleText: accessibleText,
       normalizeServices: normalizeServices,
