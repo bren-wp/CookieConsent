@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="hr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Live demonstration of CookieConsent by Brendigo.">
+  <title>CookieConsent by Brendigo — Live demo</title>
+  <link rel="stylesheet" href="../packages/core/brendigo-cookieconsent.css">
+  <style>
+    :root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,sans-serif;background:#f5f7ff;color:#132047}
+    *{box-sizing:border-box}
+    body{margin:0}
+    header{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:1120px;margin:0 auto;padding:26px}
+    .brand{font-weight:900;letter-spacing:-.04em;font-size:21px}.brand small{font-size:12px;font-weight:600;color:#57668e;letter-spacing:0}
+    main{max-width:1120px;margin:5vh auto 0;padding:26px}
+    .label{color:#4357e8;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.14em}
+    h1{font-size:clamp(42px,7vw,78px);line-height:1.06;letter-spacing:-.06em;margin:14px 0;max-width:900px}
+    .lead{font-size:18px;line-height:1.65;color:#5f6e93;max-width:650px}
+    .buttons{display:flex;gap:12px;flex-wrap:wrap;margin-top:26px}
+    .buttons button{border:0;background:#4357e8;color:#fff;border-radius:12px;padding:14px 18px;font-size:14px;font-weight:700;cursor:pointer}
+    .buttons button.secondary{background:#e3e8fa;color:#263a75}
+    .feature-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:60px}
+    .feature{padding:24px;background:#fff;border:1px solid #e3e8f7;border-radius:16px}
+    .feature strong{display:block;font-size:18px;margin-bottom:7px}
+    .feature p{color:#65708c;line-height:1.5;margin:0}
+    .status{margin-top:24px;background:#fff;padding:20px;border:1px solid #dce4f6;border-radius:13px;display:inline-block}
+    @media(max-width:700px){.feature-grid{grid-template-columns:1fr} main{margin-top:20px}}
+  </style>
+  <script>
+    window.BCC_SITE_CONFIG = { language: 'hr', policyUrl: '#cookie-policy', revision: 'demo-v1', showBranding: true };
+  </script>
+  <script defer src="../packages/core/brendigo-cookieconsent.js"></script>
+</head>
+<body>
+  <header><div class="brand">CookieConsent <small>by Brendigo</small></div><a href="https://github.com/bren-wp/CookieConsent">GitHub ↗</a></header>
+  <main>
+    <div class="label">Independent • Self-hosted • Open-source</div>
+    <h1>Privatnost koja poštuje izbor.</h1>
+    <p class="lead">Univerzalni sustav za kolačiće i privole. Bez CDN-a, bez vanjskog računa i bez automatskog učitavanja opcionalnih skripti.</p>
+    <div class="buttons">
+      <button data-bcc-open>Otvori postavke</button>
+      <button class="secondary" id="reset-consent">Resetiraj demo privolu</button>
+    </div>
+    <div class="status">Analitički demo kod: <strong id="analytics-status">nije pokrenut</strong></div>
+    <div class="feature-grid">
+      <div class="feature"><strong>01 · Vaš izbor</strong><p>Jednako dostupne opcije prihvaćanja i odbijanja.</p></div>
+      <div class="feature"><strong>02 · Pod vašom kontrolom</strong><p>Analitika i marketing mogu se učitati tek nakon privole.</p></div>
+      <div class="feature"><strong>03 · Lokalno</strong><p>Vanjske usluge nisu potrebne za prikaz i spremanje privole.</p></div>
+    </div>
+    <section id="cookie-policy" style="padding:55px 0 120px;color:#65708c">
+      <h2>Demonstracijska stranica</h2>
+      <p>U stvarnoj instalaciji povežite vlastitu politiku kolačića s navedenim kategorijama i servisima.</p>
+    </section>
+  </main>
+  <!-- This script is deliberately inert until analytics consent is granted. -->
+  <script type="text/plain" data-bcc-category="analytics">
+    document.getElementById('analytics-status').textContent = 'pokrenut nakon privole';
+  </script>
+  <script>
+    document.getElementById('reset-consent').addEventListener('click', function () {
+      BrendigoCookieConsent.reset();
+      window.location.reload();
+    });
+  </script>
+</body>
+</html>
