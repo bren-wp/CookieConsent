@@ -86,3 +86,39 @@ test('direction sanitizer constrains RTL to known modes', () => {
   assert.equal(consent.utils.sanitizeDirection('ltr'),'ltr');
   assert.equal(consent.utils.sanitizeDirection('rtl;display:none'),'auto');
 });
+
+test('service configuration rejects duplicate IDs and caps cookie size', () => {
+  const items = Array.from({length:50},(_,i)=>({
+    id:'service-'+i,category:'analytics',name:'Service '+i,toggleable:true
+  }));
+  const normalized=consent.utils.normalizeServices(items);
+  assert.equal(normalized.length,50);
+  assert.equal(normalized.filter(x=>x.toggleable).length,24);
+  const dup=consent.utils.normalizeServices([
+    {id:'same',category:'analytics',name:'first',toggleable:true},
+    {id:'same',category:'marketing',name:'second',toggleable:true}
+  ]);
+  assert.equal(dup[1].toggleable,false);
+});
+test('cleanup requires explicit safe cookie names or literal prefixes', () => {
+  const rules=consent.utils.normalizeCleanupRules([
+    {category:'analytics',prefix:'_ga',serviceId:'google-analytics'},
+    {category:'analytics',name:'_gid',path:'/'},
+    {category:'necessary',name:'session'},
+    {category:'marketing',prefix:'.*'},
+    {category:'marketing',name:'foo;Path=/'}
+  ]);
+  assert.equal(rules.length,2);
+  assert.equal(rules[0].serviceId,'google-analytics');
+  assert.equal(rules[0].prefix,'_ga');
+  assert.equal(rules[1].name,'_gid');
+});
+test('service choices persist alongside category consent in a backward compatible record',()=>{
+  const encoded=consent.utils.encodeRecord(
+    {analytics:true},'policy-1','2026-11-10T15:00:00.000Z',{'stats-a':true,'stats-b':false});
+  assert.equal(consent.utils.parseRecord(encoded,'policy-1',false).analytics,true);
+  const services=consent.utils.parseServiceRecord(encoded,'policy-1',false);
+  assert.equal(services['stats-a'],true);
+  assert.equal(services['stats-b'],false);
+  assert.equal(consent.utils.parseServiceRecord(encoded,'policy-2',false),null);
+});
