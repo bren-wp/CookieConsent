@@ -1,6 +1,6 @@
 /*!
- * CookieConsent by Brendigo — CDN bootstrap v0.11.1
- * Load this file from https://cookie.brendigo.com/v0.11.1/loader.js
+ * CookieConsent by Brendigo — CDN bootstrap v0.11.2
+ * Load this file from https://cookie.brendigo.com/v0.11.2/loader.js
  * No analytics, beacon, fingerprinting, or consent transmission.
  */
 (function (doc) {
