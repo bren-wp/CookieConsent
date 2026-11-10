@@ -169,6 +169,7 @@
   function normalizeServices(items) {
     if (!Array.isArray(items)) return [];
     var seen = Object.create(null);
+    var toggleCount = 0;
     return items.slice(0, 50).filter(function (item) {
       return item && typeof item === 'object' &&
         CATEGORIES.indexOf(item.category) !== -1 &&
@@ -177,8 +178,10 @@
       var id = typeof item.id === 'string' && /^[a-zA-Z0-9._-]{1,64}$/.test(item.id) ? item.id : '';
       if (id && seen[id]) id = '';
       if (id) seen[id] = true;
+      var toggleable = !!id && item.toggleable === true && item.category !== 'necessary' && toggleCount < 24;
+      if (toggleable) toggleCount++;
       return {
-        id: id, toggleable: !!id && item.toggleable === true && item.category !== 'necessary',
+        id: id, toggleable: toggleable,
         category: item.category, name: item.name.trim().slice(0, 120),
         purpose: typeof item.purpose === 'string' ? item.purpose.trim().slice(0, 350) : '',
         cookies: typeof item.cookies === 'string' ? item.cookies.trim().slice(0, 300) : '',
