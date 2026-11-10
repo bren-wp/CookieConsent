@@ -25,6 +25,7 @@ function defaults(): array {
         'accent_color' => '#4357e8',
         'policy_url' => '',
         'show_branding' => 1,
+        'show_settings_button' => 1,
         'consent_days' => 180,
         'revision' => '1',
         'blocked_handles' => '',
@@ -47,6 +48,7 @@ function sanitize_options($input): array {
         'accent_color' => $accent ?: '#4357e8',
         'policy_url' => $policy,
         'show_branding' => empty($input['show_branding']) ? 0 : 1,
+        'show_settings_button' => empty($input['show_settings_button']) ? 0 : 1,
         'consent_days' => isset($input['consent_days']) ? max(1, min(365, absint($input['consent_days']))) : 180,
         'revision' => isset($input['revision']) ? substr(sanitize_text_field($input['revision']), 0, 40) : '1',
         'blocked_handles' => substr($handles, 0, 4000),
@@ -105,6 +107,10 @@ function render_settings(): void {
                     <td><label><input type="checkbox" name="<?php echo esc_attr(OPTION); ?>[show_branding]" value="1" <?php checked($o['show_branding'], 1); ?>> <?php esc_html_e('Display "by Brendigo" in the banner and preferences', 'brendigo-cookieconsent'); ?></label></td>
                 </tr>
                 <tr>
+                    <th scope="row"><?php esc_html_e('Privacy settings button', 'brendigo-cookieconsent'); ?></th>
+                    <td><label><input type="checkbox" name="<?php echo esc_attr(OPTION); ?>[show_settings_button]" value="1" <?php checked($o['show_settings_button'], 1); ?>> <?php esc_html_e('Show a permanent button to reopen consent preferences', 'brendigo-cookieconsent'); ?></label></td>
+                </tr>
+                <tr>
                     <th scope="row"><label for="bcc-days"><?php esc_html_e('Consent duration (days)', 'brendigo-cookieconsent'); ?></label></th>
                     <td><input id="bcc-days" type="number" min="1" max="365" name="<?php echo esc_attr(OPTION); ?>[consent_days]" value="<?php echo esc_attr($o['consent_days']); ?>"></td>
                 </tr>
@@ -140,6 +146,7 @@ function frontend_assets(): void {
         'accentColor' => $o['accent_color'],
         'policyUrl' => $o['policy_url'] ?: home_url('/cookie-policy/'),
         'showBranding' => (bool) $o['show_branding'],
+        'showSettingsButton' => (bool) $o['show_settings_button'],
         'consentDays' => (int) $o['consent_days'],
         'revision' => (string) $o['revision'],
     ];
@@ -153,6 +160,7 @@ add_action('wp_enqueue_scripts', __NAMESPACE__ . '\\frontend_assets', 20);
  * Inline snippets, other tags and third-party plugin behavior need separate review.
  */
 function gate_enqueued_script(string $tag, string $handle, string $src): string {
+    if ($handle === 'brendigo-cookieconsent') return $tag;
     $raw = options()['blocked_handles'];
     if (!$raw || !class_exists('WP_HTML_Tag_Processor')) return $tag;
     foreach (preg_split('/[\r\n,]+/', $raw) as $line) {

@@ -14,6 +14,7 @@
 | `accentColor` | `#4357e8` | Hex boja |
 | `revision` | `1` | Promjena zahtijeva novu privolu |
 | `showBranding` | `true` | Potpis by Brendigo |
+| `showSettingsButton` | `true` | Stalni gumb za ponovno otvaranje postavki |
 | `consentDays` | `180` | Ograničeno na 1–365 dana |
 | `cookieName` | `bcc_consent` | First-party kolačić |
 | `translations` | — | Prilagođeni tekstovi po jeziku |

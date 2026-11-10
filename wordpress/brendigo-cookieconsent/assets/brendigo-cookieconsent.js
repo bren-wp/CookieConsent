@@ -192,6 +192,7 @@
   function showBanner() {
     if (!nodes.banner) return;
     nodes.banner.hidden = !!consent;
+    if (nodes.reopen) nodes.reopen.hidden = !consent;
   }
   function setConsent(choice) {
     if (!config) throw new Error('Initialize CookieConsent before setting consent.');
@@ -314,6 +315,12 @@
     }));
     banner.appendChild(actions);
     holder.appendChild(banner);
+    if (config.showSettingsButton) {
+      var reopen = button(t.reopen, 'bcc-reopen', openPreferences);
+      reopen.setAttribute('aria-label', t.reopen);
+      holder.appendChild(reopen);
+      nodes.reopen = reopen;
+    }
     root.document.body.appendChild(holder);
     nodes.root = holder;
     nodes.banner = banner;
@@ -336,6 +343,7 @@
       language: options.language || 'auto',
       policyUrl: typeof options.policyUrl === 'string' ? options.policyUrl : '/cookie-policy',
       showBranding: options.showBranding !== false,
+      showSettingsButton: options.showSettingsButton !== false,
       accentColor: options.accentColor || '#4357e8',
       consentDays: options.consentDays || 180,
       revision: String(options.revision || '1'),

@@ -27,6 +27,7 @@
 | 🧠 | **GPC:** konzervativno onemogućava marketinšku kategoriju uz Global Privacy Control |
 | ♿ | **Pristupačnost:** tipkovnica, fokus, oznake dijaloga, mobilni raspored |
 | 🎨 | **Brending:** boja, politika kolačića, opcionalni potpis by Brendigo |
+| 🔁 | **Stalni pristup:** automatski gumb za ponovno otvaranje postavki nakon izbora |
 
 ## 🖼️ Izgled
 
@@ -45,7 +46,8 @@ Prenesite datoteke iz [packages/core](packages/core) na vlastiti hosting, primje
     language: "hr",
     policyUrl: "/politika-kolacica",
     revision: "1",
-    showBranding: true
+    showBranding: true,
+    showSettingsButton: true
   };
 </script>
 <script defer src="/assets/brendigo-cookieconsent.js"></script>
