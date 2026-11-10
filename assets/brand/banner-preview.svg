@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="440" viewBox="0 0 1200 440" role="img" aria-labelledby="t">
+<title id="t">Illustrative preview of CookieConsent by Brendigo desktop cookie banner</title>
+<rect width="1200" height="440" rx="22" fill="#eaf0fd"/><rect x="45" y="40" width="1110" height="315" rx="21" fill="#f8faff" stroke="#d6dfef"/>
+<g fill="#dce5f7"><rect x="87" y="83" width="200" height="17" rx="8"/><rect x="87" y="128" width="540" height="15" rx="7"/><rect x="87" y="161" width="490" height="15" rx="7"/><rect x="87" y="194" width="530" height="15" rx="7"/><rect x="87" y="242" width="240" height="50" rx="10"/></g>
+<g font-family="Arial,Helvetica,sans-serif"><rect x="64" y="224" width="1072" height="185" rx="18" fill="#fff" stroke="#e0e7f5"/>
+<text x="93" y="255" font-size="12" font-weight="800" fill="#4357e8" letter-spacing="2">COOKIECONSENT</text>
+<text x="93" y="290" font-size="23" font-weight="800" fill="#152347">Vaša privatnost, vaš izbor</text>
+<text x="93" y="319" font-size="14" fill="#6f7c98">Koristimo nužne kolačiće za rad stranice. Ostale tehnologije samo uz vašu privolu.</text>
+<text x="93" y="349" font-size="12" fill="#4357e8">Pravila o kolačićima</text><text x="390" y="349" font-size="12" fill="#7a86a3">by Brendigo</text>
+<rect x="762" y="353" width="110" height="40" rx="10" fill="#4357e8"/><text x="781" y="378" font-size="13" font-weight="700" fill="#fff">Odbij sve</text>
+<rect x="882" y="353" width="95" height="40" rx="10" fill="#eff2fb" stroke="#d5dceb"/><text x="898" y="378" font-size="13" font-weight="700" fill="#33426c">Postavke</text>
+<rect x="987" y="353" width="128" height="40" rx="10" fill="#4357e8"/><text x="1004" y="378" font-size="13" font-weight="700" fill="#fff">Prihvati sve</text>
+</g></svg>

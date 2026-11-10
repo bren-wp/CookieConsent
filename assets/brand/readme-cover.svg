@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="548" viewBox="0 0 1200 548" role="img" aria-labelledby="title desc">
+<title id="title">CookieConsent by Brendigo</title><desc id="desc">Illustrated product cover with privacy preferences interface</desc>
+<defs><linearGradient id="bg" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#101d40"/><stop offset="1" stop-color="#2a3479"/></linearGradient><linearGradient id="button" x1="0" x2="1"><stop stop-color="#5d72ff"/><stop offset="1" stop-color="#7b66ff"/></linearGradient><filter id="shadow"><feDropShadow dx="0" dy="18" stdDeviation="20" flood-color="#060e2e" flood-opacity=".28"/></filter></defs>
+<rect width="1200" height="548" fill="url(#bg)"/><circle cx="1075" cy="40" r="230" fill="#7c89f7" opacity=".07"/><circle cx="1100" cy="560" r="300" fill="#6675ff" opacity=".06"/>
+<g font-family="Arial,Helvetica,sans-serif">
+<rect x="64" y="55" width="48" height="48" rx="15" fill="#6574ff"/><path d="M78 79l9 9 17-19" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="128" y="84" font-size="28" font-weight="800" fill="#fff">CookieConsent</text><text x="128" y="109" font-size="15" fill="#b7c5ef">by Brendigo</text>
+<text x="64" y="220" font-size="49" font-weight="800" fill="#fff">Your privacy.</text><text x="64" y="277" font-size="49" font-weight="800" fill="#aeb8ff">Your choice.</text>
+<text x="64" y="328" font-size="19" fill="#c7d1f2">Consent management that feels simple.</text>
+<text x="64" y="357" font-size="19" fill="#c7d1f2">Self-hosted. Lightweight. Made to integrate.</text>
+<g font-size="15" fill="#fff"><rect x="64" y="407" width="132" height="39" rx="19" fill="#364779"/><text x="87" y="432">No cloud</text><rect x="212" y="407" width="133" height="39" rx="19" fill="#364779"/><text x="233" y="432">HR + EN</text><rect x="362" y="407" width="135" height="39" rx="19" fill="#364779"/><text x="379" y="432">WordPress</text></g>
+<g filter="url(#shadow)"><rect x="650" y="96" width="480" height="356" rx="22" fill="#fff"/></g>
+<text x="682" y="138" font-size="12" letter-spacing="2" font-weight="800" fill="#6476ec">PRIVACY CENTER</text>
+<text x="682" y="177" font-size="25" font-weight="800" fill="#152346">Your preferences</text><text x="682" y="204" font-size="14" fill="#7b88a2">Decide what works for you.</text>
+<g fill="none" stroke="#e4e9f5"><path d="M682 227h416M682 275h416M682 323h416M682 371h416"/></g>
+<g font-size="15" font-weight="700" fill="#243458"><text x="684" y="257">Essential</text><text x="684" y="305">Functional</text><text x="684" y="353">Analytics</text></g>
+<g><rect x="1040" y="239" width="51" height="25" rx="13" fill="#4357e8"/><circle cx="1078" cy="251.5" r="9" fill="#fff"/><rect x="1040" y="287" width="51" height="25" rx="13" fill="#d5dce9"/><circle cx="1053" cy="299.5" r="9" fill="#fff"/><rect x="1040" y="335" width="51" height="25" rx="13" fill="#d5dce9"/><circle cx="1053" cy="347.5" r="9" fill="#fff"/></g>
+<rect x="682" y="394" width="198" height="40" rx="10" fill="#f0f3ff"/><text x="725" y="420" font-size="14" font-weight="700" fill="#30437e">Reject all</text>
+<rect x="896" y="394" width="202" height="40" rx="10" fill="url(#button)"/><text x="960" y="420" font-size="14" font-weight="700" fill="#fff">Accept all</text>
+</g></svg>
