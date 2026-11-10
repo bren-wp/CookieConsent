@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+  <system>
+    <section id="brendigo_cookieconsent" translate="label" sortOrder="900" showInDefault="1" showInWebsite="1" showInStore="1">
+      <label>CookieConsent by Brendigo</label>
+      <tab>general</tab>
+      <resource>Brendigo_CookieConsent::config</resource>
+      <group id="general" translate="label" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+        <label>Privacy banner</label>
+        <field id="enabled" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+          <label>Enable</label><source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+        </field>
+        <field id="language" type="text" translate="label" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1"><label>Language (auto/hr/en/de/it/es/fr/ar)</label></field>
+        <field id="position" type="text" translate="label" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1"><label>Position (bottom-center, bottom-right etc.)</label></field>
+        <field id="policy_url" type="text" translate="label" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1"><label>Cookie policy URL / path</label></field>
+        <field id="revision" type="text" translate="label" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1"><label>Consent revision</label></field>
+        <field id="accent_color" type="text" translate="label" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1"><label>Accent color (#RRGGBB)</label></field>
+        <field id="consent_days" type="text" translate="label" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1"><label>Consent retention days (1–365)</label></field>
+      </group>
+    </section>
+  </system>
+</config>

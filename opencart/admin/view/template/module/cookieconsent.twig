@@ -1,0 +1,45 @@
+{{ header }}{{ column_left }}
+<div id="content">
+  <div class="page-header"><div class="container-fluid">
+    <h1>{{ heading_title }}</h1>
+    <div class="float-end"><button type="submit" form="form-brendigo" class="btn btn-primary">{{ save }}</button>
+      <a href="{{ cancel }}" class="btn btn-light">Cancel</a></div>
+  </div></div>
+  <div class="container-fluid">
+    <form id="form-brendigo" action="{{ action }}" method="post">
+      <div class="card"><div class="card-header">CookieConsent by Brendigo</div><div class="card-body">
+        <div class="mb-3"><label for="bcc-status">Enabled</label>
+          <select class="form-select" id="bcc-status" name="module_brendigo_cookieconsent_status">
+            <option value="1" {% if status %}selected{% endif %}>Enabled</option>
+            <option value="0" {% if not status %}selected{% endif %}>Disabled</option>
+          </select></div>
+        <div class="mb-3"><label for="bcc-language">Language</label>
+          <select class="form-select" id="bcc-language" name="module_brendigo_cookieconsent_language">
+            {% for key, label in languages %}
+              <option value="{{ key }}" {% if key == language %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select></div>
+        <div class="mb-3"><label for="bcc-position">Position</label>
+          <select class="form-select" id="bcc-position" name="module_brendigo_cookieconsent_position">
+            {% for key, label in positions %}
+              <option value="{{ key }}" {% if key == position %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select></div>
+        <div class="mb-3"><label for="bcc-policy">Cookie policy path / URL</label>
+          <input class="form-control" id="bcc-policy" maxlength="500"
+            name="module_brendigo_cookieconsent_policy_url" value="{{ policy_url }}"></div>
+        <div class="mb-3"><label for="bcc-revision">Policy revision</label>
+          <input class="form-control" id="bcc-revision" maxlength="40"
+            name="module_brendigo_cookieconsent_revision" value="{{ revision }}"></div>
+        <div class="mb-3"><label for="bcc-color">Accent HEX color</label>
+          <input class="form-control" id="bcc-color" maxlength="7"
+            name="module_brendigo_cookieconsent_accent_color" value="{{ accent_color }}"></div>
+        <div class="mb-3"><label for="bcc-days">Consent retention (days)</label>
+          <input class="form-control" id="bcc-days" type="number" min="1" max="365"
+            name="module_brendigo_cookieconsent_consent_days" value="{{ consent_days }}"></div>
+        <p class="text-muted">Author: Brendigo · https://brendigo.com · https://cookie.brendigo.com</p>
+      </div></div>
+    </form>
+  </div>
+</div>
+{{ footer }}

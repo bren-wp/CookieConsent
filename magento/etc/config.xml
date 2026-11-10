@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/config.xsd">
+  <default>
+    <brendigo_cookieconsent>
+      <general>
+        <enabled>1</enabled><language>auto</language><position>bottom-center</position>
+        <policy_url>/cookie-policy</policy_url><revision>1</revision>
+        <accent_color>#4357e8</accent_color><consent_days>180</consent_days>
+      </general>
+    </brendigo_cookieconsent>
+  </default>
+</config>

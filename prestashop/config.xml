@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module>
+  <name>brendigocookieconsent</name>
+  <displayName><![CDATA[CookieConsent by Brendigo]]></displayName>
+  <version><![CDATA[0.10.0]]></version>
+  <description><![CDATA[Consent choices and privacy controls.]]></description>
+  <author><![CDATA[Brendigo]]></author>
+  <tab><![CDATA[administration]]></tab>
+  <is_configurable>1</is_configurable>
+  <need_instance>0</need_instance>
+</module>

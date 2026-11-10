@@ -1,0 +1,11 @@
+<?php
+/** @var \Brendigo\CookieConsent\Block\Consent $block */
+/** @var \Magento\Framework\Escaper $escaper */
+if (!$block->isEnabled()) {
+    return;
+}
+?>
+<link rel="stylesheet" href="<?= $escaper->escapeUrl($block->getViewFileUrl('Brendigo_CookieConsent::css/brendigo-cookieconsent.css')) ?>">
+<script type="application/json" id="brendigo-cookieconsent-config"><?= /* @noEscape JSON_HEX-encoded */ $block->getConfigJson() ?></script>
+<script defer src="<?= $escaper->escapeUrl($block->getViewFileUrl('Brendigo_CookieConsent::js/bootstrap.js')) ?>"></script>
+<script defer src="<?= $escaper->escapeUrl($block->getViewFileUrl('Brendigo_CookieConsent::js/brendigo-cookieconsent.js')) ?>"></script>
