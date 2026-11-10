@@ -2,7 +2,7 @@
 
 ## Verzije i paketi
 
-Aktualna testna verzija: **0.10.0**. Službeno izdanje koristi GitHub tag `v0.10.0` i sadrži pet različitih ZIP paketa.
+Aktualna testna verzija: **0.11.0**. Službeno izdanje koristi GitHub tag `v0.11.0` i sadrži jedanaest ZIP paketa.
 
 | Paket | Namjena |
 |---|---|
@@ -11,6 +11,12 @@ Aktualna testna verzija: **0.10.0**. Službeno izdanje koristi GitHub tag `v0.10
 | `brendigo-cookieconsent-wordpress-org.zip` | lokalni WordPress.org kandidat; nije službeno odobren |
 | `brendigo-cookieconsent-cdn.zip` | verzionirani direktorij za vlastiti CDN hosting |
 | `cookieconsent-brendigo-website.zip` | dvojezični web s lokalnim demonstracijama i verzioniranim CDN resursima |
+| `brendigo-cookieconsent-joomla.zip` | Joomla 5 system plugin; instalacijski ZIP |
+| `brendigo-cookieconsent-drupal.zip` | Drupal 10/11 module directory u ZIP-u |
+| `brendigo-cookieconsent-shopify-extension.zip` | Shopify Theme App Extension **izvorni paket**, nije samostalni install ZIP |
+| `brendigo-cookieconsent-magento.zip` | Magento 2.4 app/code/Brendigo/CookieConsent |
+| `brendigo.ocmod.zip` | OpenCart 4 native extension, otpakira se u extension/brendigo |
+| `brendigocookieconsent-prestashop.zip` | PrestaShop 8/9 native module |
 
 ## Usklađenost verzija
 
@@ -35,7 +41,7 @@ Paketiranje koristi stabilan redoslijed datoteka, fiksne ZIP datume i SHA-256 pr
 ## GitHub Actions
 
 - `ci.yml`: JS i PHP provjere, browser E2E (Chromium, Firefox, WebKit) i automatizirane WCAG A/AA provjere.
-- `package.yml`: pet ZIP paketa u Actions Artifacts, neovisno o produkciji.
+- `package.yml`: jedanaest ZIP paketa u Actions Artifacts, neovisno o produkciji.
 - `publish.yml`: javni GitHub **prerelease** tek nakon uspješnog CI push događaja na `main` vlastitog repozitorija. Revalidira točno testirani commit i ne mijenja već objavljeni tag.
 
 Provjerite status svih poslova **prije** preuzimanja konačnih paketa. CI ne postavlja hosting/CDN i ne daje pravni certifikat.
@@ -47,7 +53,7 @@ Provjerite status svih poslova **prije** preuzimanja konačnih paketa. CI ne pos
 - [ ] Provjeriti identične jezgrene WP i samostalne JS/CSS datoteke.
 - [ ] Provjeriti izostanak nepoželjnih vanjskih runtime ovisnosti.
 - [ ] Provjeriti reset, opoziv, servisne kontrole i prvi posjet.
-- [ ] Provjeriti sadržaj svih pet ZIP-ova i hash.
+- [ ] Provjeriti sadržaj svih jedanaest ZIP-ova i hash.
 - [ ] Obaviti dodatnu provjeru stvarnog WordPress/hostinga prije produkcije.
 
 ## Potpis i licencija

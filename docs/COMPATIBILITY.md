@@ -1,4 +1,4 @@
-# Kompatibilnost — CookieConsent by Brendigo v0.10.0
+# Kompatibilnost — CookieConsent by Brendigo v0.11.0
 
 ## Što se automatizirano provjerava
 
@@ -31,3 +31,7 @@ Službena CI konfiguracija nalazi se u `.github/workflows/ci.yml`.
 ## Audit i performance
 
 Automatski source-audit blokira opasne dinamičke sinkove, suvišan init i pogreške u mirrorriranim assetima. Test veličine jezgre postavlja granice na JS/CSS source i gzip; to ne dokazuje brzinu na svim uređajima. [Security audit](SECURITY-AUDIT.hr.md) · [Dead-code audit](DEAD-CODE-AUDIT.hr.md).
+
+## Novi adapteri
+
+U v0.11.0 šest platformi ima lokalne izvorne integracije, verzionirane resurse i statički validirane instalacijske strukture. Stvarna instalacija na Joomla 5, Drupal 10/11, Shopify development shop, Magento 2.4, OpenCart 4 i PrestaShop 8/9 zasad **nije potvrđena**. [Vodič](CMS-INTEGRATIONS.hr.md).

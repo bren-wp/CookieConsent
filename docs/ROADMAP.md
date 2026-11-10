@@ -1,6 +1,6 @@
 # Razvojni plan — CookieConsent by Brendigo
 
-**Razvojni cilj: v0.10.0 (testno izdanje)** · Revizija 10. 11. 2026. · [Dokumentacija](README.md) · [Povijest](CHANGELOG.md)
+**Razvojni cilj: v0.11.0 (testno izdanje)** · Revizija 10. 11. 2026. · [Dokumentacija](README.md) · [Povijest](CHANGELOG.md)
 
 Projekt razlikuje **implementirano**, **automatizirano provjereno**, **ovisno o produkcijskoj instalaciji** i **vanjsku certifikaciju**. Svi preostali zadaci ostaju vidljivi. Zeleni CI ne zamjenjuje neovisnu sigurnosnu, pravnu ili pristupačnu validaciju.
 
@@ -23,6 +23,21 @@ Projekt razlikuje **implementirano**, **automatizirano provjereno**, **ovisno o 
 - [x] CI: Node, PHP 7.4 i 8.1–8.4, Chromium/Firefox/WebKit i automatizirane provjere pristupačnosti.
 - [x] Interni [sigurnosni audit](SECURITY-AUDIT.hr.md) i [dead-code audit](DEAD-CODE-AUDIT.hr.md), regresijski testovi i JS/CSS performance budget.
 - [x] Odvojena WordPress.org kandidatska distribucija s lokalnim resursima i dobrovoljnim potpisom; službeni Plugin Check kao CI kontrola.
+
+## Nove platformske integracije — v0.11.0
+
+- [x] Joomla 5 system plugin s lokalnim WebAssetManager resursima i administratorovim postavkama.
+- [x] Drupal 10/11 modul s konfiguracijskim obrascem, schema datotekama i `hook_page_attachments`.
+- [x] Shopify Theme App Extension s `compliance_head` blokom i Customer Privacy API adapterom (samo uz posjetiteljevu odluku).
+- [x] Magento 2.4 modul s layoutom, konfiguracijom po store scopeu i sigurnom JSON serialization.
+- [x] OpenCart 4 native extension s administracijom i eventom za storefront header.
+- [x] PrestaShop 8/9 modul s nativnim hookovima i administratorskim obrascem.
+- [x] Reproducibilno pakiranje svih šest integracija te statičke provjere PHP/XML/JSON/Shopify schema datoteka.
+- [ ] Runtime instalacijski i checkout testovi na stvarnim Joomla, Drupal, Shopify, Magento, OpenCart i PrestaShop trgovinama.
+- [ ] Shopify aplikaciju registrirati/objaviti preko Shopify CLI i potvrditi Customer Privacy API ponašanje u development storeu.
+- [ ] Testirati stvarni cache, CSP, teme, automatizirano blokiranje i opoziv svih vanjskih servisnih dodataka po platformi.
+
+[Instalacija svih šest](CMS-INTEGRATIONS.hr.md).
 
 ## B. Integracije i produkcijska kvaliteta — otvoreni zadaci
 
@@ -53,4 +68,4 @@ Projekt razlikuje **implementirano**, **automatizirano provjereno**, **ovisno o 
 4. Dokumentirana ograničenja svakog vanjskog servisa, GDPR/ePrivacy/HR regulatorna analiza i razumljiva dokumentacija.
 5. Operativni monitoring, sigurnosna ažuriranja i plan rollbacka za javnu CDN infrastrukturu.
 
-**Status:** glavne funkcije u repozitoriju su isporučene. Vanjski deployment, neovisna certifikacija i sve stvarne integracije nisu označeni dovršenima bez dokaza.
+**Status:** glavne funkcije i šest dodatnih izvorišnih CMS integracija isporučeni su u repozitoriju. Vanjski deployment, neovisna certifikacija i sve stvarne integracije nisu označeni dovršenima bez dokaza.

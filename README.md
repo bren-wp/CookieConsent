@@ -5,17 +5,17 @@
 # CookieConsent by Brendigo
 
 **Vaša privatnost. Vaš izbor.**  
-Samostalni sustav za informiranje posjetitelja i upravljanje privolama na HTML/PHP stranicama, WordPressu i projektima koji mogu uključiti JavaScript i CSS.
+Samostalni sustav za informiranje posjetitelja i upravljanje privolama na HTML/PHP stranicama te u WordPressu, Joomli, Drupalu, Shopifyju, Magentu, OpenCartu i PrestaShopu.
 
 [![GitHub CI](https://github.com/bren-wp/CookieConsent/actions/workflows/ci.yml/badge.svg)](https://github.com/bren-wp/CookieConsent/actions/workflows/ci.yml)
-![Version](https://img.shields.io/badge/version-0.10.0-4357e8)
+![Version](https://img.shields.io/badge/version-0.11.0-4357e8)
 ![License](https://img.shields.io/badge/license-MIT-26387a)
 ![Runtime](https://img.shields.io/badge/runtime_dependencies-0-brightgreen)
 ![Brand](https://img.shields.io/badge/by-Brendigo-4357e8)
 
 **[Službena web-stranica](https://cookie.brendigo.com)** · **[Najnovija izdanja](https://github.com/bren-wp/CookieConsent/releases)** · **[Interaktivni konfigurator](demo/configurator.html)** · **[Dokumentacija](docs/README.md)** · **[Razvojni plan](docs/ROADMAP.md)** · **[Brendigo](https://brendigo.com)**
 
-> **Status: v0.10.0 — testno izdanje.** Sustav omogućuje implementaciju upravljanja privolama, ali ne jamči usklađenost pojedine web-stranice i nema status certificiranog CMP-a. Nije automatski blokator svih vanjskih servisa.
+> **Status: v0.11.0 — testno izdanje.** Sustav omogućuje implementaciju upravljanja privolama, ali ne jamči usklađenost pojedine web-stranice i nema status certificiranog CMP-a. Nije automatski blokator svih vanjskih servisa.
 
 ## Što dobivate
 
@@ -32,7 +32,7 @@ Samostalni sustav za informiranje posjetitelja i upravljanje privolama na HTML/P
 | Više kartica | Sinkronizacija odabira na istoj domeni bez slanja sadržaja privole |
 | WordPress | Administratorske postavke, vizualni pregled, katalog, editor tekstova, JSON backup, ručno blokiranje WP handleova |
 | WooCommerce | Zaštita ključnih registriranih skripti košarice i naplate od slučajnog blokiranja |
-| Isporuka | Samostalni ZIP, Brendigo WordPress ZIP, WordPress.org kandidat ZIP, verzionirani CDN ZIP i web-stranica ZIP; bez vanjskih runtime biblioteka |
+| Isporuka | 11 ZIP paketa: standalone, WordPress, WP.org kandidat, web, CDN i Joomla, Drupal, Shopify, Magento, OpenCart, PrestaShop |
 
 ![Ilustracija izgleda bannera](assets/brand/banner-preview.svg)
 
@@ -76,6 +76,23 @@ Skripte koje web-stranica sama izvrši, neoznačene iframeove, piksele i server-
 
 Dvojezična, responzivna stranica projekta nalazi se u [website/](website/) i distribuira se i kao `cookieconsent-brendigo-website.zip`. Paket sadrži lokalne demonstracije, JS/CSS jezgru i verzionirane CDN datoteke. Predviđena javna adresa je [cookie.brendigo.com](https://cookie.brendigo.com), no domena **nije potvrđena kao postavljena niti se sama aktivira iz GitHuba**. Autor je [Brendigo](https://brendigo.com).
 
+## CMS i webshop integracije
+
+Pored WordPressa, projekt isporučuje šest samostalnih platformskih integracija:
+
+| Platforma | Izvorni kod | Distribucija |
+|---|---|---|
+| Joomla 5 | [joomla/](joomla/) | `brendigo-cookieconsent-joomla.zip` |
+| Drupal 10/11 | [drupal/](drupal/) | `brendigo-cookieconsent-drupal.zip` |
+| Shopify | [shopify/](shopify/) | `brendigo-cookieconsent-shopify-extension.zip` — izvorna Theme App Extension, zahtijeva Shopify app i CLI |
+| Magento 2.4 | [magento/](magento/) | `brendigo-cookieconsent-magento.zip` |
+| OpenCart 4 | [opencart/](opencart/) | `brendigo.ocmod.zip` |
+| PrestaShop 8/9 | [prestashop/](prestashop/) | `brendigocookieconsent-prestashop.zip` |
+
+Sve uključuju lokalnu verziju Brendigo JS/CSS jezgre. Platformske administrativne postavke, isporuka i životni ciklus razlikuju se prema arhitekturi CMS-a. **Stvarne instalacije ovih šest platformi još nisu izvršene u CI-u**; statički provjeravamo sintaksu PHP-a, manifeste, sheme, kod i pakiranje. Neobvezne skripte drugih dodataka moraju se zasebno povezati s privolom.
+
+[Zajednički vodič za svih šest platformi](docs/CMS-INTEGRATIONS.hr.md).
+
 ## WordPress
 
 1. Preuzmite `brendigo-cookieconsent-wordpress.zip` iz [GitHub Releases](https://github.com/bren-wp/CookieConsent/releases).
@@ -100,7 +117,7 @@ Projekt priprema verzionirani paket za predviđenu adresu:
     revision: "1"
   };
 </script>
-<script defer src="https://cookie.brendigo.com/v0.10.0/loader.js"></script>
+<script defer src="https://cookie.brendigo.com/v0.11.0/loader.js"></script>
 ~~~
 
 **Ta adresa nije automatski aktivirana objavom GitHub paketa.** Prije primjene moraju biti postavljeni DNS, HTTPS/TLS i stvarno posluživanje datoteka. Zadana WordPress opcija ostaje lokalno učitavanje. [CDN vodič](docs/CDN.hr.md).
@@ -148,7 +165,9 @@ cc.reset();                        // poništavanje spremljenog izbora
 
 Dokumentirani su [sigurnosni audit](docs/SECURITY-AUDIT.hr.md) i [dead-code audit](docs/DEAD-CODE-AUDIT.hr.md). Uključeni su testovi provjere datuma i roka privole, sigurnih URL-ova, WordPress sanitizacije, redundantnih inicijalizacija, duplih CSS selektora i veličine runtime paketa. Interni pregled nije neovisni penetration test niti pravni certifikat.
 
-**Isporuke:** `cookieconsent-brendigo-standalone.zip`, `brendigo-cookieconsent-wordpress.zip`, `brendigo-cookieconsent-wordpress-org.zip` (kandidat), `brendigo-cookieconsent-cdn.zip` i `cookieconsent-brendigo-website.zip`.
+**Isporuke: ukupno 11 ZIP paketa**, uključujući šest CMS integracija i dosadašnjih pet paketa. Svi su u GitHub Releases.
+
+**Postojeći paketi:** `cookieconsent-brendigo-standalone.zip`, `brendigo-cookieconsent-wordpress.zip`, `brendigo-cookieconsent-wordpress-org.zip` (kandidat), `brendigo-cookieconsent-cdn.zip` i `cookieconsent-brendigo-website.zip`.
 
 ## Lokalni razvoj i provjere
 

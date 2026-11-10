@@ -15,8 +15,8 @@ Otvorite http://localhost:8000/. Paket uključuje web stranice, lokalne demo dat
 ## Postavljanje domene
 
 1. Osigurati DNS i HTTPS/TLS za `cookie.brendigo.com`.
-2. Prenijeti sadržaj web ZIP-a u **document root**, uključujući `v0.10.0/`.
-3. Provjeriti `/index.html`, `/installation.html`, `/en.html`, `/legal.html`, `/demo/index.html`, `/v0.10.0/loader.js`.
+2. Prenijeti sadržaj web ZIP-a u **document root**, uključujući `v0.11.0/`.
+3. Provjeriti `/index.html`, `/installation.html`, `/en.html`, `/legal.html`, `/demo/index.html`, `/v0.11.0/loader.js`.
 4. Postaviti odgovarajuće HTTP MIME tipove, CSP, cache i log policy. Ne mijenjati već objavljene verzionirane resurse.
 5. **Prije javne objave** dodati točnu politiku privatnosti s identitetom voditelja obrade, kontaktom, server logovima i rokovima čuvanja; `legal.html` sadrži upozorenje, ali nije potpuna politika privatnosti.
 6. Testirati release download poveznice na stvarnom izdanju.
@@ -25,3 +25,7 @@ Otvorite http://localhost:8000/. Paket uključuje web stranice, lokalne demo dat
 Projekt samostalno **ne** postavlja DNS, certifikate ili poslužiteljski hosting. Zeleni CI ne dokazuje javnu dostupnost.
 
 **Brendigo** © 2026.
+
+## CMS integracije
+
+Na naslovnici je katalog platformskih dodataka: Joomla, Drupal, Shopify Theme App Extension, Magento, OpenCart i PrestaShop. Instalacija se provodi prema vodiču [docs/CMS-INTEGRATIONS.hr.md](../docs/CMS-INTEGRATIONS.hr.md) i zahtijeva odgovarajuću platformu.
