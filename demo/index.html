@@ -45,14 +45,12 @@
       surfaceColor: previewParams.get('surface') || '#ffffff',
       textColor: previewParams.get('text') || '#17223e',
       cookieName: previewMode ? 'bcc_demo_preview' : 'bcc_consent',
-      translations: previewMode && previewParams.get('heading') ? {
-        [previewParams.get('language') || 'hr']: {
-          heading: previewParams.get('heading').slice(0, 100),
-          intro: (previewParams.get('intro') || '').slice(0, 550),
-          accept: (previewParams.get('accept') || 'Prihvati sve').slice(0, 80),
-          reject: (previewParams.get('reject') || 'Odbij sve').slice(0, 80),
-          settings: (previewParams.get('settings') || 'Postavke').slice(0, 80)
-        }
+      translations: previewMode ? {
+        [previewParams.get('language') || 'hr']: Object.fromEntries(
+          ['heading','intro','accept','reject','settings']
+            .filter(key => Boolean(previewParams.get(key)))
+            .map(key => [key, previewParams.get(key).slice(0, key === 'intro' ? 550 : 100)])
+        )
       } : undefined,
       services: [
         {
