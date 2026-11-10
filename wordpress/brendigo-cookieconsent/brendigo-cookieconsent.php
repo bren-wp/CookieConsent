@@ -39,7 +39,8 @@ function defaults(): array {
 
 function options(): array {
     $saved = get_option(OPTION, []);
-    return array_merge(defaults(), is_array($saved) ? $saved : []);
+    // Never re-export old, deleted or undocumented option keys.
+    return array_merge(defaults(), is_array($saved) ? array_intersect_key($saved, defaults()) : []);
 }
 
 function sanitize_options($input): array {
@@ -130,6 +131,55 @@ function add_settings_page(): void {
 }
 add_action('admin_menu', __NAMESPACE__ . '\\add_settings_page');
 
+/**
+ * All import/export endpoints are wp-admin authenticated, capability-gated,
+ * nonce-verified, and use the same sanitization callback as Settings API.
+ */
+function export_settings(): void {
+    if (!current_user_can('manage_options')) {
+        wp_die(esc_html__('You are not allowed to export these settings.', 'brendigo-cookieconsent'), '', ['response' => 403]);
+    }
+    check_admin_referer('bcc_export_settings');
+    $payload = [
+        'schema' => 'brendigo-cookieconsent-options-v1',
+        'plugin_version' => VERSION,
+        'settings' => options(),
+    ];
+    $json = wp_json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP);
+    if (!is_string($json)) {
+        wp_die(esc_html__('Could not serialize settings.', 'brendigo-cookieconsent'));
+    }
+    nocache_headers();
+    header('Content-Type: application/json; charset=utf-8');
+    header('Content-Disposition: attachment; filename="cookieconsent-by-brendigo-settings.json"');
+    header('X-Content-Type-Options: nosniff');
+    echo $json; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- JSON export, not HTML.
+    exit;
+}
+add_action('admin_post_bcc_export_settings', __NAMESPACE__ . '\\export_settings');
+
+function import_settings(): void {
+    if (!current_user_can('manage_options')) {
+        wp_die(esc_html__('You are not allowed to import settings.', 'brendigo-cookieconsent'), '', ['response' => 403]);
+    }
+    check_admin_referer('bcc_import_settings');
+    $value = isset($_POST['bcc_settings_json']) && is_string($_POST['bcc_settings_json'])
+        ? wp_unslash($_POST['bcc_settings_json'])
+        : '';
+    $decoded = strlen($value) <= 65536 ? json_decode($value, true) : null;
+    $valid = is_array($decoded) && ($decoded['schema'] ?? null) === 'brendigo-cookieconsent-options-v1'
+        && isset($decoded['settings']) && is_array($decoded['settings']);
+    if (!$valid) {
+        wp_safe_redirect(add_query_arg(['page' => 'brendigo-cookieconsent', 'bcc_import' => 'invalid'], admin_url('options-general.php')));
+        exit;
+    }
+    $sanitized = sanitize_options($decoded['settings']);
+    update_option(OPTION, $sanitized);
+    wp_safe_redirect(add_query_arg(['page' => 'brendigo-cookieconsent', 'bcc_import' => 'ok'], admin_url('options-general.php')));
+    exit;
+}
+add_action('admin_post_bcc_import_settings', __NAMESPACE__ . '\\import_settings');
+
 function render_settings(): void {
     if (!current_user_can('manage_options')) {
         wp_die(esc_html__('You do not have permission to view this page.', 'brendigo-cookieconsent'));
@@ -138,6 +188,11 @@ function render_settings(): void {
     ?>
     <div class="wrap">
         <h1><?php echo esc_html__('CookieConsent by Brendigo', 'brendigo-cookieconsent'); ?></h1>
+        <?php if (isset($_GET['bcc_import']) && $_GET['bcc_import'] === 'ok') : ?>
+            <div class="notice notice-success is-dismissible"><p><?php esc_html_e('CookieConsent settings imported successfully.', 'brendigo-cookieconsent'); ?></p></div>
+        <?php elseif (isset($_GET['bcc_import']) && $_GET['bcc_import'] === 'invalid') : ?>
+            <div class="notice notice-error"><p><?php esc_html_e('Invalid or oversized settings JSON. No settings were changed.', 'brendigo-cookieconsent'); ?></p></div>
+        <?php endif; ?>
         <p><?php echo esc_html__('Privacy choices with a self-hosted banner. Integrations must be classified and gated separately.', 'brendigo-cookieconsent'); ?></p>
         <form action="options.php" method="post">
             <?php settings_fields('brendigo_cookieconsent'); ?>
@@ -224,6 +279,23 @@ function render_settings(): void {
                 </tr>
             </table>
             <?php submit_button(); ?>
+        </form>
+        <hr>
+        <h2><?php esc_html_e('Export / import settings', 'brendigo-cookieconsent'); ?></h2>
+        <p><?php esc_html_e('Download a JSON backup or paste a previously exported configuration. Imports are validated and sanitized before saving.', 'brendigo-cookieconsent'); ?></p>
+        <?php
+        $export_url = wp_nonce_url(
+            admin_url('admin-post.php?action=bcc_export_settings'),
+            'bcc_export_settings'
+        );
+        ?>
+        <p><a class="button button-secondary" href="<?php echo esc_url($export_url); ?>"><?php esc_html_e('Export JSON configuration', 'brendigo-cookieconsent'); ?></a></p>
+        <form action="<?php echo esc_url(admin_url('admin-post.php')); ?>" method="post">
+            <input type="hidden" name="action" value="bcc_import_settings">
+            <?php wp_nonce_field('bcc_import_settings'); ?>
+            <label for="bcc-settings-json"><strong><?php esc_html_e('Paste JSON configuration', 'brendigo-cookieconsent'); ?></strong></label>
+            <textarea id="bcc-settings-json" class="large-text code" rows="5" name="bcc_settings_json" maxlength="65536" required></textarea>
+            <p><button type="submit" class="button button-secondary"><?php esc_html_e('Import and replace settings', 'brendigo-cookieconsent'); ?></button></p>
         </form>
         <hr>
         <h2><?php esc_html_e('Integration checklist', 'brendigo-cookieconsent'); ?></h2>
