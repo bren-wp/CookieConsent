@@ -301,8 +301,10 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
           await a.locator('.bcc-banner').waitFor({state:'visible'});
           await b.locator('.bcc-banner').waitFor({state:'visible'});
           await a.locator('.bcc-banner-actions').getByRole('button',{name:'Accept all'}).click();
+          await b.bringToFront(); // WebKit can defer events until a background tab is resumed.
           await b.waitForFunction(()=>BrendigoCookieConsent.hasConsent('analytics')===true,null,{timeout:10000});
           await b.evaluate(()=>BrendigoCookieConsent.reset());
+          await a.bringToFront();
           await a.waitForFunction(()=>BrendigoCookieConsent.getConsent()===null,null,{timeout:10000});
         } finally { await context.close(); }
       });
