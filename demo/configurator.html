@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="hr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="CookieConsent by Brendigo — lokalni konfigurator bannera.">
+  <title>CookieConsent — Konfigurator | by Brendigo</title>
+  <style>
+    :root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#182343;background:#f3f6fd}
+    *{box-sizing:border-box}
+    body{margin:0}
+    header{max-width:1320px;margin:auto;padding:24px 26px;display:flex;gap:15px;align-items:center;justify-content:space-between}
+    header a{color:#4357e8;text-decoration:none;font-weight:700}
+    h1{font-size:clamp(27px,4vw,42px);letter-spacing:-.04em;margin:4px 0}
+    .shell{max-width:1320px;margin:auto;padding:0 24px 32px;display:grid;grid-template-columns:330px minmax(0,1fr);gap:24px}
+    aside,.preview-pane{border:1px solid #e0e6f2;background:white;border-radius:19px;box-shadow:0 9px 35px #17264a10}
+    aside{padding:24px}
+    aside p,.help{color:#6a7491;line-height:1.5;font-size:13px}
+    .field{display:flex;flex-direction:column;gap:6px;margin:16px 0}
+    .field label{font-size:13px;font-weight:700}
+    select,input,textarea{font:inherit;color:inherit;width:100%;background:#fff;border:1px solid #ccd5e8;border-radius:10px;padding:10px}
+    input[type=color]{height:42px;padding:3px;cursor:pointer}
+    textarea{font:12px/1.5 ui-monospace,Consolas,monospace;min-height:172px;resize:vertical}
+    .color-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    button{background:#4357e8;color:#fff;border:0;border-radius:9px;padding:12px 16px;font:inherit;font-weight:700;cursor:pointer}
+    button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #4357e8;outline-offset:2px}
+    .preview-pane{display:flex;flex-direction:column;min-height:760px;overflow:hidden}
+    .preview-head{padding:16px 20px;border-bottom:1px solid #e0e6f2;display:flex;justify-content:space-between;gap:10px;align-items:center}
+    .preview-head strong{font-size:15px}.preview-head span{font-size:12px;color:#76819e}
+    iframe{flex:1;min-height:680px;border:0;width:100%;background:#f8faff}
+    .hint{padding:10px 20px;color:#6a7491;font-size:12px}
+    @media(max-width:920px){.shell{grid-template-columns:1fr}.preview-pane{min-height:550px}iframe{min-height:510px}}
+  </style>
+</head>
+<body>
+  <header>
+    <div><h1>CookieConsent Configurator</h1><div style="color:#66769a">by Brendigo · lokalna demonstracija</div></div>
+    <a href="./index.html">← Demo</a>
+  </header>
+  <main class="shell">
+    <aside>
+      <strong>Postavke izgleda</strong>
+      <p>Promijenite položaj i boje. Pregled se osvježava lokalno; nikakvi podaci se ne šalju na poslužitelj.</p>
+      <div class="field">
+        <label for="position">Pozicija bannera</label>
+        <select id="position">
+          <option value="bottom-center">Dolje — sredina</option>
+          <option value="bottom-left">Dolje — lijevo</option>
+          <option value="bottom-right">Dolje — desno</option>
+          <option value="bottom-bar">Donja traka</option>
+          <option value="top-center">Gore — sredina</option>
+          <option value="top-left">Gore — lijevo</option>
+          <option value="top-right">Gore — desno</option>
+          <option value="top-bar">Gornja traka</option>
+          <option value="center">Centar</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="language">Jezik</label>
+        <select id="language">
+          <option value="hr">Hrvatski</option>
+          <option value="en">English</option>
+          <option value="de">Deutsch</option>
+          <option value="it">Italiano</option>
+        </select>
+      </div>
+      <div class="color-grid">
+        <div class="field"><label for="accent">Naglasak</label><input id="accent" type="color" value="#4357e8"></div>
+        <div class="field"><label for="surface">Pozadina</label><input id="surface" type="color" value="#ffffff"></div>
+        <div class="field"><label for="text">Tekst</label><input id="text" type="color" value="#17223e"></div>
+      </div>
+      <button type="button" id="refresh">Osvježi pregled</button>
+      <div class="field">
+        <label for="snippet">Konfiguracijski primjer</label>
+        <textarea id="snippet" readonly spellcheck="false" aria-label="Konfiguracijski primjer"></textarea>
+      </div>
+      <button type="button" id="copy">Kopiraj konfiguraciju</button>
+      <p id="message" role="status" aria-live="polite" class="help"></p>
+      <p class="help">Prikaz nije certifikat usklađenosti. Provjerite stvarne kolačiće, pravila i sve povezane servise.</p>
+    </aside>
+    <section class="preview-pane" aria-label="Prikaz bannera">
+      <div class="preview-head"><strong>Pregled bannera</strong><span>Desktop / Mobile — promijenite širinu prozora</span></div>
+      <iframe id="preview" title="Pregled CookieConsent bannera" src="index.html?preview=1"></iframe>
+      <div class="hint">Svaki pregled prikazuje stanje prije privole radi provjere dizajna.</div>
+    </section>
+  </main>
+  <script>
+    (function () {
+      'use strict';
+      var keys=['position','language','accent','surface','text'];
+      var controls={};
+      keys.forEach(function(key){controls[key]=document.getElementById(key);});
+      function values(){
+        var o={};
+        keys.forEach(function(key){o[key]=controls[key].value;});
+        return o;
+      }
+      function refresh(){
+        var o=values();
+        var query=new URLSearchParams(Object.assign({preview:'1'},o));
+        document.getElementById('preview').src='index.html?'+query.toString();
+        document.getElementById('snippet').value =
+          'window.BCC_SITE_CONFIG = '+JSON.stringify({
+            language:o.language,position:o.position,accentColor:o.accent,
+            surfaceColor:o.surface,textColor:o.text,
+            policyUrl:'/politika-kolacica',revision:'1'
+          },null,2)+';';
+      }
+      document.getElementById('refresh').addEventListener('click',refresh);
+      keys.forEach(function(key){controls[key].addEventListener('change',refresh);});
+      document.getElementById('copy').addEventListener('click',function(){
+        var output=document.getElementById('snippet');
+        output.select();
+        if(navigator.clipboard && navigator.clipboard.writeText){
+          navigator.clipboard.writeText(output.value).then(function(){
+            document.getElementById('message').textContent='Konfiguracija kopirana.';
+          }).catch(function(){
+            document.getElementById('message').textContent='Kopirajte označeni tekst ručno.';
+          });
+        }else{
+          document.getElementById('message').textContent='Kopirajte označeni tekst ručno.';
+        }
+      });
+      refresh();
+    })();
+  </script>
+</body>
+</html>

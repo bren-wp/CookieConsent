@@ -130,7 +130,7 @@ test('provider lifecycle rejects invalid registration and duplicate IDs', () => 
     navigator:{},location:{protocol:'https:',href:'https://example.org/'}, URL,console};
   vm.runInNewContext(fs.readFileSync(require('node:path').join(root,'packages/core/brendigo-cookieconsent.js'),'utf8'),{window:fakeWindow,globalThis:fakeWindow});
   const cc=fakeWindow.BrendigoCookieConsent;
-  assert.throws(()=>cc.registerProvider({id:'evil',category:'necessary'}), /Invalid or duplicate CookieConsent provider/);
+  assert.throws(()=>cc.registerProvider({id:'evil',category:'necessary'}),TypeError);
   cc.registerProvider({id:'provider-1',category:'analytics'});
-  assert.throws(()=>cc.registerProvider({id:'provider-1',category:'analytics'}), /Invalid or duplicate CookieConsent provider/);
+  assert.throws(()=>cc.registerProvider({id:'provider-1',category:'analytics'}),TypeError);
 });

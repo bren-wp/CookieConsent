@@ -86,3 +86,9 @@
 .bcc-service-policy{font-size:12px;align-self:flex-start;color:var(--bcc-link,var(--bcc-accent));text-decoration:underline}
 .bcc-service-policy:focus-visible{outline:3px solid var(--bcc-accent);outline-offset:2px}
 .bcc-category-description{min-width:0}
+
+/* The checkbox label and provider links are independent accessible controls. */
+.bcc-category{display:block}
+.bcc-category-option{display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer}
+.bcc-category-option:focus-within{outline-offset:2px}
+.bcc-category .bcc-services{margin-top:11px}

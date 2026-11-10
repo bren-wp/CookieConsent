@@ -365,7 +365,8 @@
     panel.appendChild(header);
     var list = element('div', 'bcc-category-list');
     CATEGORIES.forEach(function (category) {
-      var row = element('label', 'bcc-category');
+      var row = element('div', 'bcc-category');
+      var optionLabel = element('label', 'bcc-category-option');
       var description = element('span', 'bcc-category-description');
       description.appendChild(element('strong', '', t[category]));
       description.appendChild(element('small', '', t[category + 'Desc']));
@@ -396,10 +397,11 @@
           }
           details.appendChild(serviceInfo);
         });
-        description.appendChild(details);
+        row.appendChild(details);
       }
-      row.appendChild(description);
-      row.appendChild(checkbox);
+      optionLabel.appendChild(description);
+      optionLabel.appendChild(checkbox);
+      row.insertBefore(optionLabel, row.firstChild);
       list.appendChild(row);
     });
     panel.appendChild(list);
