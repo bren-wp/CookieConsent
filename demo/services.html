@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Brendigo CookieConsent service-level test</title>
+<link rel="stylesheet" href="../packages/core/brendigo-cookieconsent.css">
+<script>
+  window.BCC_SITE_CONFIG = {
+    language: 'en', revision: 'services-v1', position:'bottom-right',
+    cookieCleanupRules: [
+      {category:'analytics',name:'bcc_test_analytics_a',serviceId:'stats-a'},
+      {category:'analytics',name:'bcc_test_analytics_b',serviceId:'stats-b'},
+      {category:'analytics',prefix:'bcc_test_global_'}
+    ],
+    services: [
+      {category:'analytics', id:'stats-a',toggleable:true,name:'Service A',
+        purpose:'First optional statistics provider',cookies:'bcc_test_analytics_a'},
+      {category:'analytics', id:'stats-b',toggleable:true,name:'Service B',
+        purpose:'Second optional statistics provider',cookies:'bcc_test_analytics_b'},
+      {category:'marketing',id:'ads',toggleable:true,name:'Ads Service',
+        purpose:'Optional marketing technology'}
+    ]
+  };
+</script>
+<script defer src="../packages/core/brendigo-cookieconsent.js"></script>
+</head>
+<body>
+<h1>Granular consent test</h1>
+<output id="a-status">not loaded</output>
+<output id="b-status">not loaded</output>
+<script type="text/plain" data-bcc-category="analytics" data-bcc-service="stats-a">
+  document.getElementById('a-status').textContent = 'loaded';
+</script>
+<script type="text/plain" data-bcc-category="analytics" data-bcc-service="stats-b">
+  document.getElementById('b-status').textContent = 'loaded';
+</script>
+<script type="text/plain" data-bcc-category="analytics" data-bcc-service="unknown-service">
+  window.unknownServiceExecuted = true;
+</script>
+<iframe id="a-frame" title="Optional analytics frame" data-bcc-category="analytics"
+ data-bcc-service="stats-a" data-bcc-src="./configurator.html"></iframe>
+<iframe id="b-frame" title="Second optional analytics frame" data-bcc-category="analytics"
+ data-bcc-service="stats-b" data-bcc-src="./configurator.html"></iframe>
+</body>
+</html>
