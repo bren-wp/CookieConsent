@@ -62,6 +62,12 @@ verify($result['asset_source'] === 'cdn', 'CDN option validated');
 $services = \Brendigo\CookieConsent\parse_services($result['services_catalog']);
 verify(count($services) === 1 && $services[0]['category'] === 'analytics', 'service parser');
 verify($services[0]['privacyUrl'] === 'https://example.org/privacy', 'valid privacy URL');
+$with_id = \Brendigo\CookieConsent\parse_services('analytics|Example|Metrics|_ga|14 months|https://example.org/privacy|google');
+verify($with_id[0]['toggleable'] && $with_id[0]['id'] === 'google', 'service ID enables granular choice');
+$rules = \Brendigo\CookieConsent\parse_cleanup_rules("analytics|exact|_gid|google\nmarketing|prefix|_fbp|");
+verify(count($rules) === 2 && $rules[0]['serviceId'] === 'google', 'valid cleanup rule parsing');
+$bad_rules = \Brendigo\CookieConsent\parse_cleanup_rules("analytics|exact|bad;cookie|\nnecessary|prefix|foo|");
+verify(count($bad_rules) === 0, 'invalid cleanup rules excluded');
 
 $bad = \Brendigo\CookieConsent\sanitize_options([
     'language' => 'hacker', 'direction' => 'ltr; display:none',
