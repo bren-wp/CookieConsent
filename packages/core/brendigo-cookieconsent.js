@@ -303,24 +303,34 @@
         ((typeof item.name === 'string' && /^[a-zA-Z0-9_.-]{1,120}$/.test(item.name)) ||
          (typeof item.prefix === 'string' && /^[a-zA-Z0-9_.-]{1,120}$/.test(item.prefix)));
     }).map(function (item) {
+      var serviceId = typeof item.serviceId === 'string' && /^[a-zA-Z0-9._-]{1,64}$/.test(item.serviceId)
+        ? item.serviceId : '';
       var rawPath = typeof item.path === 'string' ? item.path : '/';
       var path = rawPath.length <= 150 && /^\/[a-zA-Z0-9/_-]*$/.test(rawPath) ? rawPath : '/';
       return {
         category: item.category, name: typeof item.name === 'string' ? item.name : '',
         prefix: typeof item.prefix === 'string' ? item.prefix : '',
-        path: path
+        serviceId: serviceId, path: path
       };
     });
   }
-  function clearConfiguredCookies(previous, current) {
+  function clearConfiguredCookies(previous, current, oldServices, nextServices) {
     if (!config || !config.cookieCleanupRules.length || !root.document) return;
     var visible = (root.document.cookie || '').split(';').map(function (part) {
       return part.trim().split('=')[0];
     }).filter(Boolean);
     config.cookieCleanupRules.forEach(function (rule) {
-      if (current && current[rule.category]) return;
-      // Clean on first rejection as well as explicit withdrawal.
-      if (previous && !previous[rule.category]) return;
+      if (rule.serviceId) {
+        var declared = config.services.some(function (service) {
+          return service.id === rule.serviceId && service.toggleable && service.category === rule.category;
+        });
+        if (!declared || (nextServices && nextServices[rule.serviceId])) return;
+        if (previous && oldServices && !oldServices[rule.serviceId]) return;
+      } else {
+        if (current && current[rule.category]) return;
+        // Clean on first rejection as well as explicit withdrawal.
+        if (previous && !previous[rule.category]) return;
+      }
       visible.forEach(function (name) {
         if (name === config.cookieName) return;
         if (!(rule.name && rule.name === name) && !(rule.prefix && name.indexOf(rule.prefix) === 0)) return;
@@ -466,16 +476,20 @@
   function saveChoice(choice, services) {
     if (!config) throw new Error('Initialize CookieConsent before setting consent.');
     var previous = getConsent();
+    var oldServices = getServiceConsent();
     consent = normalizeConsent(choice, isGpc());
     serviceConsent = normalizeServiceChoices(consent, services);
     persist();
-    clearConfiguredCookies(previous, consent);
+    clearConfiguredCookies(previous, consent, oldServices, serviceConsent);
     // Adapters receive the complete decision before any gated script starts.
     emit('change');
     var revokedCategories = previous && CATEGORIES.some(function (cat) {
       return previous[cat] && !consent[cat] && cat !== 'necessary';
     });
-    if (revokedCategories) emit('revoked');
+    var revokedServices = Object.keys(oldServices).some(function (id) {
+      return oldServices[id] === true && serviceConsent[id] !== true;
+    });
+    if (revokedCategories || revokedServices) emit('revoked');
     syncProviders();
     applyGatedResources();
     showBanner();
@@ -490,12 +504,14 @@
   function reset() {
     if (!config) return;
     var old = getConsent();
+    var oldServices = getServiceConsent();
     consent = null;
     serviceConsent = Object.create(null);
     root.document.cookie = config.cookieName + '=; Path=/; Max-Age=0; SameSite=Lax';
-    clearConfiguredCookies(old, null);
+    clearConfiguredCookies(old, null, oldServices, serviceConsent);
     emit('change');
-    if (old && CATEGORIES.some(function (category) { return category !== 'necessary' && old[category]; })) emit('revoked');
+    if ((old && CATEGORIES.some(function (category) { return category !== 'necessary' && old[category]; })) ||
+        Object.keys(oldServices).some(function (id) { return oldServices[id]; })) emit('revoked');
     syncProviders();
     applyGatedResources(); // clears gated iframe src attributes
     showBanner();
