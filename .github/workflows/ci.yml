@@ -20,6 +20,7 @@ jobs:
           npm run check
           npm test
           npm run build:cdn
+          npm run build:wporg
           test -s dist/cdn/v0.9.0/manifest.json
       - name: WordPress plugin PHP syntax
         run: php -l wordpress/brendigo-cookieconsent/brendigo-cookieconsent.php
@@ -126,6 +127,11 @@ jobs:
       - name: Official Plugin Check report (review aid, not approval)
         if: matrix.wordpress == 'latest'
         run: |
+          npm run build:wporg
+          php "$RUNNER_TEMP/bin/wp" --path="$RUNNER_TEMP/wordpress" plugin deactivate brendigo-cookieconsent --allow-root
+          rm -rf "$RUNNER_TEMP/wordpress/wp-content/plugins/brendigo-cookieconsent"
+          cp -R dist/wporg/brendigo-cookieconsent "$RUNNER_TEMP/wordpress/wp-content/plugins/"
+          php "$RUNNER_TEMP/bin/wp" --path="$RUNNER_TEMP/wordpress" plugin activate brendigo-cookieconsent --allow-root
           php "$RUNNER_TEMP/bin/wp" --path="$RUNNER_TEMP/wordpress" plugin install plugin-check --activate --allow-root
           php "$RUNNER_TEMP/bin/wp" --path="$RUNNER_TEMP/wordpress" plugin check brendigo-cookieconsent \
             --format=table --allow-root > "$RUNNER_TEMP/plugin-check.txt" 2>&1 || true

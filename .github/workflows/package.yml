@@ -22,6 +22,8 @@ jobs:
           cmp packages/core/brendigo-cookieconsent.js wordpress/brendigo-cookieconsent/assets/brendigo-cookieconsent.js
           cmp packages/core/brendigo-cookieconsent.css wordpress/brendigo-cookieconsent/assets/brendigo-cookieconsent.css
           cmp packages/integrations/google-consent-basic.js wordpress/brendigo-cookieconsent/assets/google-consent-basic.js
+      - name: Prepare WordPress.org submission candidate
+        run: npm run build:wporg
       - name: Build deterministic ZIP installers
         run: |
           python3 tools/package.py

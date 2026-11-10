@@ -1,0 +1,20 @@
+'use strict';
+const test=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process');
+const root=path.resolve(__dirname,'..');
+test('directory candidate uses bundled assets and opt-in credit',()=>{
+  cp.execFileSync(process.execPath,[path.join(root,'tools/build-wporg.mjs')],{cwd:root});
+  const dir=path.join(root,'dist/wporg/brendigo-cookieconsent');
+  const php=fs.readFileSync(path.join(dir,'brendigo-cookieconsent.php'),'utf8');
+  const js=fs.readFileSync(path.join(dir,'assets/brendigo-cookieconsent.js'),'utf8');
+  const readme=fs.readFileSync(path.join(dir,'readme.txt'),'utf8');
+  assert.ok(php.includes("'show_branding' => 0"));
+  assert.ok(php.includes("'showBranding' => !empty($o['show_branding'])"));
+  assert.ok(php.includes("$base = plugin_dir_url(__FILE__) . 'assets/';"));
+  assert.ok(!php.includes(' * Update URI:'));
+  assert.ok(!php.includes("asset_source' => in_array"));
+  assert.match(js,/config && config\.showBranding === true/);
+  assert.match(readme,/off by default/);
+  assert.ok(fs.existsSync(path.join(dir,'assets/admin-preview.js')));
+});

@@ -56,6 +56,10 @@ def planned_archives() -> dict[str, dict[str, bytes]]:
         ROOT / "wordpress/brendigo-cookieconsent", "brendigo-cookieconsent"
     )
     plugin["brendigo-cookieconsent/LICENSE"] = (ROOT / "LICENSE").read_bytes()
+    wporg = directory_members(DIST / "wporg/brendigo-cookieconsent", "brendigo-cookieconsent")
+    if not wporg:
+        raise RuntimeError("Build WordPress.org candidate with npm run build:wporg")
+    wporg["brendigo-cookieconsent/LICENSE"] = (ROOT / "LICENSE").read_bytes()
     cdn = directory_members(DIST / "cdn" / ("v" + VERSION), "v" + VERSION)
     if not cdn:
         raise RuntimeError("Build the CDN directory with npm run build:cdn first")
@@ -74,6 +78,7 @@ def planned_archives() -> dict[str, dict[str, bytes]]:
     return {
         "cookieconsent-brendigo-standalone.zip": standalone,
         "brendigo-cookieconsent-wordpress.zip": plugin,
+        "brendigo-cookieconsent-wordpress-org.zip": wporg,
         "brendigo-cookieconsent-cdn.zip": cdn,
         "cookieconsent-brendigo-website.zip": website,
     }
