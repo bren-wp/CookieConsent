@@ -1,69 +1,56 @@
 # Razvojni plan — CookieConsent by Brendigo
 
-**Aktualno izdanje: 0.9.0 (testno)** · Ažurirano: 10. 11. 2026. · [Dokumentacija](README.md) · [Promjene](CHANGELOG.md)
+**Razvojni cilj: v0.10.0 (testno izdanje)** · Revizija 10. 11. 2026. · [Dokumentacija](README.md) · [Povijest](CHANGELOG.md)
 
-Ovaj plan razlikuje **implementirano u kodu**, **automatizirano testirano** i **neprovjereno u stvarnoj produkciji**. Dokumentacija ne predstavlja potvrdu regulatorne certifikacije.
+Projekt razlikuje **implementirano**, **automatizirano provjereno**, **ovisno o produkcijskoj instalaciji** i **vanjsku certifikaciju**. Svi preostali zadaci ostaju vidljivi. Zeleni CI ne zamjenjuje neovisnu sigurnosnu, pravnu ili pristupačnu validaciju.
 
-## Funkcionalnosti isporučene u projektu
+## A. Implementirano i pokriveno testovima
 
-| Područje | Stanje |
-|---|---|
-| Samostalna Vanilla JS/CSS jezgra bez obveznih runtime ovisnosti | Implementirano |
-| HR/EN/DE/IT/ES/FR/AR, uključujući RTL | Implementirano |
-| Jednostavno i granularno upravljanje privolom | Implementirano |
-| GPC ograničenje marketinga | Implementirano |
-| Devet pozicija bannera, tri stila, teme, boje i redoslijed gumba | Implementirano |
-| Prilagodba mjesta prozora postavki, fokus i tipkovnica | Implementirano |
-| Katalog usluga, pojedinačni prekidači i ručno označeni JS/iframe resursi | Implementirano |
-| Lifecycle pružatelja (odobrenje/opoziv), dostupna first-party cleanup pravila | Implementirano |
-| Lokalna potvrda korisnikova izbora i JSON preuzimanje | Implementirano |
-| Sinkronizacija privole između kartica istog origina | Implementirano |
-| WordPress administracija, preview, editor jezika i JSON backup | Implementirano |
-| Ograničeni WooCommerce adapter za nužne skripte košarice/naplate | Implementirano |
-| Google Consent Mode v2 Basic adapter | Opcionalno implementirano; konfiguracija tagova mora se testirati |
-| Lokalni pregled JS-dostupnih cookiesa i storage ključeva | Implementirano; nije puni skener |
-| Reproducibilni ZIP-ovi: standalone, WordPress i CDN | Implementirano |
-| CI: Node, PHP 7.4 i 8.1–8.4, Chromium/Firefox/WebKit, automatizirani axe-core | Automatizirano testirano u pokrivenim scenarijima |
-| Stalni potpis `by Brendigo` u službenom UI-ju | Implementirano, ne kriptografski neuklonjivo |
+- [x] Vanilla JS/CSS jezgra bez obveznih npm runtime ovisnosti, lokalno učitavanje, 7 jezika i RTL.
+- [x] Kategorije privole, jednako dostupan izbor prihvaćanja i odbijanja, GPC ograničenje marketinga.
+- [x] Devet položaja bannera, tri stila, teme, boje, redoslijed gumba i zaseban položaj dijaloga.
+- [x] Pojedinačne usluge, ručno označeni inertni JS/iframe resursi, provider lifecycle i first-party cleanup pravila.
+- [x] Lokalna potvrda korisnikova odabira, kontrola datuma/roka i sinkronizacija istog origina između kartica.
+- [x] Siguran samostalni JSON import/izvoz, interaktivni konfigurator i njegov poboljšani prikaz/prevodivi tekst.
+- [x] Javni višejezični katalog usluga: web API `renderCatalog` i WordPress shortcode `[brendigo_cookie_catalog]`.
+- [x] Ograničeni browser-visible skener `scanLocalResources`, bez praćenja korisnika ili centralnog slanja.
+- [x] WordPress administracija, editor prijevoda, JSON backup, opcionalno blokiranje registriranih handleova.
+- [x] Ograničeni WooCommerce adapter za očuvanje nužnih skripti i prikaz usluga.
+- [x] Opcionalni Google Consent Mode v2 Basic adapter (nije zamjena za blokiranje tagova).
+- [x] HR/EN statična web-stranica te vlastiti CDN build i dokumentirani hosting koraci.
+- [x] Reproducibilni ZIP paketi: standalone, Brendigo WordPress, WordPress.org **kandidat**, CDN i statična web-stranica.
+- [x] Stvarni smoke testovi WordPress 6.2 / latest na MySQL-u i WooCommerce aktivacije.
+- [x] CI: Node, PHP 7.4 i 8.1–8.4, Chromium/Firefox/WebKit i automatizirane provjere pristupačnosti.
+- [x] Interni [sigurnosni audit](SECURITY-AUDIT.hr.md) i [dead-code audit](DEAD-CODE-AUDIT.hr.md), regresijski testovi i JS/CSS performance budget.
+- [x] Odvojena WordPress.org kandidatska distribucija s lokalnim resursima i dobrovoljnim potpisom; službeni Plugin Check kao CI kontrola.
 
-## Isporuka web-stranice i WordPress smjernice — v0.9.0
+## B. Integracije i produkcijska kvaliteta — otvoreni zadaci
 
-- [x] Dvojezična (HR/EN) responzivna stranica za predviđenu domenu `cookie.brendigo.com`.
-- [x] Paketiranje web-stranice, demo sučelja i `/v0.9.0/` CDN resursa u zaseban ZIP.
-- [x] Metapodaci: Plugin URI `https://cookie.brendigo.com`, autor **Brendigo**, Author URI `https://brendigo.com`, Contributors `brendigo`.
-- [x] Lokalna provjera metapodataka i web datoteka u CI-u.
-- [ ] Aktivirati javni DNS/TLS/hosting i stvarno objaviti web-stranicu.
-- [ ] WordPress.org izdanje: osigurati opt-in javni potpis i lokalne JS/CSS resurse prema pravilima direktorija, zatim pokrenuti službeni Plugin Check.
+- [ ] Potvrditi stvarne WooCommerce košarice i checkout tokove s konkretnim gatewayima, temama i dodatcima.
+- [ ] Potvrditi CSP, nonce/hash konfiguraciju, opt-in i opoziv na reprezentativnim produkcijskim/staging web-stranicama.
+- [ ] Dodati i dokumentirati integracijske adaptere za konkretne pružatelje prema stvarnim zahtjevima korisnika; svaki s testom opoziva i upravljanjem učitavanjem.
+- [ ] Proširiti browser-visible skeniranje uz jasnu granicu: ne vidi HttpOnly, cross-origin i server-side događaje.
+- [ ] Provjeriti mobile/desktop raspored, zoom 200–400 %, RTL i ručne čitače ekrana.
+- [ ] Dodati stvarne metrike prvog učitavanja (CPU, mreža) na više uređaja; postoje testovi veličine statičnih paketa.
+- [ ] Provjeriti sigurnost s neovisnim penetration testom i reviewom dependency/CI supply-chain.
+- [ ] Potvrditi stvarno hosting okruženje shared hostinga i sukobe s cache/minifier dodacima.
 
-## Prioritet A — produkcijska pouzdanost
+## C. Infrastruktura, pravne obveze i javna distribucija — ovisi o vanjskom pristupu
 
-- [ ] Pokrenuti automatizirane testove nad stvarnim WordPress instalacijama, više WP verzija i hosting konfiguracija.
-- [ ] Testirati WooCommerce košaricu, checkout i platne servise u stvarnim webshopovima.
-- [ ] Neovisni sigurnosni audit i penetracijski test.
-- [ ] Ručna WCAG/čitač-ekrana provjera, 200–400 % zoom i mobilne orijentacije.
-- [ ] Potvrditi obradu svih dinamičkih trackera nakon promjene i povlačenja privole.
-- [ ] Provjeriti CSP, nonce, opt-in i cleanup s konkretnim temama i minification dodacima.
-- [ ] Sustavno mjeriti performanse i regresije pri nadogradnji.
+- [ ] Postaviti i potvrditi DNS, HTTPS/TLS, hosting, cache pravila, politiku logova i monitoring za `cookie.brendigo.com`.
+- [ ] Dovršiti produkcijsku politiku privatnosti web-stranice proizvoda s pravim operatorom, kontaktom i retencijom logova.
+- [ ] Obaviti stvarni pravni pregled ciljne web-stranice prema HR/EU i ostalim primjenjivim jurisdikcijama.
+- [ ] Provjeriti je li za oglašivački use-case potreban certificirani CMP/IAB TCF; nema automatske certifikacije samom instalacijom.
+- [ ] Poslati zaseban WordPress.org kandidat na direktorij s potvrđenim `Contributors` računom i proći službeni ljudski review.
+- [ ] Ako je za konkretan projekt potrebna serverska evidencija privola, projektirati odvojeni zakonit ledger s minimizacijom, rokom čuvanja, obvezama pristupa i sigurnosti.
+- [ ] Dokumentirati arhiviranje prijašnjih verzija politike i procjenu ponovnog traženja privole na stvarnoj stranici.
 
-## Prioritet B — integracije i transparentnost
+## Kriteriji za stabilnu verziju 1.0
 
-- [ ] Opcionalni dodatci/adapteri za analitiku i marketinške pružatelje, svaki s zasebnim testom.
-- [ ] Napredniji katalog kolačića po web-stranici i višejezična javna tablica.
-- [ ] Automatizirani skener preglednički dostupnih resursa, uz jasno istaknute granice (HttpOnly/cross-origin/server-side).
-- [ ] Zasebni CMS adapteri ondje gdje se pokažu potrebnima; Vanilla instalacija ostaje standard.
-- [ ] Samostalni import validirane JSON konfiguracije u frontend integraciji, uz ograničenja i siguran parser.
-- [ ] Povratne informacije i dodatno poboljšanje konfiguratora na malim ekranima.
+1. Uspješan CI na točnom izdanom commitu, bez blokirajućih Plugin Check pogrešaka.
+2. Potvrđeni integracijski testovi web/WP/WooCommerce i povlačenja privole na stvarnim instalacijama.
+3. Nema poznatih kritičnih sigurnosnih rizika u podržanim integracijama.
+4. Dokumentirana ograničenja svakog vanjskog servisa, GDPR/ePrivacy/HR regulatorna analiza i razumljiva dokumentacija.
+5. Operativni monitoring, sigurnosna ažuriranja i plan rollbacka za javnu CDN infrastrukturu.
 
-## Prioritet C — infrastruktura i regulatorna primjena
-
-- [ ] Postaviti DNS, TLS, hosting, log-policy i monitoring za `cookie.brendigo.com`.
-- [ ] Obaviti pravni pregled primjene na HR/EU i svim drugim ciljnim jurisdikcijama.
-- [ ] Procijeniti je li potrebno certificiranje za konkretan oglašivački ekosustav, npr. Google CMP / IAB TCF.
-- [ ] Ako je potreban poslužiteljski consent ledger, projektirati ga kao zasebnu, zakonito utemeljenu komponentu uz minimizaciju i retenciju.
-- [ ] Dokumentirati proces ažuriranja javne politike, povijesnih verzija i revizija privole.
-
-## Kriteriji za stabilnu v1.0
-
-Izdanje se ne proglašava stabilnim samo zbog zelenog CI-a: potrebne su potvrđene stvarne instalacije, bez regresija prihvaćanja/odbijanja/opoziva, provjereni scenariji s pružateljima i održiv proces sigurnosnih nadogradnji.
-
-**Neposredan sljedeći korak:** završiti aktualne regresijske testove i objaviti usklađene distribucijske pakete v0.9.0, nakon čega slijedi testiranje na stvarnom WordPressu.
+**Status:** glavne funkcije u repozitoriju su isporučene. Vanjski deployment, neovisna certifikacija i sve stvarne integracije nisu označeni dovršenima bez dokaza.

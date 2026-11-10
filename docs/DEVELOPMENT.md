@@ -9,6 +9,8 @@ Node.js 18+, Python 3, PHP 7.4+ i Git. Nema potrebnih JS runtime paketa za posje
 ~~~bash
 npm run check
 npm test
+npm run audit:source
+npm run build:wporg
 php -l wordpress/brendigo-cookieconsent/brendigo-cookieconsent.php
 php tests/wp-settings.php
 npm run build:cdn
@@ -48,3 +50,7 @@ Verziju treba uskladiti u `package.json`, JS/PHP/CSS zaglavljima, CDN uputama, W
 ## Sigurnost
 
 Sigurnosne nalaze prijavite privatno, bez objavljivanja aktivnih exploit detalja u javnoj raspravi. [SECURITY.md](SECURITY.md).
+
+## Statika i regresije
+
+`tests/source-audit.test.cjs` blokira opasne izvršne sinkove i ponovnu pojavu utvrđenih duplikata. `tests/performance.test.cjs` ograničava veličinu runtime JS/CSS i zabranjuje neobvezne npm runtime ovisnosti. [Revizijski nalazi](SECURITY-AUDIT.hr.md) · [Dead-code audit](DEAD-CODE-AUDIT.hr.md).

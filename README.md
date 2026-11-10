@@ -32,7 +32,7 @@ Samostalni sustav za informiranje posjetitelja i upravljanje privolama na HTML/P
 | Više kartica | Sinkronizacija odabira na istoj domeni bez slanja sadržaja privole |
 | WordPress | Administratorske postavke, vizualni pregled, katalog, editor tekstova, JSON backup, ručno blokiranje WP handleova |
 | WooCommerce | Zaštita ključnih registriranih skripti košarice i naplate od slučajnog blokiranja |
-| Isporuka | Samostalni ZIP, WordPress ZIP, verzionirani CDN ZIP i web-stranica ZIP; bez vanjskih runtime biblioteka |
+| Isporuka | Samostalni ZIP, Brendigo WordPress ZIP, WordPress.org kandidat ZIP, verzionirani CDN ZIP i web-stranica ZIP; bez vanjskih runtime biblioteka |
 
 ![Ilustracija izgleda bannera](assets/brand/banner-preview.svg)
 
@@ -143,6 +143,12 @@ cc.reset();                        // poništavanje spremljenog izbora
 ~~~
 
 [Događaji, povratne funkcije, detaljan API i primjeri](docs/API.hr.md).
+
+## Sigurnost, održavanje i audit
+
+Dokumentirani su [sigurnosni audit](docs/SECURITY-AUDIT.hr.md) i [dead-code audit](docs/DEAD-CODE-AUDIT.hr.md). Uključeni su testovi provjere datuma i roka privole, sigurnih URL-ova, WordPress sanitizacije, redundantnih inicijalizacija, duplih CSS selektora i veličine runtime paketa. Interni pregled nije neovisni penetration test niti pravni certifikat.
+
+**Isporuke:** `cookieconsent-brendigo-standalone.zip`, `brendigo-cookieconsent-wordpress.zip`, `brendigo-cookieconsent-wordpress-org.zip` (kandidat), `brendigo-cookieconsent-cdn.zip` i `cookieconsent-brendigo-website.zip`.
 
 ## Lokalni razvoj i provjere
 

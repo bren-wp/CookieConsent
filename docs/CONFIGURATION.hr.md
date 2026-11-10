@@ -117,3 +117,7 @@ Callbackovi se ne koriste za automatsku telemetriju; implementator određuje pon
 ## Sigurnosna pravila
 
 Ne interpolirajte neprovjerene URL-ove u `data-bcc-src`. Za vanjske resurse prihvaćaju se HTTP(S) URL-ovi, ali to samo po sebi ne potvrđuje da je odredišni server siguran. Ako imate CSP, uskladite `script-src`, `style-src`, nonce/hash i `frame-src` s konkretnom konfiguracijom. [Integracije](INTEGRATIONS.hr.md).
+
+## Validirani samostalni JSON import
+
+Konfigurator podržava preuzimanje i ponovno učitavanje JSON datoteka sa shemom `brendigo-cookieconsent-standalone-v1`. Parser prihvaća samo dokumentirane ključeve, ograničava duljine i dopuštene vrijednosti, ne izvršava kod, ne prihvaća korisničke odluke i ne šalje podatke na server. Uvoz u WordPress administrator ima **zasebnu** shemu.

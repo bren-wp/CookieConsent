@@ -2,12 +2,13 @@
 
 ## Verzije i paketi
 
-Aktualna testna verzija: **0.9.0**. Službeno izdanje koristi GitHub tag `v0.9.0` i sadrži četiri različita ZIP paketa.
+Aktualna testna verzija: **0.9.0**. Službeno izdanje koristi GitHub tag `v0.9.0` i sadrži pet različitih ZIP paketa.
 
 | Paket | Namjena |
 |---|---|
 | `cookieconsent-brendigo-standalone.zip` | HTML/PHP stranice i ostali CMS templateovi |
-| `brendigo-cookieconsent-wordpress.zip` | instalacija kroz WordPress administrator |
+| `brendigo-cookieconsent-wordpress.zip` | službena Brendigo GitHub distribucija |
+| `brendigo-cookieconsent-wordpress-org.zip` | lokalni WordPress.org kandidat; nije službeno odobren |
 | `brendigo-cookieconsent-cdn.zip` | verzionirani direktorij za vlastiti CDN hosting |
 | `cookieconsent-brendigo-website.zip` | dvojezični web s lokalnim demonstracijama i verzioniranim CDN resursima |
 
@@ -23,6 +24,8 @@ npm test
 php -l wordpress/brendigo-cookieconsent/brendigo-cookieconsent.php
 php tests/wp-settings.php
 npm run build:cdn
+npm run build:wporg
+npm run audit:source
 python3 tools/package.py
 python3 tools/package.py --verify
 ~~~
@@ -32,7 +35,7 @@ Paketiranje koristi stabilan redoslijed datoteka, fiksne ZIP datume i SHA-256 pr
 ## GitHub Actions
 
 - `ci.yml`: JS i PHP provjere, browser E2E (Chromium, Firefox, WebKit) i automatizirane WCAG A/AA provjere.
-- `package.yml`: četiri ZIP paketa u Actions Artifacts, neovisno o produkciji.
+- `package.yml`: pet ZIP paketa u Actions Artifacts, neovisno o produkciji.
 - `publish.yml`: javni GitHub **prerelease** tek nakon uspješnog CI push događaja na `main` vlastitog repozitorija. Revalidira točno testirani commit i ne mijenja već objavljeni tag.
 
 Provjerite status svih poslova **prije** preuzimanja konačnih paketa. CI ne postavlja hosting/CDN i ne daje pravni certifikat.
@@ -44,7 +47,7 @@ Provjerite status svih poslova **prije** preuzimanja konačnih paketa. CI ne pos
 - [ ] Provjeriti identične jezgrene WP i samostalne JS/CSS datoteke.
 - [ ] Provjeriti izostanak nepoželjnih vanjskih runtime ovisnosti.
 - [ ] Provjeriti reset, opoziv, servisne kontrole i prvi posjet.
-- [ ] Provjeriti sadržaj sva četiri ZIP-a i hash.
+- [ ] Provjeriti sadržaj svih pet ZIP-ova i hash.
 - [ ] Obaviti dodatnu provjeru stvarnog WordPress/hostinga prije produkcije.
 
 ## Potpis i licencija

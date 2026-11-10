@@ -37,3 +37,7 @@ Kod lokalne instalacije nema obveznog Brendigo mrežnog zahtjeva. Ako je odabran
 Zeleni CI **nije** neovisni sigurnosni audit ili penetracijski test. Ne postoji centralni consent ledger, digitalno potpisana potvrda, certificirani CMP, automatsko brisanje third-party cookiesa niti univerzalni tracking skener.
 
 [Pravna kontrolna lista](COMPLIANCE.hr.md) · [Pristupačnost](ACCESSIBILITY.hr.md) · [Produkcijski kontrolni popis](GO-LIVE.hr.md).
+
+## Dokumentirani auditi
+
+[Security audit](SECURITY-AUDIT.hr.md) i [Dead-code audit](DEAD-CODE-AUDIT.hr.md) sadrže opseg pregleda, identificirane i uklonjene pogreške te otvorene produkcijske rizike. Nisu neovisni audit niti certifikat.

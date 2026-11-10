@@ -28,6 +28,10 @@ Ako je skripta uključena standardnim `BCC_SITE_CONFIG` načinom, ručni `init()
 | `openPreferences()` | otvara modal s kategorijama i pružateljima |
 | `reset()` | poništava spremljenu privolu i vraća banner |
 | `refresh()` | obrađuje naknadno ubačene označene skripte/iframeove |
+| `scanLocalResources()` | Prošireni lokalni pregled browser-visible resursa, bez mrežnog slanja |
+| `getCatalog()` | Sigurna kopija konfiguriranih usluga |
+| `renderCatalog(target)` | Dostupan višejezični HTML katalog (tekstni DOM API) |
+| `initFromJSON(raw)` | Ručni uvoz dozvoljene samostalne JSON konfiguracije prije inicijalizacije |
 | `auditLocal()` | lokalno dostupan popis kolačića, pohrane i oznaka resursa |
 | `registerProvider(definition)` | registracija lifecycle callbackova; vraća unregister funkciju |
 
@@ -96,3 +100,9 @@ if (receipt) {
 ~~~
 
 To je korisnikova **lokalna, nekriptografska** kopija, a ne serverski ili pravno ovjeren dokaz. [Potvrda privole](CONSENT-RECEIPT.hr.md).
+
+## Sigurni import i javni katalog
+
+`BrendigoCookieConsent.utils.parseConfigurationJSON(raw)` vraća sanirani objekt dozvoljenih postavki ili `null`; očekuje `schema: "brendigo-cookieconsent-standalone-v1"`. `initFromJSON(raw)` prihvaća samo valjanu konfiguraciju prije inicijalizacije. Nikada ne uvozi korisnikovu privolu.
+
+`renderCatalog('#my-catalog')` stvara preglednu višejezičnu tablicu za deklarirane usluge. Ne skenira automatski sve kolačiće niti klasificira treće strane.

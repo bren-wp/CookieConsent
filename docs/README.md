@@ -21,12 +21,14 @@ Svi vodiči odnose se na vlastiti sustav **CookieConsent by Brendigo**. Funkcije
 - [Arhitektura](ARCHITECTURE.hr.md) — slojevi koda, distribucija, tokovi privole.
 - [Pristupačnost](ACCESSIBILITY.hr.md) — podržane kontrole i testni plan.
 - [Razvoj i provjere](DEVELOPMENT.md) — Node, PHP, Playwright, reproducibilni paketi.
-- [Distribucija](RELEASE.md) — tri ZIP-a, release workflow, SHA-256.
+- [Distribucija](RELEASE.md) — pet ZIP-ova, release workflow, SHA-256.
 
 ## Privatnost, sigurnost i produkcija
 
 - [Potvrda korisnikova odabira](CONSENT-RECEIPT.hr.md) — sadržaj, preuzimanje, ograničenja.
-- [Sigurnosne smjernice](SECURITY.md) — zaštite, granice, prijava nalaza.
+- [Sigurnosne smjernice](SECURITY.md)
+- [Source security audit](SECURITY-AUDIT.hr.md) — nalaz po nalaz, ispravci i preostali rizici.
+- [Dead code audit](DEAD-CODE-AUDIT.hr.md) — uklonjene duplicirane putanje, namjerna pakiranja. — zaštite, granice, prijava nalaza.
 - [Pravna kontrolna lista](COMPLIANCE.hr.md) — obveze koje konfigurira vlasnik stranice.
 - [Regulatorna matrica](REGULATORY-MATRIX.hr.md) — EU/HR, UK, SAD i druge jurisdikcije.
 - [Kontrolni popis prije objave](GO-LIVE.hr.md) — funkcionalni, pravni i infrastrukturni prihvat.

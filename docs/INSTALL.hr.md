@@ -84,3 +84,7 @@ python3 -m http.server 8000
 ~~~
 
 Otvorite `http://localhost:8000/demo/configurator.html`. Lokalna potvrda odabira dostupna je kroz `getConsentReceipt()` i gumb u postavkama nakon odluke; [opis ograničenja](CONSENT-RECEIPT.hr.md).
+
+## Javni katalog kolačića
+
+Za Vanilla JS dodajte element `<div id="cookie-catalog"></div>` i nakon inicijalizacije pozovite `BrendigoCookieConsent.renderCatalog('#cookie-catalog')`. Na WordPress stranici upotrijebite shortcode `[brendigo_cookie_catalog language="hr"]`. Informacije moraju odražavati stvarne usluge stranice.

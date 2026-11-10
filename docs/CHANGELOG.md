@@ -1,5 +1,17 @@
 # Povijest promjena — CookieConsent by Brendigo
 
+## 0.10.0 — testno izdanje
+
+- Sigurnosna provjera spremljenih privola: strogi datum, ograničenje trajanja i ponovno otvaranje pri isteku.
+- Zaštita URL-ova: HTTPS web ne aktivira HTTP resurse niti URL-ove s ugrađenim vjerodajnicama.
+- Uklonjeni su duplicirano CSS pravilo, suvišna inicijalizacija kanala i dinamički PHP testni fixture.
+- Reproducibilni sigurnosni i dead-code audit izvještaji, automatizirani source-audit testovi.
+- Statički performance budget za runtime JS/CSS bez vanjskih runtime ovisnosti.
+- Popravljen je preview konfiguratora pri brzim izmjenama teksta i prijevoda.
+- Dopunjeni dokumentacija, razvojni plan i testovi kolačića i first-party cleanup-a.
+
+
+
 Ovdje se opisuje funkcionalni razvoj službene grane. Zapisi označeni kao testne verzije nisu tvrdnja da je sva produkcijska ili regulatorna validacija obavljena.
 
 ## 0.8.1 — testno izdanje
