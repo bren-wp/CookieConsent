@@ -22,6 +22,7 @@ const OPTION = 'brendigo_cookieconsent_options';
 function defaults(): array {
     return [
         'language' => 'auto',
+        'direction' => 'auto',
         'accent_color' => '#4357e8',
         'surface_color' => '#ffffff',
         'text_color' => '#17223e',
@@ -56,7 +57,8 @@ function sanitize_options($input): array {
     $policy = isset($input['policy_url']) ? esc_url_raw($input['policy_url'], ['http', 'https']) : '';
     $handles = isset($input['blocked_handles']) ? sanitize_textarea_field($input['blocked_handles']) : '';
     return [
-        'language' => in_array($language, ['auto', 'hr', 'en', 'de', 'it'], true) ? $language : 'auto',
+        'language' => in_array($language, ['auto', 'hr', 'en', 'de', 'it', 'ar'], true) ? $language : 'auto',
+        'direction' => in_array(($input['direction'] ?? 'auto'), ['auto', 'ltr', 'rtl'], true) ? $input['direction'] : 'auto',
         'accent_color' => $accent ?: '#4357e8',
         'surface_color' => $surface ?: '#ffffff',
         'text_color' => $text_color ?: '#17223e',
@@ -200,8 +202,16 @@ function render_settings(): void {
                 <tr>
                     <th scope="row"><label for="bcc-language"><?php esc_html_e('Language', 'brendigo-cookieconsent'); ?></label></th>
                     <td><select id="bcc-language" name="<?php echo esc_attr(OPTION); ?>[language]">
-                        <?php foreach (['auto' => 'Auto (site language)', 'hr' => 'Hrvatski', 'en' => 'English', 'de' => 'Deutsch', 'it' => 'Italiano'] as $code => $label) : ?>
+                        <?php foreach (['auto' => 'Auto (site language)', 'hr' => 'Hrvatski', 'en' => 'English', 'de' => 'Deutsch', 'it' => 'Italiano', 'ar' => 'العربية'] as $code => $label) : ?>
                             <option value="<?php echo esc_attr($code); ?>" <?php selected($o['language'], $code); ?>><?php echo esc_html($label); ?></option>
+                        <?php endforeach; ?>
+                    </select></td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="bcc-direction"><?php esc_html_e('Text direction', 'brendigo-cookieconsent'); ?></label></th>
+                    <td><select id="bcc-direction" name="<?php echo esc_attr(OPTION); ?>[direction]">
+                        <?php foreach (['auto' => 'Auto', 'ltr' => 'Left to right', 'rtl' => 'Right to left'] as $value => $label) : ?>
+                            <option value="<?php echo esc_attr($value); ?>" <?php selected($o['direction'], $value); ?>><?php echo esc_html($label); ?></option>
                         <?php endforeach; ?>
                     </select></td>
                 </tr>
@@ -318,6 +328,7 @@ function frontend_assets(): void {
     wp_enqueue_script('brendigo-cookieconsent', $base . 'brendigo-cookieconsent.js', [], VERSION, true);
     $config = [
         'language' => $o['language'],
+        'direction' => $o['direction'],
         'accentColor' => $o['accent_color'],
         'surfaceColor' => $o['surface_color'],
         'textColor' => $o['text_color'],

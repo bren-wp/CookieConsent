@@ -26,6 +26,9 @@
   function sanitizeStyle(style) {
     return STYLES.indexOf(style) !== -1 ? style : 'standard';
   }
+  function sanitizeDirection(direction) {
+    return ['auto', 'ltr', 'rtl'].indexOf(direction) !== -1 ? direction : 'auto';
+  }
   function sanitizeColor(value, fallback) {
     return typeof value === 'string' && /^#[0-9a-fA-F]{6}$/.test(value) ? value.toLowerCase() : fallback;
   }
@@ -102,6 +105,22 @@
       gpc: 'Global Privacy Control è attivo. Il marketing rimane disattivato.',
       reopen: 'Impostazioni cookie', servicesHeading: 'Servizi e cookie',
       providerPolicy: 'Privacy del fornitore'
+    },
+    ar: {
+      heading: 'خصوصيتك، اختيارك',
+      intro: 'نستخدم ملفات تعريف الارتباط الضرورية لتشغيل الموقع. ولا نستخدم التقنيات الاختيارية إلا بموافقتك. يمكنك تغيير اختيارك في أي وقت.',
+      accept: 'قبول الكل', reject: 'رفض الكل', settings: 'تخصيص',
+      headingPrefs: 'تفضيلات الخصوصية', descriptionPrefs: 'اختر الفئات التي تسمح بها. ملفات تعريف الارتباط الضرورية مفعّلة دائمًا.',
+      save: 'حفظ اختياراتي', close: 'إغلاق', policy: 'سياسة ملفات تعريف الارتباط',
+      necessary: 'ضرورية', preferences: 'وظيفية', analytics: 'تحليلية', marketing: 'تسويقية',
+      necessaryDesc: 'لازمة لتشغيل الموقع وأمانه.',
+      preferencesDesc: 'تتذكر إعداداتك الاختيارية.',
+      analyticsDesc: 'تساعدنا على فهم كيفية استخدام الموقع.',
+      marketingDesc: 'تُستخدم للإعلانات وقياس الحملات.',
+      gpc: 'إشارة التحكم العالمي في الخصوصية مفعّلة. تظل فئة التسويق معطّلة.',
+      reopen: 'إعدادات ملفات تعريف الارتباط',
+      servicesHeading: 'الخدمات وملفات تعريف الارتباط',
+      providerPolicy: 'سياسة خصوصية مزوّد الخدمة'
     }
   };
   var config = null;
@@ -211,6 +230,10 @@
   function translations() {
     var language = getLanguage();
     return Object.assign({}, MESSAGES[language], config.translations && config.translations[language] || {});
+  }
+  function getDirection() {
+    if (config.direction !== 'auto') return config.direction;
+    return getLanguage() === 'ar' || root.document.documentElement.dir === 'rtl' ? 'rtl' : 'ltr';
   }
   function isGpc() {
     return !!(root.navigator && root.navigator.globalPrivacyControl === true);
@@ -490,6 +513,7 @@
     if (nodes.root) return;
     var t = translations();
     var holder = element('div', 'bcc-root bcc-position-' + config.position + ' bcc-style-' + config.bannerStyle);
+    holder.setAttribute('dir', getDirection());
     holder.style.setProperty('--bcc-accent', config.accentColor);
     holder.style.setProperty('--bcc-button-text', accessibleText('#ffffff', config.accentColor));
     holder.style.setProperty('--bcc-bg', config.surfaceColor);
@@ -546,6 +570,7 @@
       policyUrl: typeof options.policyUrl === 'string' ? options.policyUrl : '/cookie-policy',
       position: sanitizePosition(options.position),
       bannerStyle: sanitizeStyle(options.bannerStyle),
+      direction: sanitizeDirection(options.direction),
       accentColor: sanitizeColor(options.accentColor, '#4357e8'),
       surfaceColor: sanitizeColor(options.surfaceColor, '#ffffff'),
       textColor: sanitizeColor(options.textColor, '#17223e'),
@@ -569,7 +594,8 @@
     refresh: applyGatedResources, auditLocal: auditLocal,
     utils: {
       normalizeConsent: normalizeConsent, encodeRecord: encodeRecord, parseRecord: parseRecord,
-      sanitizePosition: sanitizePosition, sanitizeStyle: sanitizeStyle, sanitizeColor: sanitizeColor,
+      sanitizePosition: sanitizePosition, sanitizeStyle: sanitizeStyle,
+      sanitizeDirection: sanitizeDirection, sanitizeColor: sanitizeColor,
       contrastRatio: contrastRatio, accessibleText: accessibleText,
       normalizeServices: normalizeServices
     }

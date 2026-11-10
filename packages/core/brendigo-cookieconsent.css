@@ -102,3 +102,8 @@
 .bcc-style-minimal .bcc-button{border-radius:4px}
 .bcc-style-minimal .bcc-eyebrow{letter-spacing:.08em}
 @media(max-width:780px){.bcc-style-compact .bcc-banner,.bcc-style-minimal .bcc-banner{padding:16px}}
+
+/* Direction is inherited by dialog controls. The signature remains visible. */
+.bcc-root[dir="rtl"] .bcc-footer .bcc-credit{margin-left:0;margin-right:auto}
+.bcc-root[dir="rtl"] .bcc-service{direction:rtl;text-align:right}
+.bcc-root[dir="rtl"] .bcc-category-option{direction:rtl}

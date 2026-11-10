@@ -79,3 +79,10 @@ test('local audit is explicit, read-only and absent in Node without a DOM', () =
     cookies:[],localStorage:[],sessionStorage:[],scripts:[],iframes:[]
   });
 });
+
+test('direction sanitizer constrains RTL to known modes', () => {
+  assert.equal(consent.utils.sanitizeDirection('auto'),'auto');
+  assert.equal(consent.utils.sanitizeDirection('rtl'),'rtl');
+  assert.equal(consent.utils.sanitizeDirection('ltr'),'ltr');
+  assert.equal(consent.utils.sanitizeDirection('rtl;display:none'),'auto');
+});

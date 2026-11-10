@@ -121,11 +121,12 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
               'horizontal overflow at '+position);
           }
           for(const [lang,expected] of [['hr','Odbij sve'],['en','Reject all'],
-            ['de','Alle ablehnen'],['it','Rifiuta tutti']]){
+            ['de','Alle ablehnen'],['it','Rifiuta tutti'],['ar','رفض الكل']]){
             const qs=new URLSearchParams({preview:'1',language:lang,style:'compact'});
             await page.goto(origin+'/demo/index.html?'+qs);
             await page.locator('.bcc-banner').waitFor({state:'visible'});
             assert.equal(await page.locator('.bcc-banner-actions').getByRole('button',{name:expected}).count(),1);
+            if(lang==='ar') assert.equal(await page.locator('.bcc-root').getAttribute('dir'),'rtl');
           }
         }finally{await context.close();}
       });
