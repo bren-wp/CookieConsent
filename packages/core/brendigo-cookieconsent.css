@@ -1,4 +1,4 @@
-/* CookieConsent by Brendigo v0.8.1 — locally hosted UI styles */
+/* CookieConsent by Brendigo v0.9.0 — locally hosted UI styles */
 .bcc-root{--bcc-accent:#4357e8;--bcc-text:#17223e;--bcc-subtle:#66708c;--bcc-border:#e1e6f1;--bcc-bg:#fff;--bcc-shadow:0 18px 65px rgba(18,28,69,.19);font:inherit;color:var(--bcc-text);z-index:2147483000}
 .bcc-root *{box-sizing:border-box}
 .bcc-root button,.bcc-root input{font:inherit}

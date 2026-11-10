@@ -1,13 +1,13 @@
 === CookieConsent by Brendigo ===
-Contributors: bren-wp
+Contributors: brendigo
 Tags: cookie, consent, privacy, preference-manager, gdpr
 Requires at least: 6.2
 Requires PHP: 7.4
-Stable tag: 0.8.1
+Stable tag: 0.9.0
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
-A locally hosted, customizable privacy-choice banner and preference manager from Brendigo.
+Accessible consent choices and privacy preferences by Brendigo with local and optional CDN assets.
 
 == Description ==
 
@@ -53,9 +53,15 @@ Core recognized cart/checkout script handles are excluded from accidental consen
 = Does it collect or store users' consent on a Brendigo server? =
 No central consent API is included. A user-owned first-party cookie stores their choice; optional hosting access logs depend on the selected hosting provider.
 
+== Plugin website ==
+
+https://cookie.brendigo.com
+
 == Changelog ==
 
-= 0.8.1 =
+= 0.9.0 =
+* Official plugin website: cookie.brendigo.com; author Brendigo.
+* WordPress metadata, quality checks and standalone website installer.
 * Local user-readable consent receipt with JSON download.
 * Same-origin tab synchronization.
 * Editable banner text per language in the WordPress settings.
@@ -70,5 +76,5 @@ No central consent API is included. A user-owned first-party cookie stores their
 
 == Upgrade Notice ==
 
-= 0.8.1 =
+= 0.9.0 =
 Back up the WordPress configuration before upgrading. Re-test script gating, policy revision and all connected third-party services.

@@ -1,14 +1,16 @@
 <?php
 /**
  * Plugin Name: CookieConsent by Brendigo
- * Plugin URI: https://brendigo.com
- * Description: Self-hosted, privacy-first cookie consent banner and preference manager.
- * Version: 0.8.1
+ * Plugin URI: https://cookie.brendigo.com
+ * Description: Privacy preferences and granular cookie consent for WordPress, with local or CDN delivery.
+ * Version: 0.9.0
  * Requires at least: 6.2
  * Requires PHP: 7.4
  * Author: Brendigo
  * Author URI: https://brendigo.com
  * License: MIT
+ * License URI: https://opensource.org/license/mit
+ * Update URI: https://cookie.brendigo.com
  * Text Domain: brendigo-cookieconsent
  */
 
@@ -16,7 +18,7 @@ namespace Brendigo\CookieConsent;
 
 defined('ABSPATH') || exit;
 
-const VERSION = '0.8.1';
+const VERSION = '0.9.0';
 const OPTION = 'brendigo_cookieconsent_options';
 
 function defaults(): array {
@@ -286,12 +288,15 @@ function render_settings(): void {
         wp_die(esc_html__('You do not have permission to view this page.', 'brendigo-cookieconsent'));
     }
     $o = options();
+    $import_status = isset($_GET['bcc_import']) && is_string($_GET['bcc_import'])
+        ? sanitize_key(wp_unslash($_GET['bcc_import']))
+        : '';
     ?>
     <div class="wrap">
         <h1><?php echo esc_html__('CookieConsent by Brendigo', 'brendigo-cookieconsent'); ?></h1>
-        <?php if (isset($_GET['bcc_import']) && $_GET['bcc_import'] === 'ok') : ?>
+        <?php if ($import_status === 'ok') : ?>
             <div class="notice notice-success is-dismissible"><p><?php esc_html_e('CookieConsent settings imported successfully.', 'brendigo-cookieconsent'); ?></p></div>
-        <?php elseif (isset($_GET['bcc_import']) && $_GET['bcc_import'] === 'invalid') : ?>
+        <?php elseif ($import_status === 'invalid') : ?>
             <div class="notice notice-error"><p><?php esc_html_e('Invalid or oversized settings JSON. No settings were changed.', 'brendigo-cookieconsent'); ?></p></div>
         <?php endif; ?>
         <p><?php echo esc_html__('Privacy choices with a self-hosted banner. Integrations must be classified and gated separately.', 'brendigo-cookieconsent'); ?></p>
