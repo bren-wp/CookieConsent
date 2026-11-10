@@ -1,5 +1,18 @@
 # Povijest promjena — CookieConsent by Brendigo
 
+## 0.11.0 — testno izdanje
+
+- Joomla 5 system plugin s administratorskim poljima i lokalnim resursima.
+- Drupal 10/11 modul s konfiguracijskim obrascem, libraries i schema.
+- Shopify Theme App Extension s Customer Privacy API adapterom i `compliance_head` blokom.
+- Magento 2.4 native modul s layoutom i store-scope postavkama.
+- OpenCart 4 native extension, event i admin konfiguracija.
+- PrestaShop 8/9 modul, front-office hookovi i administratorski obrazac.
+- Šest novih distribucijskih arhiva, platform-specific static validation i reproducibilno ZIP pakiranje.
+- Vodič za integracije i ažuriran ROADMAP; production smoke testovi na navedenim platformama ostaju otvoreni.
+
+
+
 ## 0.10.0 — testno izdanje
 
 - Sigurnosna provjera spremljenih privola: strogi datum, ograničenje trajanja i ponovno otvaranje pri isteku.

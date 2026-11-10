@@ -88,3 +88,7 @@ Otvorite `http://localhost:8000/demo/configurator.html`. Lokalna potvrda odabira
 ## Javni katalog kolačića
 
 Za Vanilla JS dodajte element `<div id="cookie-catalog"></div>` i nakon inicijalizacije pozovite `BrendigoCookieConsent.renderCatalog('#cookie-catalog')`. Na WordPress stranici upotrijebite shortcode `[brendigo_cookie_catalog language="hr"]`. Informacije moraju odražavati stvarne usluge stranice.
+
+## Dodatne platforme
+
+Joomla 5, Drupal 10/11, Shopify Theme App Extension, Magento 2.4, OpenCart 4 i PrestaShop 8/9 imaju zasebne izvorišne mape i ZIP pakete. Pogledajte [CMS i webshop integracije](CMS-INTEGRATIONS.hr.md) za instalacijske korake i status testiranja.

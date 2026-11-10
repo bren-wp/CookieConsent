@@ -7,7 +7,8 @@ Svi vodiči odnose se na vlastiti sustav **CookieConsent by Brendigo**. Funkcije
 ## Instalacija i administracija
 
 - [Početak i instalacija](INSTALL.hr.md) — HTML, PHP, lokalni resursi i demo.
-- [WordPress vodič](WORDPRESS.hr.md) — sve postavke, editor jezika, katalog usluga, izvoz/uvoz.
+- [WordPress vodič](WORDPRESS.hr.md)
+- [CMS i webshop integracije](CMS-INTEGRATIONS.hr.md) — Joomla, Drupal, Shopify, Magento, OpenCart i PrestaShop. — sve postavke, editor jezika, katalog usluga, izvoz/uvoz.
 - [Web-stranica proizvoda](../website/README.md) — dvojezični frontend i instalacija na vlastiti hosting.
 - [CDN infrastruktura](CDN.hr.md) — verzionirani sadržaj, HTTPS, CSP, caching i privatnost.
 - [WooCommerce](WOOCOMMERCE.hr.md) — košarica, naplata i razgraničenje neobveznih dodataka.
