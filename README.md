@@ -170,10 +170,10 @@ U **Postavke → CookieConsent** nalazi se **Export JSON configuration** za pohr
 
 ## 🧪 Browser testovi
 
-`npm test` pokreće lokalne unit/integration testove bez dodatnih ovisnosti. Odvojeni GitHub CI posao instalira Playwright i Chromium, Firefox i WebKit **isključivo za testove** te provjerava prvu posjetu, odbijanje, prihvaćanje, ponovno otvaranje i povlačenje privole, označene iframeove, stilove i tipkovnicu.
+`npm test` pokreće lokalne unit/integration testove bez dodatnih ovisnosti. Odvojeni GitHub CI posao instalira Playwright i Chromium, Firefox i WebKit **isključivo za testove** te provjerava prvu posjetu, odbijanje, prihvaćanje, ponovno otvaranje i povlačenje privole, označene iframeove, stilove, tipkovnicu i automatizirane WCAG 2.0/2.1 A/AA provjere kroz axe-core.
 
 ```bash
-npm install --no-save --no-package-lock playwright@1.56.1
+npm install --no-save --no-package-lock playwright@1.56.1 axe-core@4.10.3
 npx playwright install --with-deps chromium
 npm run test:browser
 ```

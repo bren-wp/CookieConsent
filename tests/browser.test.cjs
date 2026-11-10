@@ -130,6 +130,29 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
           }
         }finally{await context.close();}
       });
+      await t.test('automated WCAG A/AA checks for banner and preference dialog',async()=>{
+        const context=await browser.newContext({viewport:{width:390,height:844}});
+        try{
+          const page=await context.newPage();
+          await page.goto(origin+'/demo/index.html?preview=1');
+          await page.locator('.bcc-banner').waitFor({state:'visible'});
+          await page.addScriptTag({path:require.resolve('axe-core/axe.min.js')});
+          async function checkAxe(screen){
+            const failures=await page.evaluate(async()=>{
+              const result=await window.axe.run(document.querySelector('.bcc-root'),{
+                runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21a','wcag21aa']}
+              });
+              return result.violations.map(v=>({id:v.id,impact:v.impact,
+                nodes:v.nodes.slice(0,3).map(n=>n.target.join(' '))}));
+            });
+            assert.deepEqual(failures,[],screen+' should have no automated WCAG A/AA violations');
+          }
+          await checkAxe('banner');
+          await page.locator('.bcc-banner-actions').getByRole('button',{name:'Postavke'}).click();
+          await page.getByRole('dialog').waitFor({state:'visible'});
+          await checkAxe('preferences');
+        }finally{await context.close();}
+      });
       await t.test('cookie inventory does not send data and focus remains within dialog',async()=>{
         const context=await browser.newContext();
         try{
