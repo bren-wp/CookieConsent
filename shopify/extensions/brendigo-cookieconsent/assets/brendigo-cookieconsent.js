@@ -628,6 +628,15 @@
             event.newValue.indexOf(config.revision + '|') !== 0) return;
         reconcileTabConsent();
       });
+      // Reconcile when returning to a suspended/background tab. Some WebKit
+      // versions coalesce or delay cross-tab storage/broadcast events.
+      root.addEventListener('focus', reconcileTabConsent);
+      root.addEventListener('pageshow', reconcileTabConsent);
+      if (root.document && typeof root.document.addEventListener === 'function') {
+        root.document.addEventListener('visibilitychange', function () {
+          if (!root.document.hidden) reconcileTabConsent();
+        });
+      }
       syncStorageAttached = true;
     }
     if (syncChannel || !root.BroadcastChannel) return;
