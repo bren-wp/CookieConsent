@@ -8,14 +8,14 @@
 Samostalni sustav za informiranje posjetitelja i upravljanje privolama na HTML/PHP stranicama, WordPressu i projektima koji mogu uključiti JavaScript i CSS.
 
 [![GitHub CI](https://github.com/bren-wp/CookieConsent/actions/workflows/ci.yml/badge.svg)](https://github.com/bren-wp/CookieConsent/actions/workflows/ci.yml)
-![Version](https://img.shields.io/badge/version-0.9.0-4357e8)
+![Version](https://img.shields.io/badge/version-0.10.0-4357e8)
 ![License](https://img.shields.io/badge/license-MIT-26387a)
 ![Runtime](https://img.shields.io/badge/runtime_dependencies-0-brightgreen)
 ![Brand](https://img.shields.io/badge/by-Brendigo-4357e8)
 
 **[Službena web-stranica](https://cookie.brendigo.com)** · **[Najnovija izdanja](https://github.com/bren-wp/CookieConsent/releases)** · **[Interaktivni konfigurator](demo/configurator.html)** · **[Dokumentacija](docs/README.md)** · **[Razvojni plan](docs/ROADMAP.md)** · **[Brendigo](https://brendigo.com)**
 
-> **Status: v0.9.0 — testno izdanje.** Sustav omogućuje implementaciju upravljanja privolama, ali ne jamči usklađenost pojedine web-stranice i nema status certificiranog CMP-a. Nije automatski blokator svih vanjskih servisa.
+> **Status: v0.10.0 — testno izdanje.** Sustav omogućuje implementaciju upravljanja privolama, ali ne jamči usklađenost pojedine web-stranice i nema status certificiranog CMP-a. Nije automatski blokator svih vanjskih servisa.
 
 ## Što dobivate
 
@@ -100,7 +100,7 @@ Projekt priprema verzionirani paket za predviđenu adresu:
     revision: "1"
   };
 </script>
-<script defer src="https://cookie.brendigo.com/v0.9.0/loader.js"></script>
+<script defer src="https://cookie.brendigo.com/v0.10.0/loader.js"></script>
 ~~~
 
 **Ta adresa nije automatski aktivirana objavom GitHub paketa.** Prije primjene moraju biti postavljeni DNS, HTTPS/TLS i stvarno posluživanje datoteka. Zadana WordPress opcija ostaje lokalno učitavanje. [CDN vodič](docs/CDN.hr.md).

@@ -1,6 +1,6 @@
 # Dokumentacija — CookieConsent by Brendigo
 
-**Verzija: 0.9.0 (testna)** · Autor: **Brendigo** · [Povratak na README](../README.md)
+**Verzija: 0.10.0 (testna)** · Autor: **Brendigo** · [Povratak na README](../README.md)
 
 Svi vodiči odnose se na vlastiti sustav **CookieConsent by Brendigo**. Funkcije su opisane prema aktualnoj bazi koda; pojedine produkcijske i certifikacijske obveze ostaju otvorene.
 

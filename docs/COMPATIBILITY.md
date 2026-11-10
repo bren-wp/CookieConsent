@@ -1,4 +1,4 @@
-# Kompatibilnost — CookieConsent by Brendigo v0.9.0
+# Kompatibilnost — CookieConsent by Brendigo v0.10.0
 
 ## Što se automatizirano provjerava
 

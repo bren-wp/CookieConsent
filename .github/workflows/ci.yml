@@ -21,7 +21,7 @@ jobs:
           npm test
           npm run build:cdn
           npm run build:wporg
-          test -s dist/cdn/v0.9.0/manifest.json
+          test -s dist/cdn/v0.10.0/manifest.json
       - name: WordPress plugin PHP syntax
         run: php -l wordpress/brendigo-cookieconsent/brendigo-cookieconsent.php
       - name: Ensure WordPress plugin assets match the core

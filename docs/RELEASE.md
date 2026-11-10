@@ -2,7 +2,7 @@
 
 ## Verzije i paketi
 
-Aktualna testna verzija: **0.9.0**. Službeno izdanje koristi GitHub tag `v0.9.0` i sadrži pet različitih ZIP paketa.
+Aktualna testna verzija: **0.10.0**. Službeno izdanje koristi GitHub tag `v0.10.0` i sadrži pet različitih ZIP paketa.
 
 | Paket | Namjena |
 |---|---|
