@@ -119,6 +119,11 @@
       </div>
       <button type="button" id="copy">Kopiraj konfiguraciju</button>
       <button type="button" id="download">Preuzmi JSON konfiguraciju</button>
+      <div class="field">
+        <label for="configFile">Uvezi JSON konfiguraciju</label>
+        <input id="configFile" type="file" accept=".json,application/json">
+        <p class="help">Import je lokalni, provjerava shemu i zadržava dodatne podržane opcije pri ponovnom izvozu. Ne uvozi korisničku privolu.</p>
+      </div>
       <p id="message" role="status" aria-live="polite" class="help"></p>
       <p class="help">Prikaz nije certifikat usklađenosti. Provjerite stvarne kolačiće, pravila i sve povezane servise.</p>
     </aside>
@@ -128,11 +133,13 @@
       <div class="hint">Svaki pregled prikazuje stanje prije privole radi provjere dizajna.</div>
     </section>
   </main>
+  <script src="../packages/core/brendigo-cookieconsent.js"></script>
   <script>
     (function () {
       'use strict';
       var keys=['position','style','language','theme','prefs','accent','surface','text','heading','intro','accept','reject','settings'];
       var controls={};
+      var imported={};
       keys.forEach(function(key){controls[key]=document.getElementById(key);});
       function values(){
         var o={};
@@ -143,22 +150,24 @@
         return o;
       }
       function buildConfig(o){
-        var payload={
+        var payload=Object.assign({},imported,{
           language:o.language,position:o.position,bannerStyle:o.style,theme:o.theme,
           preferencesPosition:o.prefs,flipButtons:o.flip,equalWeightButtons:o.equal,
           disableAnimations:o.reducedMotion,accentColor:o.accent,
           surfaceColor:o.surface,textColor:o.text,
-          policyUrl:'/politika-kolacica',revision:'1'
-        };
+          policyUrl:imported.policyUrl || '/politika-kolacica',
+          revision:imported.revision || '1'
+        });
         if(o.heading.trim()){
-          payload.translations={};
-          payload.translations[o.language]={
+          payload.translations=Object.assign({},payload.translations || {});
+          payload.translations[o.language]=Object.assign({},
+            payload.translations[o.language] || {},{
             heading:o.heading.slice(0,100),
             intro:o.intro.slice(0,550) || 'Vaše postavke privatnosti.',
             accept:o.accept.slice(0,80) || 'Prihvati sve',
             reject:o.reject.slice(0,80) || 'Odbij sve',
             settings:o.settings.slice(0,80) || 'Postavke'
-          };
+          });
         }
         return payload;
       }
@@ -189,6 +198,37 @@
         document.body.appendChild(anchor);anchor.click();anchor.remove();
         URL.revokeObjectURL(url);
         document.getElementById('message').textContent='JSON konfiguracija pripremljena za preuzimanje.';
+      });
+      document.getElementById('configFile').addEventListener('change',async function(){
+        var file=this.files && this.files[0];
+        var message=document.getElementById('message');
+        if(!file)return;
+        if(file.size>65536){message.textContent='Datoteka je prevelika (maks. 64 KiB).';return;}
+        try {
+          var parsed=window.BrendigoCookieConsent.utils.parseConfigurationJSON(await file.text());
+          if(!parsed){message.textContent='Nevaljana JSON konfiguracija ili shema.';return;}
+          imported=parsed;
+          var map={
+            language:'language',position:'position',style:'bannerStyle',theme:'theme',
+            prefs:'preferencesPosition',accent:'accentColor',
+            surface:'surfaceColor',text:'textColor'
+          };
+          Object.keys(map).forEach(function(key){
+            if(typeof parsed[map[key]]==='string')controls[key].value=parsed[map[key]];
+          });
+          ['flip','equal','reducedMotion'].forEach(function(key){
+            var source={flip:'flipButtons',equal:'equalWeightButtons',
+              reducedMotion:'disableAnimations'}[key];
+            if(typeof parsed[source]==='boolean')document.getElementById(key).checked=parsed[source];
+          });
+          var lang=controls.language.value;
+          var translated=parsed.translations && parsed.translations[lang] || {};
+          ['heading','intro','accept','reject','settings'].forEach(function(key){
+            controls[key].value=typeof translated[key]==='string'?translated[key]:'';
+          });
+          refresh();
+          message.textContent='Konfiguracija uspješno uvezena lokalno. Pregledajte opcije prije izvoza.';
+        }catch(_){message.textContent='JSON nije mogao biti pročitan.';}
       });
       document.getElementById('copy').addEventListener('click',function(){
         var output=document.getElementById('snippet');

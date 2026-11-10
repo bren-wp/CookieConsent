@@ -347,6 +347,43 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
           assert.ok(after.includes('bcc_consent='));
         }finally{await context.close();}
       });
+      await t.test('standalone configurator imports and preserves safe JSON fields',async()=>{
+        const context=await browser.newContext();
+        try {
+          const page=await context.newPage();
+          await page.goto(origin+'/demo/configurator.html');
+          const config={schema:'brendigo-cookieconsent-standalone-v1',config:{
+            language:'en',position:'top-right',theme:'dark',revision:'import-v1',
+            services:[{id:'statistics',toggleable:true,category:'analytics',name:'Statistics'}],
+            translations:{en:{heading:'Imported privacy heading'}}
+          }};
+          await page.locator('#configFile').setInputFiles({
+            name:'config.json',mimeType:'application/json',
+            buffer:Buffer.from(JSON.stringify(config))
+          });
+          await page.waitForFunction(()=>document.querySelector('#message')?.textContent?.includes('uspješno'));
+          assert.equal(await page.locator('#theme').inputValue(),'dark');
+          assert.equal(await page.locator('#position').inputValue(),'top-right');
+          const snippet=await page.locator('#snippet').inputValue();
+          assert.ok(snippet.includes('"revision": "import-v1"'));
+          assert.ok(snippet.includes('"services"'));
+          await page.locator('#configFile').setInputFiles({
+            name:'bad.json',mimeType:'application/json',buffer:Buffer.from('{}')
+          });
+          await page.waitForFunction(()=>document.querySelector('#message')?.textContent?.includes('Nevaljana'));
+        } finally { await context.close(); }
+      });
+      await t.test('public multilingual catalog uses text nodes and safe links',async()=>{
+        const context=await browser.newContext();
+        try{
+          const page=await context.newPage();
+          await page.goto(origin+'/demo/catalog.html');
+          assert.equal(await page.locator('.bcc-catalog tbody tr').count(),2);
+          assert.equal(await page.locator('.bcc-catalog caption').textContent(),'Katalog kolačića i usluga');
+          assert.equal(await page.locator('.bcc-catalog tbody a').count(),2);
+          assert.equal(await page.locator('.bcc-catalog tbody script').count(),0);
+        }finally{await context.close();}
+      });
       await t.test('cookie inventory does not send data and focus remains within dialog',async()=>{
         const context=await browser.newContext();
         try{
