@@ -65,7 +65,7 @@
       analyticsDesc: 'Pomažu nam razumjeti korištenje web-stranice.',
       marketingDesc: 'Koriste se za oglašavanje i mjerenje kampanja.',
       gpc: 'Signal Global Privacy Control je uključen. Marketinška kategorija ostaje isključena.',
-      reopen: 'Postavke kolačića', servicesHeading: 'Usluge i kolačići', providerPolicy: 'Privatnost pružatelja'
+      reopen: 'Postavke kolačića', servicesHeading: 'Usluge i kolačići', providerPolicy: 'Privatnost pružatelja', receipt: 'Preuzmi potvrdu mog odabira'
     },
     en: {
       heading: 'Your privacy. Your choice.',
@@ -79,7 +79,7 @@
       analyticsDesc: 'Help us understand how the website is used.',
       marketingDesc: 'Used for advertising and campaign measurement.',
       gpc: 'Global Privacy Control is enabled. The marketing category remains disabled.',
-      reopen: 'Cookie settings', servicesHeading: 'Services and cookies', providerPolicy: 'Provider privacy policy'
+      reopen: 'Cookie settings', servicesHeading: 'Services and cookies', providerPolicy: 'Provider privacy policy', receipt: 'Download my consent receipt'
     },
     de: {
       heading: 'Ihre Privatsphäre. Ihre Wahl.',
@@ -94,7 +94,7 @@
       marketingDesc: 'Werden für Werbung und Kampagnenmessung genutzt.',
       gpc: 'Global Privacy Control ist aktiv. Marketing bleibt deaktiviert.',
       reopen: 'Cookie-Einstellungen', servicesHeading: 'Dienste und Cookies',
-      providerPolicy: 'Datenschutz des Anbieters'
+      providerPolicy: 'Datenschutz des Anbieters', receipt: 'Meine Einwilligungsbestätigung herunterladen'
     },
     it: {
       heading: 'La tua privacy. La tua scelta.',
@@ -109,7 +109,7 @@
       marketingDesc: 'Utilizzati per pubblicità e misurazione delle campagne.',
       gpc: 'Global Privacy Control è attivo. Il marketing rimane disattivato.',
       reopen: 'Impostazioni cookie', servicesHeading: 'Servizi e cookie',
-      providerPolicy: 'Privacy del fornitore'
+      providerPolicy: 'Privacy del fornitore', receipt: 'Scarica la ricevuta del consenso'
     },
     ar: {
       heading: 'خصوصيتك، اختيارك',
@@ -125,7 +125,7 @@
       gpc: 'إشارة التحكم العالمي في الخصوصية مفعّلة. تظل فئة التسويق معطّلة.',
       reopen: 'إعدادات ملفات تعريف الارتباط',
       servicesHeading: 'الخدمات وملفات تعريف الارتباط',
-      providerPolicy: 'سياسة خصوصية مزوّد الخدمة'
+      providerPolicy: 'سياسة خصوصية مزوّد الخدمة', receipt: 'تنزيل نسخة من اختياري'
     },
     es: {
       heading: 'Tu privacidad, tu elección.',
@@ -140,7 +140,7 @@
       marketingDesc: 'Se usan para publicidad y medición de campañas.',
       gpc: 'Global Privacy Control está activo. El marketing permanece desactivado.',
       reopen: 'Configurar cookies', servicesHeading: 'Servicios y cookies',
-      providerPolicy: 'Privacidad del proveedor'
+      providerPolicy: 'Privacidad del proveedor', receipt: 'Descargar comprobante de mi elección'
     },
     fr: {
       heading: 'Votre vie privée, votre choix.',
@@ -155,7 +155,7 @@
       marketingDesc: 'Servent à la publicité et à la mesure des campagnes.',
       gpc: 'Global Privacy Control est activé. Le marketing reste désactivé.',
       reopen: 'Paramètres des cookies', servicesHeading: 'Services et cookies',
-      providerPolicy: 'Confidentialité du fournisseur'
+      providerPolicy: 'Confidentialité du fournisseur', receipt: 'Télécharger mon récapitulatif de consentement'
     }
   };
   var config = null;
@@ -787,6 +787,11 @@
     panel.appendChild(actions);
     var footer = element('div', 'bcc-footer');
     addPolicyLink(footer, t);
+    if (consent) {
+      var receiptButton = button(t.receipt || 'Download my consent receipt',
+        'bcc-receipt-button', downloadConsentReceipt);
+      footer.appendChild(receiptButton);
+    }
     branding(footer, t);
     panel.appendChild(footer);
     overlay.appendChild(panel);

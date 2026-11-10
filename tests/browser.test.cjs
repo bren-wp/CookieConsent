@@ -242,6 +242,13 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
           assert.equal(first.receipt.categories.analytics,false);
           assert.ok(Number.isFinite(Date.parse(first.receipt.decidedAt)));
           assert.deepEqual(first.events.map(e=>e.type),['first','consent','decision']);
+          await page.getByRole('button',{name:'Cookie settings'}).click();
+          const receiptDownload=page.waitForEvent('download');
+          await page.getByRole('dialog').getByRole('button',
+            {name:'Download my consent receipt'}).click();
+          const downloaded=await receiptDownload;
+          assert.equal(downloaded.suggestedFilename(),'brendigo-consent-receipt.json');
+          await page.getByRole('dialog').getByRole('button',{name:'Close'}).click();
           await page.reload();
           const after=await page.evaluate(()=>({
             receipt:BrendigoCookieConsent.getConsentReceipt(),

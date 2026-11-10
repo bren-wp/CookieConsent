@@ -183,7 +183,7 @@ function sanitize_translation_overrides($raw): string {
         'headingPrefs', 'descriptionPrefs', 'save', 'close', 'policy',
         'necessary', 'preferences', 'analytics', 'marketing',
         'necessaryDesc', 'preferencesDesc', 'analyticsDesc', 'marketingDesc',
-        'gpc', 'reopen', 'servicesHeading', 'providerPolicy'];
+        'gpc', 'reopen', 'servicesHeading', 'providerPolicy', 'receipt'];
     $safe = [];
     foreach ($languages as $language) {
         if (!isset($data[$language]) || !is_array($data[$language])) continue;
@@ -441,7 +441,7 @@ function render_settings(): void {
                         </div>
                         <details>
                             <summary><?php esc_html_e('Advanced: all translated labels (JSON)', 'brendigo-cookieconsent'); ?></summary>
-                            <p class="description"><?php esc_html_e('Keys: heading, intro, accept, reject, settings, headingPrefs, descriptionPrefs, save, close, policy, category labels/descriptions, reopen and provider labels. JSON is strictly validated on save.', 'brendigo-cookieconsent'); ?></p>
+                            <p class="description"><?php esc_html_e('Keys: heading, intro, accept, reject, settings, headingPrefs, descriptionPrefs, save, close, policy, category labels/descriptions, reopen, receipt and provider labels. JSON is strictly validated on save.', 'brendigo-cookieconsent'); ?></p>
                             <textarea id="bcc-translations" class="large-text code" rows="6" maxlength="24000" name="<?php echo esc_attr(OPTION); ?>[translation_overrides]"><?php echo esc_textarea($o['translation_overrides']); ?></textarea>
                         </details>
                     </td>
