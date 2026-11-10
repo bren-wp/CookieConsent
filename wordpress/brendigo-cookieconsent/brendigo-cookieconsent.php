@@ -69,7 +69,7 @@ function sanitize_options($input): array {
     $handles = isset($input['blocked_handles']) ? sanitize_textarea_field($input['blocked_handles']) : '';
     return [
         'language' => in_array($language, ['auto', 'hr', 'en', 'de', 'it', 'ar', 'es', 'fr'], true) ? $language : 'auto',
-        'direction' => in_array(($input['direction'] ?? 'auto'), ['auto', 'ltr', 'rtl'], true) ? $input['direction'] : 'auto',
+        'direction' => in_array(($input['direction'] ?? 'auto'), ['auto', 'ltr', 'rtl'], true) ? ($input['direction'] ?? 'auto') : 'auto',
         'accent_color' => $accent ?: '#4357e8',
         'surface_color' => $surface ?: '#ffffff',
         'text_color' => $text_color ?: '#17223e',

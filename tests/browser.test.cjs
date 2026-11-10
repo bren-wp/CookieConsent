@@ -179,9 +179,16 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
           });
           assert.equal(await preview.locator('.bcc-root').getAttribute('class').then(x=>x.includes('bcc-theme-dark')),true);
           assert.equal(await preview.locator('.bcc-banner h2').textContent(),'Privacy settings by Brendigo');
-          const buttons = await preview.locator('.bcc-banner-actions button').allTextContents();
-          assert.ok(buttons.some(label=>label.trim()==='Reject optional services'),
-            'Custom reject label missing: '+JSON.stringify(buttons));
+          await page.waitForFunction(() => {
+            const frame=document.getElementById('preview');
+            if(!frame || !frame.contentWindow) return false;
+            try {
+              const url=new URL(frame.contentWindow.location.href);
+              const buttons=Array.from(frame.contentDocument.querySelectorAll('.bcc-banner-actions button'));
+              return url.searchParams.get('reject') === 'Reject optional services'
+                && buttons.some(b=>b.textContent.trim()==='Reject optional services');
+            } catch (_) { return false; }
+          },null,{timeout:15000});
           const exported=await page.locator('#snippet').inputValue();
           assert.ok(exported.includes('"theme": "dark"'));
           assert.ok(exported.includes('"preferencesPosition": "right"'));

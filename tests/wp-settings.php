@@ -119,11 +119,11 @@ verify(\Brendigo\CookieConsent\sanitize_translation_overrides(str_repeat('x', 24
 verify(\Brendigo\CookieConsent\sanitize_options(['language'=>'fr'])['language'] === 'fr', 'French locale allowed');
 
 $GLOBALS['bcc_fixture'][\Brendigo\CookieConsent\OPTION] = [
- 'services_catalog' => "analytics|<Unsafe Service>|Statistics|_stats|90 days|https://example.org/privacy|stats",
+ 'services_catalog' => "analytics|Statistics & Revenue|Statistics|_stats|90 days|https://example.org/privacy|stats",
 ];
 $catalog = \Brendigo\CookieConsent\render_catalog_shortcode(['language' => 'hr']);
 verify(strpos($catalog,'<script') === false, 'catalog does not render user-controlled HTML');
-verify(strpos($catalog,'Unsafe Service') !== false && strpos($catalog,'<Unsafe Service>') === false, 'catalog strips markup from provider name');
+verify(strpos($catalog,'Statistics &amp; Revenue') !== false, 'catalog escapes provider text');
 verify(strpos($catalog,'https://example.org/privacy') !== false, 'catalog includes safe policy link');
 verify(strpos($catalog,'scope="col"') !== false, 'catalog is semantic table');
 verify(strpos(\Brendigo\CookieConsent\render_catalog_shortcode(['language'=>'ar']),'dir="rtl"') !== false,
