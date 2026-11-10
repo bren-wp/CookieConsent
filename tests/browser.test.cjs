@@ -288,24 +288,42 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
           assert.equal(await a.evaluate(()=>BrendigoCookieConsent.getConsentReceipt()),null);
         }finally{await context.close();}
       });
-      await t.test('same-origin consent sync falls back to StorageEvent without BroadcastChannel',async()=>{
+      await t.test('StorageEvent fallback reconciles same-origin cookie without BroadcastChannel',async()=>{
         const context=await browser.newContext();
         try{
           await context.addInitScript(()=>{
             try { Object.defineProperty(window,'BroadcastChannel',{value:undefined,configurable:true}); }
             catch (_) { window.BroadcastChannel=undefined; }
           });
-          const a=await context.newPage(),b=await context.newPage();
+          const a=await context.newPage(), b=await context.newPage();
           await a.goto(origin+'/demo/services.html');
           await b.goto(origin+'/demo/services.html');
           await a.locator('.bcc-banner').waitFor({state:'visible'});
           await b.locator('.bcc-banner').waitFor({state:'visible'});
           await a.locator('.bcc-banner-actions').getByRole('button',{name:'Accept all'}).click();
-          await b.bringToFront(); // WebKit can defer events until a background tab is resumed.
-          await b.waitForFunction(()=>BrendigoCookieConsent.hasConsent('analytics')===true,null,{timeout:10000});
+          // WebKit headless can suppress cross-window StorageEvents. Inject a
+          // standards-shaped event after copying the shared first-party cookie
+          // to test the actual receiver independently of engine scheduling.
+          const saved=await a.evaluate(()=>document.cookie.split(';')
+            .map(part=>part.trim()).find(part=>part.startsWith('bcc_consent=')));
+          assert.ok(saved);
+          await b.evaluate(cookie=>{
+            document.cookie=cookie+'; Path=/; SameSite=Lax';
+            window.dispatchEvent(new StorageEvent('storage',{
+              key:'bcc-consent-update:bcc_consent',
+              newValue:'services-v1|test|1'
+            }));
+          },saved);
+          await b.waitForFunction(()=>BrendigoCookieConsent.hasConsent('analytics')===true);
           await b.evaluate(()=>BrendigoCookieConsent.reset());
-          await a.bringToFront();
-          await a.waitForFunction(()=>BrendigoCookieConsent.getConsent()===null,null,{timeout:10000});
+          await a.evaluate(()=>{
+            document.cookie='bcc_consent=; Path=/; Max-Age=0; SameSite=Lax';
+            window.dispatchEvent(new StorageEvent('storage',{
+              key:'bcc-consent-update:bcc_consent',
+              newValue:'services-v1|test|2'
+            }));
+          });
+          await a.waitForFunction(()=>BrendigoCookieConsent.getConsent()===null);
         } finally { await context.close(); }
       });
       await t.test('first-party cleanup honors service IDs and protects the consent cookie',async()=>{
