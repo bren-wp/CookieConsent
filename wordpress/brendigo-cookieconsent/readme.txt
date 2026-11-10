@@ -3,7 +3,7 @@ Contributors: bren-wp
 Tags: cookie, consent, gdpr, privacy, banner
 Requires at least: 6.2
 Requires PHP: 7.4
-Stable tag: 0.2.0
+Stable tag: 0.3.0
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
@@ -12,7 +12,8 @@ A self-hosted cookie consent banner and preference manager by Brendigo.
 == Description ==
 Displays consent choices and privacy preferences. Optional categories default to disabled.
 Includes administrator settings for mandatory Brendigo attribution, banner position, colors, local/CDN delivery, consent revision and
-selected WordPress registered script handles.
+selected WordPress registered script handles. Includes optional Google Basic adapter,
+provider inventory, and HR/EN/DE/IT frontend languages.
 
 This plugin does not automatically block unregistered inline scripts, pixels
 or embedded services. Integration and legal review are still required.
@@ -31,7 +32,8 @@ No. It is an early standalone development release.
 Yes. All runtime assets are hosted locally.
 
 == Changelog ==
-= 0.2.0 =
+= 0.3.0 =
 * 9 banner positions and configurable background, text and accent colors.
 * Mandatory visible by Brendigo attribution in distributed source.
 * Optional versioned CDN hosting and Google Consent Mode Basic adapter.
+* Provider inventory, DE/IT translations and consent lifecycle hooks.

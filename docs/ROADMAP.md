@@ -15,15 +15,18 @@
 - [x] Verzionirani CDN build, loader i opcija lokalni/CDN u WordPressu
 - [x] Opt-in Google Consent Mode v2 Basic adapter sa zadanim denied stanjem
 - [x] CI provjere za v0.2 kod i izradu CDN paketa (provjeriti aktualni run)
-- [ ] Puni lifecycle za revokaciju i upravljanje aktivnim trackerima
+- [x] Integracijski hookovi `registerProvider`, `onGrant`, `onRevoke` i popravljeni `reset()`
+- [ ] Potpuni cleanup vanjskih pružatelja, automatska revokacija i brisanje njihovih kolačića
 - [ ] Google Consent Mode v2 (basic) integracija i testiranje redoslijeda
 - [ ] WooCommerce i registrirani WP provider adapteri
-- [ ] Detaljne usluge i kategorije u administratoru
-- [ ] Dodatni jezici i RTL provjere
+- [x] Katalog usluga, kategorija, svrha, kolačića, trajanja i politika u WordPress administratoru
+- [x] Dodatni jezici: DE i IT
+- [ ] RTL podrška i provjera s govornim tehnologijama
 
 ## v0.3 — upravljanje politikama
-- [ ] Lokalni audit i detekcija kolačića
-- [ ] Granularni katalog usluga i pravilnik po web-stranici
+- [ ] Lokalni audit i detekcija kolačića (nije implementirano)
+- [x] Prvi granularni katalog usluga s javnom transparentnošću po kategorijama
+- [ ] Napredni katalog, pravila po geo-jurisdikciji i pojedinačna razina privole
 - [ ] Više stilova bannera i vizualni konfigurator
 - [ ] Izvoz i uvoz konfiguracije
 
@@ -33,4 +36,12 @@
 - [ ] Dokumentirane matrice kompatibilnosti s CMS platformama
 - [ ] Posebne pravne i tehničke provjere za podržane regulatorne profile
 
-Funkcionalnost nije isto što i pravna certifikacija. Stavke pod planom nisu već implementirane.
+## v0.3.0 — ostvareno u ovom koraku
+- [x] Lifecycle API za davanje i povlačenje privole bez vanjskih ovisnosti
+- [x] Katalog pružatelja s ograničenim i sanitiziranim podacima
+- [x] Njemačka i talijanska lokalizacija
+- [x] WordPress opcionalno učitavanje Google Basic adaptera
+- [x] Jedinični testovi za lifecycle, provider validaciju i katalog
+- [ ] Produkcijski audit pojedinačnih servisa, sustava kolačića i poslužitelja
+
+Funkcionalnost nije isto što i pravna certifikacija. Neoznačene stavke nisu implementirane.

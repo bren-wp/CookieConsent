@@ -46,3 +46,9 @@ Provjerite novije propise i smjernice prije svake produkcijske implementacije.
 ## CDN i službeni potpis
 
 CDN domena u produkciji može obrađivati IP adrese posjetitelja i metapodatke zahtjeva i zato zahtijeva odgovarajuću obavijest, konfiguraciju logiranja, sigurnost prijenosa i ugovorne procjene. Potpis **by Brendigo** mora se pojaviti u službenom prikazu; vizualni kredit nije pravno potreban za valjanu privolu. Postojeća MIT licencija zahtijeva očuvanje licencne obavijesti, ali ne jamči da vlasnik modificirane kopije neće sakriti vidljivi kredit.
+
+## v0.3.0 — transparentnost pružatelja
+
+Prošireni katalog služi informiranju o pružatelju, svrsi, kolačićima, trajanju i politici privatnosti. Nijedna inventura se ne može smatrati automatskom ni potpunom: vlasnik web-stranice mora je redovito uspoređivati sa stvarnim mrežnim zahtjevima i stanjem preglednika. Dodani lifecycle callbackovi ne mogu automatski obrisati kolačiće drugih domena, a rollback aktivnog JavaScripta nije univerzalno moguć.
+
+Google Basic adapter se opcionalno uključuje u WordPressu; ne učitava i ne blokira sve tagove automatski. Sva ograničenja Google CMP certifikacije i IAB TCF-a i dalje vrijede.

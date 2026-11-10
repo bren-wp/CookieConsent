@@ -52,7 +52,7 @@ test('GPC keeps Google marketing signals denied even when a client requests mark
 test('CDN loader resolves only assets in its versioned own directory', () => {
   const tags=[];
   const doc={
-    currentScript:{src:'https://cookie.brendigo.com/v0.2.0/loader.js'},
+    currentScript:{src:'https://cookie.brendigo.com/v0.3.0/loader.js'},
     head:{appendChild(tag){tags.push(tag);}},
     createElement(tagName){return {tagName,addEventListener(){}};}
   };
@@ -60,8 +60,8 @@ test('CDN loader resolves only assets in its versioned own directory', () => {
     document:doc, URL,window:{console}
   });
   assert.equal(tags.length,2);
-  assert.equal(tags[0].href,'https://cookie.brendigo.com/v0.2.0/brendigo-cookieconsent.css');
-  assert.equal(tags[1].src,'https://cookie.brendigo.com/v0.2.0/brendigo-cookieconsent.js');
+  assert.equal(tags[0].href,'https://cookie.brendigo.com/v0.3.0/brendigo-cookieconsent.css');
+  assert.equal(tags[1].src,'https://cookie.brendigo.com/v0.3.0/brendigo-cookieconsent.js');
 });
 
 test('all nine supported banner positions have a CSS rule', () => {
@@ -79,4 +79,58 @@ test('attribution is fixed and neither core nor WordPress exposes a toggle', () 
   assert.doesNotMatch(js,/showBranding/);
   assert.doesNotMatch(php,/show_branding/);
   assert.match(php,/The by Brendigo credit is always displayed/);
+});
+
+test('provider lifecycle: callbacks run on permission changes and reset', () => {
+  const fs=require('node:fs');
+  const vm=require('node:vm');
+  const root=require('node:path').join(__dirname, '..');
+  const events=[];
+  const doc={
+    readyState:'loading',
+    documentElement:{lang:'hr'},
+    cookie:'',
+    addEventListener(){},
+    querySelectorAll(){return []}
+  };
+  const fakeWindow={
+    document:doc, navigator:{globalPrivacyControl:false},
+    location:{protocol:'https:',href:'https://example.org/'},
+    URL, console,
+    CustomEvent:class {constructor(name,data){this.type=name;this.detail=data.detail;}},
+    dispatchEvent(event){events.push(event.type);}
+  };
+  const ctx={window:fakeWindow,globalThis:fakeWindow};
+  vm.runInNewContext(fs.readFileSync(require('node:path').join(root,'packages/core/brendigo-cookieconsent.js'),'utf8'),ctx);
+  const cc=fakeWindow.BrendigoCookieConsent;
+  cc.init({language:'hr',revision:'test'});
+  const lifecycle=[];
+  const unregister=cc.registerProvider({
+    id:'test-analytics',category:'analytics',
+    onGrant(){lifecycle.push('grant');},
+    onRevoke(){lifecycle.push('revoke');}
+  });
+  assert.equal(cc.hasConsent('analytics'),false);
+  cc.setConsent({analytics:true});
+  assert.equal(cc.hasConsent('analytics'),true);
+  cc.setConsent({analytics:true});
+  cc.setConsent({analytics:false});
+  cc.setConsent({analytics:true});
+  cc.reset();
+  assert.deepEqual(lifecycle,['grant','revoke','grant','revoke']);
+  assert.equal(cc.getConsent(),null);
+  assert.ok(events.includes('brendigo:consentrevoked'));
+  unregister();
+});
+test('provider lifecycle rejects invalid registration and duplicate IDs', () => {
+  const fs=require('node:fs');
+  const vm=require('node:vm');
+  const root=require('node:path').join(__dirname, '..');
+  const fakeWindow={document:{readyState:'loading',documentElement:{lang:'en'},cookie:'',addEventListener(){},querySelectorAll(){return []}},
+    navigator:{},location:{protocol:'https:',href:'https://example.org/'}, URL,console};
+  vm.runInNewContext(fs.readFileSync(require('node:path').join(root,'packages/core/brendigo-cookieconsent.js'),'utf8'),{window:fakeWindow,globalThis:fakeWindow});
+  const cc=fakeWindow.BrendigoCookieConsent;
+  assert.throws(()=>cc.registerProvider({id:'evil',category:'necessary'}),TypeError);
+  cc.registerProvider({id:'provider-1',category:'analytics'});
+  assert.throws(()=>cc.registerProvider({id:'provider-1',category:'analytics'}),TypeError);
 });

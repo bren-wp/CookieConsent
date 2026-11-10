@@ -20,10 +20,11 @@ jobs:
           npm run check
           npm test
           npm run build:cdn
-          test -s dist/cdn/v0.2.0/manifest.json
+          test -s dist/cdn/v0.3.0/manifest.json
       - name: WordPress plugin PHP syntax
         run: php -l wordpress/brendigo-cookieconsent/brendigo-cookieconsent.php
       - name: Ensure WordPress plugin assets match the core
         run: |
           cmp packages/core/brendigo-cookieconsent.js wordpress/brendigo-cookieconsent/assets/brendigo-cookieconsent.js
           cmp packages/core/brendigo-cookieconsent.css wordpress/brendigo-cookieconsent/assets/brendigo-cookieconsent.css
+          cmp packages/integrations/google-consent-basic.js wordpress/brendigo-cookieconsent/assets/google-consent-basic.js

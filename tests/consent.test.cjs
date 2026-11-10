@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const consent = require('../packages/core/brendigo-cookieconsent.js');
 
 test('core can be loaded without DOM or third-party packages', () => {
-  assert.equal(consent.version, '0.2.0');
+  assert.equal(consent.version, '0.3.0');
   assert.equal(typeof consent.init, 'function');
 });
 test('optional categories are denied by default', () => {
@@ -51,4 +51,20 @@ test('core attribution does not expose a disabling option', () => {
   const source = fs.readFileSync(require('node:path').join(__dirname, '../packages/core/brendigo-cookieconsent.js'),'utf8');
   assert.match(source, /'by Brendigo'/);
   assert.doesNotMatch(source, /config\.showBranding|options\.showBranding/);
+});
+
+test('service metadata is limited to known categories and safe lengths', () => {
+  const services = consent.utils.normalizeServices([
+    {category: 'analytics', name:'Example Analytics', purpose:'Aggregate site metrics', cookies:'_example', duration:'13 months',privacyUrl:'https://example.org'},
+    {category: 'unknown', name:'Should not appear'},
+    {category: 'marketing', name:'   '}
+  ]);
+  assert.equal(services.length,1);
+  assert.equal(services[0].name,'Example Analytics');
+  assert.equal(services[0].category,'analytics');
+});
+test('service metadata trims oversized strings', () => {
+  const result=consent.utils.normalizeServices([{category:'analytics',name:'X'.repeat(500),purpose:'p'.repeat(500)}]);
+  assert.equal(result[0].name.length,120);
+  assert.equal(result[0].purpose.length,350);
 });

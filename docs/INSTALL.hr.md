@@ -9,7 +9,7 @@
 
 | Konfiguracija | Zadano | Opis |
 |---|---|---|
-| `language` | `auto` | `hr`, `en` ili jezik stranice |
+| `language` | `auto` | `hr`, `en`, `de`, `it` ili jezik stranice |
 | `policyUrl` | `/cookie-policy` | URL politike kolačića |
 | `accentColor` | `#4357e8` | Hex boja |
 | `revision` | `1` | Promjena zahtijeva novu privolu |
@@ -50,7 +50,7 @@ Zahtjevi: WordPress 6.2+, PHP 7.4+.
 
 - ZIP mora sadržavati mapu `brendigo-cookieconsent` i cijelu podmapu `assets`.
 - Instalirajte preko administratorskog izbornika Dodaci; aktivirajte plugin.
-- Pod **Postavke → CookieConsent** podesite 9 položaja bannera, tri boje, jezik, link, rok i reviziju privole. Odaberite Local ili CDN nakon objave verzioniranog paketa. Potpis je uvijek uključen.
+- Pod **Postavke → CookieConsent** podesite 9 položaja bannera, tri boje, jezik, link, rok i reviziju privole. Unesite katalog pružatelja, zasebno klasificirajte skripte i po potrebi uključite opt-in Google adapter. Odaberite Local ili CDN nakon objave verzioniranog paketa. Potpis je uvijek uključen.
 - Za prijavljene WP skripte upišite `analytics:my-handle` ili `marketing:my-ad-handle` po retku.
 - Dodajte `<button type="button" data-bcc-open>Postavke kolačića</button>` u footer.
 
@@ -76,3 +76,27 @@ Privola se sprema u first-party cookie sa SameSite=Lax, Path=/ i Secure na HTTPS
 ## CDN i Google Basic adapter
 
 Upute za objavu `cookie.brendigo.com`, skriptni loader, DNS/TLS i opcionalni Consent Mode v2 adapter: [CDN vodič](CDN.hr.md). Koristite lokalni način kao zadani dok CDN nije provjeren.
+
+## Katalog usluga
+
+Dodajte usluge u WordPress administratoru, jednu po retku:
+
+```text
+analytics|Primjer Analitike|Statistika korištenja|_example|13 mjeseci|https://example.org/privacy
+marketing|Primjer marketinga|Mjerenje kampanja|_ad_example|90 dana|https://example.org/privacy
+```
+
+Prva kolona mora biti `necessary`, `preferences`, `analytics` ili `marketing`. Katalog u prikazu privole informira posjetitelje, ali **ne zamjenjuje stvarno blokiranje skripti i dokumentiranje svih kolačića**. U samostalnoj integraciji zadajte `BCC_SITE_CONFIG.services` kao polje objekata s poljima `category`, `name`, `purpose`, `cookies`, `duration`, `privacyUrl`.
+
+## Programski lifecycle
+
+```javascript
+BrendigoCookieConsent.registerProvider({
+  id: 'analytics-local',
+  category: 'analytics',
+  onGrant: () => { /* pokreni pružatelja */ },
+  onRevoke: () => { /* ugasi API i očisti dostupne first-party cookies */ }
+});
+```
+
+`reset()` sada emitira promjenu privole, poziva `onRevoke` i isključuje označene iframeove. Skripte koje su već izvršene ostaju u memoriji dok se servis zasebno ne zaustavi ili stranica ne osvježi.

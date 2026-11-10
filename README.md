@@ -7,7 +7,7 @@
 > Univerzalni sustav za upravljanje kolačićima i privolama za obične web-stranice, PHP i WordPress. Bez obveznog CDN-a, vanjskog računa ili pretplate.
 
 [![CI](https://github.com/bren-wp/CookieConsent/actions/workflows/ci.yml/badge.svg)](https://github.com/bren-wp/CookieConsent/actions/workflows/ci.yml)
-![Version](https://img.shields.io/badge/version-0.2.0-4357e8)
+![Version](https://img.shields.io/badge/version-0.3.0-4357e8)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Runtime](https://img.shields.io/badge/runtime%20dependencies-0-brightgreen)
 ![Author](https://img.shields.io/badge/by-Brendigo-26387a)
@@ -21,7 +21,7 @@
 | 🛡️ | **Privatnost:** neobvezne kategorije isključene su dok korisnik ne odabere privolu |
 | ✅ | **Jasne odluke:** Prihvati sve, Odbij sve i Postavke na prvom sloju |
 | 🎛️ | **Četiri kategorije:** nužni, funkcionalni, analitički i marketinški kolačići |
-| 🌍 | **HR + EN:** automatski jezik, prilagodljivi tekstovi |
+| 🌍 | **HR, EN, DE, IT:** automatski jezik, prilagodljivi tekstovi |
 | 🧩 | **WordPress:** lokalni dodatak s postavkama i blokiranjem odabranih registriranih skripti |
 | 🔌 | **Više platformi:** HTML, PHP, WordPress i ostali CMS-ovi s vlastitim JS/CSS |
 | 🧠 | **GPC:** konzervativno onemogućava marketinšku kategoriju uz Global Privacy Control |
@@ -30,6 +30,8 @@
 | 🔁 | **Stalni pristup:** automatski gumb za ponovno otvaranje postavki nakon izbora |
 | 🌐 | **CDN ili lokalno:** verzionirani paket za `cookie.brendigo.com` |
 | 📈 | **Google Basic adapter:** opcionalan Consent Mode v2 adapter uz ručno blokiranje Google tagova |
+| 🔄 | **Integracijski lifecycle:** `onGrant` i `onRevoke` za servise i povlačenje privole |
+| 📋 | **Katalog pružatelja:** detalji servisa, svrha, kolačića, rokova i politika privatnosti |
 
 ## 🖼️ Izgled
 
@@ -75,7 +77,7 @@ Izvorni dodatak je u [wordpress/brendigo-cookieconsent](wordpress/brendigo-cooki
 
 1. Pakirajte cijelu mapu `brendigo-cookieconsent` u ZIP s tom mapom u korijenu.
 2. U WordPressu otvorite **Dodaci → Dodaj novi → Prenesi dodatak**, instalirajte ZIP i aktivirajte ga.
-3. Pod **Postavke → CookieConsent** odaberite **9 pozicija**, boje gumba/pozadine/teksta, jezik, politiku kolačića, trajanje i reviziju privole. Potpis **by Brendigo** nije moguće isključiti u postavkama.
+3. Pod **Postavke → CookieConsent** odaberite **9 pozicija**, boje gumba/pozadine/teksta, jezik, politiku kolačića, trajanje i reviziju privole. Potpis **by Brendigo** nije moguće isključiti u postavkama. Dodajte katalog usluga i po potrebi uključite Google Basic adapter.
 4. Po potrebi klasificirajte **registrirane WordPress script handles**, primjerice:
 
 ```text
@@ -100,10 +102,44 @@ Pripremljena je verzionirana distribucija za CDN. **DNS, TLS i javno posluživan
     policyUrl: '/politika-kolacica', revision: '1'
   };
 </script>
-<script defer src="https://cookie.brendigo.com/v0.2.0/loader.js"></script>
+<script defer src="https://cookie.brendigo.com/v0.3.0/loader.js"></script>
 ```
 
 U paketu je opt-in `google-consent-basic.js` adapter za Google Consent Mode v2. Ne uključuje Google tagove i ne zamjenjuje ispravno blokiranje oznaka prije privole. Detalji: [CDN vodič](docs/CDN.hr.md).
+
+## 📋 Katalog usluga
+
+Svaka integracija može biti prikazana u detaljnim postavkama (bez automatskog autoriziranja njezinih skripti):
+
+```javascript
+window.BCC_SITE_CONFIG = {
+  language: "hr",
+  services: [{
+    category: "analytics",
+    name: "Primjer analitike",
+    purpose: "Anonimizirana statistika korištenja",
+    cookies: "_example",
+    duration: "13 mjeseci",
+    privacyUrl: "https://example.org/privacy"
+  }]
+};
+```
+
+WordPress postavke sadrže katalog u formatu **kategorija|naziv|svrha|kolačići|trajanje|URL** (jedan servis po retku). Podaci su isključivo informativni: skripte se moraju zasebno klasificirati i blokirati.
+
+## 🔄 Lifecycle integracija
+
+```javascript
+const unregister = BrendigoCookieConsent.registerProvider({
+  id: "my-analytics",
+  category: "analytics",
+  onGrant: () => { /* učitaj vlastiti dopušteni adapter */ },
+  onRevoke: () => { /* zaustavi slanje i očisti kolačiće u vlastitoj domeni */ }
+});
+// unregister() pri uklanjanju integracije
+```
+
+Pozivi se izvršavaju kada se stanje kategorije promijeni. **Povlačenje ne briše automatski kolačiće drugih domena i ne može poništiti ranije izvršene skripte.** Vlasnik stranice mora osigurati odgovarajući cleanup i zaustavljanje vanjskog servisa.
 
 ## 🧰 JavaScript API
 
@@ -151,7 +187,7 @@ python3 -m http.server 8000
 
 ## ⚖️ Zakonska usklađenost i ograničenja
 
-**v0.2.0 je razvojna verzija, nije certificirani CMP niti jamstvo usklađenosti s GDPR-om, ePrivacy pravilima, UK PECR-om, LGPD-om ili američkim zakonima.** Za svaku web-stranicu potrebno je provjeriti stvarne servise, podatke, kategorije, trajanje kolačića, dokaze privole i pravo na povlačenje.
+**v0.3.0 je razvojna verzija, nije certificirani CMP niti jamstvo usklađenosti s GDPR-om, ePrivacy pravilima, UK PECR-om, LGPD-om ili američkim zakonima.** Za svaku web-stranicu potrebno je provjeriti stvarne servise, podatke, kategorije, trajanje kolačića, dokaze privole i pravo na povlačenje.
 
 Trenutačno **nisu implementirani** automatski skener, server-side evidencija privole, IAB TCF, Google-certified CMP status, automatsko blokiranje Google oznaka, GeoIP ni potpuni US privacy opt-out proces. Postoji **opcionalni Google Consent Mode v2 Basic adapter** koji zahtijeva zasebnu integraciju i testiranje.
 
