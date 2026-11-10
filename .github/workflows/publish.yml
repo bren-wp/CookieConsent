@@ -1,0 +1,67 @@
+name: Publish tested GitHub prerelease
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+
+# workflow_run can be triggered by fork PRs; NEVER grant access to untrusted runs.
+# Only a green push to this repository's main branch can execute with write access.
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: false
+      - name: Reverify source at the exact CI-tested commit
+        run: |
+          test "$(git rev-parse HEAD)" = "${{ github.event.workflow_run.head_sha }}"
+          npm run check
+          npm test
+          php -l wordpress/brendigo-cookieconsent/brendigo-cookieconsent.php
+          cmp packages/core/brendigo-cookieconsent.js wordpress/brendigo-cookieconsent/assets/brendigo-cookieconsent.js
+          cmp packages/core/brendigo-cookieconsent.css wordpress/brendigo-cookieconsent/assets/brendigo-cookieconsent.css
+          cmp packages/integrations/google-consent-basic.js wordpress/brendigo-cookieconsent/assets/google-consent-basic.js
+          npm run build:cdn
+          python3 tools/package.py
+          python3 tools/package.py --verify
+      - name: Determine version and release tag
+        id: version
+        run: |
+          version="$(node -p 'require("./package.json").version')"
+          if ! [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Unsupported release version" >&2
+            exit 1
+          fi
+          echo "tag=v${version}" >> "$GITHUB_OUTPUT"
+      - name: Publish prerelease only if version is not already published
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.version.outputs.tag }}
+          VERIFIED_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release $RELEASE_TAG already exists; not mutating an immutable published version."
+            exit 0
+          fi
+          gh release create "$RELEASE_TAG" \
+            dist/cookieconsent-brendigo-standalone.zip \
+            dist/brendigo-cookieconsent-wordpress.zip \
+            dist/brendigo-cookieconsent-cdn.zip \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$VERIFIED_SHA" \
+            --title "CookieConsent by Brendigo $RELEASE_TAG" \
+            --notes "Tested beta prerelease: vanilla JS/CSS, WordPress plugin and CDN bundle. Includes consent controls, provider catalog, visual preferences, WooCommerce safeguards, reproducible ZIPs and browser/PHP CI. Read docs/GO-LIVE.hr.md before production use. Not a certified CMP, legal guarantee or live CDN deployment." \
+            --prerelease

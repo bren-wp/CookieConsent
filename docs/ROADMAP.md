@@ -68,6 +68,7 @@ Funkcionalnost nije isto što i pravna certifikacija. Neoznačene stavke nisu im
 - [x] Browser e2e na Chromiumu, Firefoxu i WebKitu + axe-core automatska A/AA provjera
 - [x] PHP 7.4, 8.1, 8.2, 8.3 i 8.4 izolirani testovi postavki
 - [x] Reproducibilne ZIP datoteke i kriptografski SHA-256 sažeci datoteka
+- [x] GitHub prerelease workflow poslije uspješne kompletne CI provjere (potvrditi izvršenje)
 - [ ] Produkcijski deployment i DNS/TLS na cookie.brendigo.com
 - [ ] Audit svih stvarnih integracija i potpuno brisanje third-party podataka pri opozivu
 - [ ] Google Certified CMP / IAB TCF certifikacija (ovisno o primjeni)

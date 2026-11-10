@@ -91,7 +91,7 @@ marketing:my-ad-script
 
 **Zahtjevi:** WordPress 6.2+ i PHP 7.4+. Filtar za skriptne nazive ne blokira automatski inline skripte, piksele i vanjske ugradnje drugih dodataka.
 
-Automatski ZIP paketi dostupni su u **Actions → Package installers → Artifacts**, nakon uspješne izrade.
+Automatski ZIP paketi dostupni su u **Actions → Package installers → Artifacts**. Kada kompletan CI prođe, zaseban workflow objavljuje *prerelease* pod [GitHub Releases](https://github.com/bren-wp/CookieConsent/releases), ako verzija još nije objavljena.
 
 ## 🌐 CDN — cookie.brendigo.com
 

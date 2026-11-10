@@ -30,3 +30,9 @@ CDN `manifest.json` nema varijabilni `generatedAt` timestamp i bilježi SHA-256 
 ## Potpis
 
 U službenom sučelju `by Brendigo` stalno je prisutan i ne postoji postavka za njegovo isključivanje. Open-source MIT licencija dopušta izmjene izvornog koda; zato tehničko jamstvo neuklonjivosti nije moguće bez drugačijeg licenciranja i distribucijskog modela.
+
+## Automatizirano GitHub prerelease izdanje
+
+Workflow `.github/workflows/publish.yml` reagira **isključivo** na uspješan CI koji potječe od `push` događaja na `main` unutar vlastitog repozitorija. Izolira untrusted PR događaje, preuzima točno provjereni SHA, ponovno validira izvor, sastavlja sva tri paketa i objavljuje GitHub **prerelease** s oznakom `v<package.json.version>`. Postojeće izdanje s istom verzijom se ne mijenja.
+
+Ne obavlja produkcijsko postavljanje CDN-a, DNS-a ili TLS-a. GitHub Release nije regulatorni certifikat i ne može zamijeniti acceptance test konkretne web-stranice.
