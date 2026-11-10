@@ -36,10 +36,24 @@
       revision: 'demo-v3',
       position: previewParams.get('position') || 'bottom-center',
       bannerStyle: previewParams.get('style') || 'standard',
+      theme: previewParams.get('theme') || 'custom',
+      preferencesPosition: previewParams.get('prefs') || 'center',
+      flipButtons: previewParams.get('flip') === '1',
+      equalWeightButtons: previewParams.get('equal') !== '0',
+      disableAnimations: previewParams.get('reducedMotion') === '1',
       accentColor: previewParams.get('accent') || '#4357e8',
       surfaceColor: previewParams.get('surface') || '#ffffff',
       textColor: previewParams.get('text') || '#17223e',
       cookieName: previewMode ? 'bcc_demo_preview' : 'bcc_consent',
+      translations: previewMode && previewParams.get('heading') ? {
+        [previewParams.get('language') || 'hr']: {
+          heading: previewParams.get('heading').slice(0, 100),
+          intro: (previewParams.get('intro') || '').slice(0, 550),
+          accept: (previewParams.get('accept') || 'Prihvati sve').slice(0, 80),
+          reject: (previewParams.get('reject') || 'Odbij sve').slice(0, 80),
+          settings: (previewParams.get('settings') || 'Postavke').slice(0, 80)
+        }
+      } : undefined,
       services: [
         {
           category: 'analytics', name: 'Demonstracijska analitika',

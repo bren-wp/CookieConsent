@@ -75,3 +75,9 @@ Funkcionalnost nije isto što i pravna certifikacija. Neoznačene stavke nisu im
 - [ ] Neovisni pen-test, screen-reader audit i pravni pregled po jurisdikciji
 
 **Napomena:** završetak funkcionalnih zadataka nije isto što i pravna certifikacija ili produkcijsko puštanje u rad.
+
+## Usporedba s Orestbida CookieConsent
+- [x] Neovisan pregled funkcija i usporedna matrica (`docs/COMPARE-ORESTBIDA.hr.md`)
+- [x] Proširen samostalni playground: teme, drawer pozicije, redoslijed gumba, prevodive oznake i JSON izvoz
+- [ ] WordPress vizualno uređivanje pojedinačnih prijevoda po jezicima
+- [ ] Dodatne zakonski provjerene integracije i realna WordPress E2E testiranja

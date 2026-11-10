@@ -18,6 +18,9 @@
     aside p,.help{color:#6a7491;line-height:1.5;font-size:13px}
     .field{display:flex;flex-direction:column;gap:6px;margin:16px 0}
     .field label{font-size:13px;font-weight:700}
+    .field input[type=checkbox]{width:auto;margin-right:9px}
+    .field textarea#intro{min-height:80px}
+    #download{background:#243158;margin-left:6px;margin-top:10px}
     select,input,textarea{font:inherit;color:inherit;width:100%;background:#fff;border:1px solid #ccd5e8;border-radius:10px;padding:10px}
     input[type=color]{height:42px;padding:3px;cursor:pointer}
     textarea{font:12px/1.5 ui-monospace,Consolas,monospace;min-height:172px;resize:vertical}
@@ -71,19 +74,51 @@
           <option value="de">Deutsch</option>
           <option value="it">Italiano</option>
           <option value="ar">العربية</option>
+          <option value="es">Español</option>
+          <option value="fr">Français</option>
         </select>
       </div>
+      <div class="field">
+        <label for="theme">Tema</label>
+        <select id="theme">
+          <option value="custom">Vlastite boje</option>
+          <option value="light">Svijetla</option>
+          <option value="dark">Tamna</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="prefs">Položaj prozora postavki</label>
+        <select id="prefs">
+          <option value="center">Sredina</option>
+          <option value="left">Lijeva bočna ploča</option>
+          <option value="right">Desna bočna ploča</option>
+        </select>
+      </div>
+      <div class="field"><label><input id="flip" type="checkbox"> Obrni redoslijed prihvaćanja i odbijanja</label></div>
+      <div class="field"><label><input id="equal" type="checkbox" checked> Jednaka istaknutost prihvaćanja i odbijanja</label></div>
+      <div class="field"><label><input id="reducedMotion" type="checkbox"> Isključi animacije</label></div>
+      <p class="help">Za zakonski konzervativan prikaz obje odluke trebaju ostati jednako dostupne. Ovaj konfigurator ne skriva odbijanje.</p>
       <div class="color-grid">
         <div class="field"><label for="accent">Naglasak</label><input id="accent" type="color" value="#4357e8"></div>
         <div class="field"><label for="surface">Pozadina</label><input id="surface" type="color" value="#ffffff"></div>
         <div class="field"><label for="text">Tekst</label><input id="text" type="color" value="#17223e"></div>
       </div>
+      <div class="field"><label for="heading">Vlastiti naslov (neobavezno)</label>
+        <input id="heading" type="text" maxlength="100" placeholder="Npr. Vaša privatnost, vaš izbor">
+      </div>
+      <div class="field"><label for="intro">Vlastiti opis (neobavezno)</label>
+        <textarea id="intro" rows="3" maxlength="550" placeholder="Opis svrha i prava posjetitelja"></textarea>
+      </div>
+      <div class="field"><label for="accept">Tekst gumba — prihvati</label><input id="accept" maxlength="80" placeholder="Automatski prijevod"></div>
+      <div class="field"><label for="reject">Tekst gumba — odbij</label><input id="reject" maxlength="80" placeholder="Automatski prijevod"></div>
+      <div class="field"><label for="settings">Tekst gumba — postavke</label><input id="settings" maxlength="80" placeholder="Automatski prijevod"></div>
       <button type="button" id="refresh">Osvježi pregled</button>
       <div class="field">
         <label for="snippet">Konfiguracijski primjer</label>
         <textarea id="snippet" readonly spellcheck="false" aria-label="Konfiguracijski primjer"></textarea>
       </div>
       <button type="button" id="copy">Kopiraj konfiguraciju</button>
+      <button type="button" id="download">Preuzmi JSON konfiguraciju</button>
       <p id="message" role="status" aria-live="polite" class="help"></p>
       <p class="help">Prikaz nije certifikat usklađenosti. Provjerite stvarne kolačiće, pravila i sve povezane servise.</p>
     </aside>
@@ -96,27 +131,65 @@
   <script>
     (function () {
       'use strict';
-      var keys=['position','style','language','accent','surface','text'];
+      var keys=['position','style','language','theme','prefs','accent','surface','text','heading','intro','accept','reject','settings'];
       var controls={};
       keys.forEach(function(key){controls[key]=document.getElementById(key);});
       function values(){
         var o={};
         keys.forEach(function(key){o[key]=controls[key].value;});
+        o.flip=document.getElementById('flip').checked;
+        o.equal=document.getElementById('equal').checked;
+        o.reducedMotion=document.getElementById('reducedMotion').checked;
         return o;
+      }
+      function buildConfig(o){
+        var payload={
+          language:o.language,position:o.position,bannerStyle:o.style,theme:o.theme,
+          preferencesPosition:o.prefs,flipButtons:o.flip,equalWeightButtons:o.equal,
+          disableAnimations:o.reducedMotion,accentColor:o.accent,
+          surfaceColor:o.surface,textColor:o.text,
+          policyUrl:'/politika-kolacica',revision:'1'
+        };
+        if(o.heading.trim()){
+          payload.translations={};
+          payload.translations[o.language]={
+            heading:o.heading.slice(0,100),
+            intro:o.intro.slice(0,550) || 'Vaše postavke privatnosti.',
+            accept:o.accept.slice(0,80) || 'Prihvati sve',
+            reject:o.reject.slice(0,80) || 'Odbij sve',
+            settings:o.settings.slice(0,80) || 'Postavke'
+          };
+        }
+        return payload;
       }
       function refresh(){
         var o=values();
-        var query=new URLSearchParams(Object.assign({preview:'1'},o));
+        var preview=Object.assign({preview:'1'},o,{flip:o.flip?'1':'0',
+          equal:o.equal?'1':'0',reducedMotion:o.reducedMotion?'1':'0'});
+        var query=new URLSearchParams(preview);
         document.getElementById('preview').src='index.html?'+query.toString();
         document.getElementById('snippet').value =
-          'window.BCC_SITE_CONFIG = '+JSON.stringify({
-            language:o.language,position:o.position,bannerStyle:o.style,accentColor:o.accent,
-            surfaceColor:o.surface,textColor:o.text,
-            policyUrl:'/politika-kolacica',revision:'1'
-          },null,2)+';';
+          'window.BCC_SITE_CONFIG = '+JSON.stringify(buildConfig(o),null,2)+';';
       }
       document.getElementById('refresh').addEventListener('click',refresh);
       keys.forEach(function(key){controls[key].addEventListener('change',refresh);});
+      ['flip','equal','reducedMotion'].forEach(function(key){
+        document.getElementById(key).addEventListener('change',refresh);
+      });
+      ['heading','intro','accept','reject','settings'].forEach(function(key){
+        controls[key].addEventListener('input',refresh);
+      });
+      document.getElementById('download').addEventListener('click',function(){
+        var bytes=JSON.stringify({schema:'brendigo-cookieconsent-standalone-v1',
+          config:buildConfig(values())},null,2);
+        var blob=new Blob([bytes],{type:'application/json'});
+        var url=URL.createObjectURL(blob);
+        var anchor=document.createElement('a');
+        anchor.href=url;anchor.download='brendigo-cookieconsent-config.json';
+        document.body.appendChild(anchor);anchor.click();anchor.remove();
+        URL.revokeObjectURL(url);
+        document.getElementById('message').textContent='JSON konfiguracija pripremljena za preuzimanje.';
+      });
       document.getElementById('copy').addEventListener('click',function(){
         var output=document.getElementById('snippet');
         output.select();

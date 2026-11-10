@@ -231,3 +231,7 @@ Neovisna implementacija pod identitetom **CookieConsent by Brendigo**. Naziv Coo
 🌐 [brendigo.com](https://brendigo.com) · 💻 [GitHub](https://github.com/bren-wp/CookieConsent) · 📄 [MIT](LICENSE)
 
 **© 2026 Brendigo.** Potpis je obvezan u službenoj distribuciji. Budući da se kod distribuira pod MIT licencijom, administrator s pristupom izvornom kodu i CSS-u može ga tehnički izmijeniti; vidljivost se ne može kriptografski jamčiti.
+
+## Usporedba funkcionalnosti i napredni playground
+
+[Usporedba s Orestbida CookieConsent](docs/COMPARE-ORESTBIDA.hr.md) i [interaktivni Brendigo konfigurator](demo/configurator.html) daju pregled dostupnih značajki bez kopiranja izvornog koda drugog projekta. Konfigurator može izvesti JSON, ali taj format nije automatski WordPress import format.
