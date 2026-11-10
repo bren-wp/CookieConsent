@@ -21,7 +21,7 @@ jobs:
           npm test
           npm run build:cdn
           npm run build:wporg
-          test -s dist/cdn/v0.11.0/manifest.json
+          test -s dist/cdn/v0.11.1/manifest.json
       - name: Validate CMS manifests and PHP integration syntax
         run: |
           python3 tools/validate-integrations.py
