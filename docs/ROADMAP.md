@@ -27,7 +27,8 @@
 - [ ] Lokalni audit i detekcija kolačića (nije implementirano)
 - [x] Prvi granularni katalog usluga s javnom transparentnošću po kategorijama
 - [ ] Napredni katalog, pravila po geo-jurisdikciji i pojedinačna razina privole
-- [ ] Više stilova bannera i vizualni konfigurator
+- [x] Lokalni vizualni konfigurator: pozicije, jezici i boje
+- [ ] Više stilova bannera i vizualni konfigurator u WP administraciji
 - [ ] Izvoz i uvoz konfiguracije
 
 ## v1.0 — stabilnost
@@ -41,6 +42,7 @@
 - [x] Katalog pružatelja s ograničenim i sanitiziranim podacima
 - [x] Njemačka i talijanska lokalizacija
 - [x] WordPress opcionalno učitavanje Google Basic adaptera
+- [x] Vizualni konfigurator u `demo/configurator.html` i odvojene kontrole pristanka od provider linkova
 - [x] Jedinični testovi za lifecycle, provider validaciju i katalog
 - [ ] Produkcijski audit pojedinačnih servisa, sustava kolačića i poslužitelja
 

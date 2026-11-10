@@ -100,3 +100,7 @@ BrendigoCookieConsent.registerProvider({
 ```
 
 `reset()` sada emitira promjenu privole, poziva `onRevoke` i isključuje označene iframeove. Skripte koje su već izvršene ostaju u memoriji dok se servis zasebno ne zaustavi ili stranica ne osvježi.
+
+## Vizualni konfigurator
+
+Otvorite `demo/configurator.html` putem lokalnog HTTP poslužitelja (`python3 -m http.server 8000`) i zatim adresu `http://localhost:8000/demo/configurator.html`. Promjenom pozicije, jezika i boja osvježava se izolirani prikaz bannera. Konfiguracijski isječak dostupan je za kopiranje. To je **demonstracijski alat**, ne automatski generator zakonski ispravne politike kolačića.

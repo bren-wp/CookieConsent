@@ -31,13 +31,14 @@
 | 🌐 | **CDN ili lokalno:** verzionirani paket za `cookie.brendigo.com` |
 | 📈 | **Google Basic adapter:** opcionalan Consent Mode v2 adapter uz ručno blokiranje Google tagova |
 | 🔄 | **Integracijski lifecycle:** `onGrant` i `onRevoke` za servise i povlačenje privole |
+| 🖌️ | **Vizualni konfigurator:** lokalni interaktivni demo svih devet pozicija, boja i jezika |
 | 📋 | **Katalog pružatelja:** detalji servisa, svrha, kolačića, rokova i politika privatnosti |
 
 ## 🖼️ Izgled
 
 ![Ilustrativni prikaz cookie bannera](assets/brand/banner-preview.svg)
 
-*Ilustracija dizajna. Funkcionalni interaktivni prikaz: [demo/index.html](demo/index.html).*
+*Ilustracija dizajna. Funkcionalni prikaz: [demo/index.html](demo/index.html). Za isprobavanje svih devet položaja, boja i četiri jezika koristite [vizualni konfigurator](demo/configurator.html).*
 
 ## 🚀 Brza instalacija — HTML, PHP i drugi CMS-ovi
 
@@ -162,6 +163,7 @@ Revokacija sprečava novo aktiviranje označenih skripti, ali **ne može poništ
 
 ```text
 CookieConsent/
+├── demo/configurator.html     # Vizualni konfigurator bannera
 ├── packages/core/             # Samostalni JS i CSS
 ├── packages/integrations/     # Opcionalni Google Basic adapter
 ├── cdn/                       # Loader za cookie.brendigo.com

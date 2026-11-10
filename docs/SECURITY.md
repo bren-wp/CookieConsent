@@ -23,3 +23,13 @@ Za sigurnosne ranjivosti koristite privatnu GitHub sigurnosnu prijavu ako je omo
 ## Provjere
 
 `npm test`, `npm run check`, `php -l` i browser testovi čine početnu provjeru; oni ne zamjenjuju penetracijski test niti profesionalni security audit.
+
+## v0.3.0 integracijski hookovi
+
+`registerProvider()` je namijenjen kontroliranim integracijama razvijatelja web-stranice. Funkcije `onGrant` i `onRevoke` izvršavaju se samo za poznate kategorije i ne zaustavljaju automatski već izvršene nepoznate skripte. Callbackovi mogu izazvati zahtjeve prema vlastitim trećim stranama: autor integracije mora poštovati valjanu privolu i provjeriti svoje cleanup funkcije.
+
+Katalog pružatelja služi informiranju posjetitelja, **ne autorizaciji skripti**. Poveznice prihvaćaju HTTP(S) URL-ove, tekst se prikazuje kroz `textContent`, a URL-ovi iz administratorskih postavki se sanitiziraju. Za proizvodnu implementaciju preporučuje se HTTPS za sve vanjske politike.
+
+U dijalogu detalji pružatelja više se ne nalaze unutar `<label>` elementa koji mijenja izbor kategorije, čime su poveznice odvojene od aktivacije checkboxa.
+
+Nema automatskog brisanja cookiesa trećih strana, dokaznog server-side dnevnika, IP geolokacije ni skenera skripti.
