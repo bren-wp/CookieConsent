@@ -334,10 +334,39 @@ function render_settings(): void {
         </form>
         <hr>
         <h2><?php esc_html_e('Integration checklist', 'brendigo-cookieconsent'); ?></h2>
+        <?php if (class_exists('WooCommerce')) : ?>
+            <p><strong><?php esc_html_e('WooCommerce integration detected.', 'brendigo-cookieconsent'); ?></strong>
+            <?php esc_html_e('Standard cart and checkout handles are protected from accidental consent gating. The core cart/session cookie catalog entry is informational; verify your configuration. Analytics, pixels, payment integrations and marketing extensions still require their own classification and gating.', 'brendigo-cookieconsent'); ?></p>
+        <?php endif; ?>
         <p><?php esc_html_e('Identify optional trackers, gate them, test a first visit with rejected consent and add a persistent preferences link using data-bcc-open.', 'brendigo-cookieconsent'); ?></p>
         <p><code>&lt;button type="button" data-bcc-open&gt;Cookie settings&lt;/button&gt;</code></p>
     </div>
     <?php
+}
+
+/**
+ * WooCommerce cart/session cookies are typically necessary for visitor-requested
+ * basket and checkout. Site owner must verify classification for their setup.
+ * This adapter does not activate WooCommerce analytics or marketing integrations.
+ */
+function woocommerce_services(): array {
+    if (!class_exists('WooCommerce')) return [];
+    return [[
+        'category' => 'necessary',
+        'name' => 'WooCommerce — cart and checkout',
+        'purpose' => 'Cart content and checkout session requested by the visitor.',
+        'cookies' => 'woocommerce_cart_hash, woocommerce_items_in_cart, wp_woocommerce_session_*',
+        'duration' => 'Session / configured WooCommerce session lifetime',
+        'privacyUrl' => '',
+    ]];
+}
+function protected_woocommerce_script(string $handle): bool {
+    if (!class_exists('WooCommerce')) return false;
+    // Do not accidentally disable checkout and basket via a manual handle rule.
+    return in_array($handle, [
+        'woocommerce', 'wc-cart-fragments', 'wc-add-to-cart',
+        'wc-checkout', 'wc-cart', 'wc-blocks-checkout',
+    ], true);
 }
 
 function frontend_assets(): void {
@@ -359,7 +388,7 @@ function frontend_assets(): void {
         'textColor' => $o['text_color'],
         'position' => $o['position'],
         'bannerStyle' => $o['banner_style'],
-        'services' => parse_services($o['services_catalog']),
+        'services' => array_merge(woocommerce_services(), parse_services($o['services_catalog'])),
         'policyUrl' => $o['policy_url'] ?: home_url('/cookie-policy/'),
         'consentDays' => (int) $o['consent_days'],
         'revision' => (string) $o['revision'],
@@ -374,7 +403,9 @@ add_action('wp_enqueue_scripts', __NAMESPACE__ . '\\frontend_assets', 20);
  * Inline snippets, other tags and third-party plugin behavior need separate review.
  */
 function gate_enqueued_script(string $tag, string $handle, string $src): string {
-    if ($handle === 'brendigo-cookieconsent') return $tag;
+    if ($handle === 'brendigo-cookieconsent' ||
+        $handle === 'brendigo-cookieconsent-google-basic' ||
+        protected_woocommerce_script($handle)) return $tag;
     $raw = options()['blocked_handles'];
     if (!$raw || !class_exists('WP_HTML_Tag_Processor')) return $tag;
     foreach (preg_split('/[\r\n,]+/', $raw) as $line) {
