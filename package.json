@@ -1,12 +1,13 @@
 {
   "name": "@brendigo/cookieconsent",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "CookieConsent by Brendigo — self-hosted privacy choices",
   "license": "MIT",
   "scripts": {
     "test": "node --test tests/*.test.cjs",
-    "check": "node --check packages/core/brendigo-cookieconsent.js"
+    "check": "node --check packages/core/brendigo-cookieconsent.js && node --check cdn/loader.js && node --check packages/integrations/google-consent-basic.js",
+    "build:cdn": "node tools/build-cdn.mjs"
   },
   "engines": { "node": ">=18" }
 }

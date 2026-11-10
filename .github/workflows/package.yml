@@ -14,8 +14,10 @@ jobs:
       - uses: actions/checkout@v4
       - name: Check source
         run: |
-          node --check packages/core/brendigo-cookieconsent.js
-          node --test tests/*.test.cjs
+          npm run check
+          npm test
+          npm run build:cdn
+          test -s dist/cdn/v0.2.0/manifest.json
           php -l wordpress/brendigo-cookieconsent/brendigo-cookieconsent.php
           cmp packages/core/brendigo-cookieconsent.js wordpress/brendigo-cookieconsent/assets/brendigo-cookieconsent.js
           cmp packages/core/brendigo-cookieconsent.css wordpress/brendigo-cookieconsent/assets/brendigo-cookieconsent.css
@@ -25,10 +27,12 @@ jobs:
           cp packages/core/* dist/standalone/
           cd dist && zip -qr cookieconsent-brendigo-standalone.zip standalone
           cd ../wordpress && zip -qr ../dist/brendigo-cookieconsent-wordpress.zip brendigo-cookieconsent
+          cd ../dist/cdn && zip -qr ../brendigo-cookieconsent-cdn.zip v0.2.0
       - uses: actions/upload-artifact@v4
         with:
           name: cookieconsent-by-brendigo-installers
           path: |
             dist/cookieconsent-brendigo-standalone.zip
             dist/brendigo-cookieconsent-wordpress.zip
+            dist/brendigo-cookieconsent-cdn.zip
           retention-days: 14
