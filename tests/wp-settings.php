@@ -93,3 +93,22 @@ verify(!\Brendigo\CookieConsent\protected_woocommerce_script('wc-analytics'), 'W
 verify(count(\Brendigo\CookieConsent\woocommerce_services()) === 1, 'Woo inventory when active');
 
 fwrite(STDOUT, "PASS: WordPress settings validation and WooCommerce adapter smoke test" . PHP_EOL);
+
+$translation_input = json_encode([
+    'hr' => ['heading' => 'Privatnost po vašem izboru',
+        'accept' => '<img src=x onerror=alert(1)>Prihvati sve', 'unexpected' => 'ignored'],
+    'es' => ['reject' => 'Rechazar todo'],
+    'xx' => ['heading' => 'Unknown language'],
+    'en' => ['intro' => str_repeat('x', 710)],
+]);
+$translation_safe = \Brendigo\CookieConsent\sanitize_translation_overrides($translation_input);
+$translation_data = json_decode($translation_safe, true);
+verify(isset($translation_data['hr']['heading']), 'Croatian translation preserved');
+verify(strpos($translation_data['hr']['accept'], '<') === false, 'HTML removed from override');
+verify(!isset($translation_data['hr']['unexpected']), 'unknown translation keys removed');
+verify(!isset($translation_data['xx']), 'unknown locales rejected');
+verify(isset($translation_data['es']['reject']), 'Spanish translations supported');
+verify(strlen($translation_data['en']['intro']) === 700, 'long descriptions truncated');
+verify(\Brendigo\CookieConsent\sanitize_translation_overrides('{invalid-json}') === '', 'invalid JSON rejected');
+verify(\Brendigo\CookieConsent\sanitize_translation_overrides(str_repeat('x', 24001)) === '', 'oversized JSON rejected');
+verify(\Brendigo\CookieConsent\sanitize_options(['language'=>'fr'])['language'] === 'fr', 'French locale allowed');

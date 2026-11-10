@@ -41,6 +41,7 @@ function defaults(): array {
         'services_catalog' => '',
         'cookie_cleanup_rules' => '',
         'google_basic' => 0,
+        'translation_overrides' => '',
     ];
 }
 
@@ -65,7 +66,7 @@ function sanitize_options($input): array {
     $policy = isset($input['policy_url']) ? esc_url_raw($input['policy_url'], ['http', 'https']) : '';
     $handles = isset($input['blocked_handles']) ? sanitize_textarea_field($input['blocked_handles']) : '';
     return [
-        'language' => in_array($language, ['auto', 'hr', 'en', 'de', 'it', 'ar'], true) ? $language : 'auto',
+        'language' => in_array($language, ['auto', 'hr', 'en', 'de', 'it', 'ar', 'es', 'fr'], true) ? $language : 'auto',
         'direction' => in_array(($input['direction'] ?? 'auto'), ['auto', 'ltr', 'rtl'], true) ? $input['direction'] : 'auto',
         'accent_color' => $accent ?: '#4357e8',
         'surface_color' => $surface ?: '#ffffff',
@@ -85,6 +86,7 @@ function sanitize_options($input): array {
         'services_catalog' => sanitize_service_catalog(isset($input['services_catalog']) ? $input['services_catalog'] : ''),
         'cookie_cleanup_rules' => sanitize_cleanup_rules($input['cookie_cleanup_rules'] ?? ''),
         'google_basic' => empty($input['google_basic']) ? 0 : 1,
+        'translation_overrides' => sanitize_translation_overrides($input['translation_overrides'] ?? ''),
     ];
 }
 
@@ -168,6 +170,40 @@ function sanitize_cleanup_rules($raw): string {
     }
     return implode("\n", $lines);
 }
+/**
+ * Plain-text-only translation overrides. Strict schema prevents injected HTML,
+ * unexpected keys/languages, and excessive cookie banner payload sizes.
+ */
+function sanitize_translation_overrides($raw): string {
+    if (!is_string($raw) || strlen($raw) > 24000 || trim($raw) === '') return '';
+    $data = json_decode($raw, true);
+    if (!is_array($data) || json_last_error() !== JSON_ERROR_NONE) return '';
+    $languages = ['hr', 'en', 'de', 'it', 'ar', 'es', 'fr'];
+    $keys = ['heading', 'intro', 'accept', 'reject', 'settings',
+        'headingPrefs', 'descriptionPrefs', 'save', 'close', 'policy',
+        'necessary', 'preferences', 'analytics', 'marketing',
+        'necessaryDesc', 'preferencesDesc', 'analyticsDesc', 'marketingDesc',
+        'gpc', 'reopen', 'servicesHeading', 'providerPolicy'];
+    $safe = [];
+    foreach ($languages as $language) {
+        if (!isset($data[$language]) || !is_array($data[$language])) continue;
+        foreach ($keys as $key) {
+            if (!isset($data[$language][$key]) || !is_string($data[$language][$key])) continue;
+            $value = trim(sanitize_text_field($data[$language][$key]));
+            if ($value === '') continue;
+            $safe[$language][$key] = mb_substr_compat($value, in_array($key,
+                ['intro', 'descriptionPrefs'], true) ? 700 : 160);
+        }
+    }
+    if (!$safe) return '';
+    $result = json_encode($safe, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES |
+        JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+    return is_string($result) && strlen($result) <= 24000 ? $result : '';
+}
+function mb_substr_compat(string $value, int $limit): string {
+    return function_exists('mb_substr') ? mb_substr($value, 0, $limit, 'UTF-8')
+        : substr($value, 0, $limit);
+}
 function register_settings(): void {
     register_setting('brendigo_cookieconsent', OPTION, [
         'sanitize_callback' => __NAMESPACE__ . '\\sanitize_options',
@@ -241,6 +277,7 @@ function enqueue_admin_preview(string $hook): void {
     $base = plugin_dir_url(__FILE__) . 'assets/';
     wp_enqueue_style('brendigo-cookieconsent-admin-preview', $base . 'admin-preview.css', [], VERSION);
     wp_enqueue_script('brendigo-cookieconsent-admin-preview', $base . 'admin-preview.js', [], VERSION, true);
+    wp_enqueue_script('brendigo-cookieconsent-translation-editor', $base . 'translation-editor.js', [], VERSION, true);
 }
 add_action('admin_enqueue_scripts', __NAMESPACE__ . '\\enqueue_admin_preview');
 
@@ -264,7 +301,7 @@ function render_settings(): void {
                 <tr>
                     <th scope="row"><label for="bcc-language"><?php esc_html_e('Language', 'brendigo-cookieconsent'); ?></label></th>
                     <td><select id="bcc-language" name="<?php echo esc_attr(OPTION); ?>[language]">
-                        <?php foreach (['auto' => 'Auto (site language)', 'hr' => 'Hrvatski', 'en' => 'English', 'de' => 'Deutsch', 'it' => 'Italiano', 'ar' => 'العربية'] as $code => $label) : ?>
+                        <?php foreach (['auto' => 'Auto (site language)', 'hr' => 'Hrvatski', 'en' => 'English', 'de' => 'Deutsch', 'it' => 'Italiano', 'ar' => 'العربية', 'es' => 'Español', 'fr' => 'Français'] as $code => $label) : ?>
                             <option value="<?php echo esc_attr($code); ?>" <?php selected($o['language'], $code); ?>><?php echo esc_html($label); ?></option>
                         <?php endforeach; ?>
                     </select></td>
@@ -372,6 +409,41 @@ function render_settings(): void {
                     <td>
                         <label><input type="checkbox" name="<?php echo esc_attr(OPTION); ?>[google_basic]" value="1" <?php checked($o['google_basic'], 1); ?>> <?php esc_html_e('Include local/CDN default-denied Google Basic adapter', 'brendigo-cookieconsent'); ?></label>
                         <p class="description"><?php esc_html_e('Google tags must be blocked separately until permitted. Consent Mode is not a substitute for correctly gating tags. Test ordering with Tag Assistant.', 'brendigo-cookieconsent'); ?></p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="bcc-translation-language"><?php esc_html_e('Banner text editor', 'brendigo-cookieconsent'); ?></label></th>
+                    <td>
+                        <p class="description"><?php esc_html_e('Edit the visible banner texts in any supported language; preview and public site use these overrides. Text only, no HTML.', 'brendigo-cookieconsent'); ?></p>
+                        <label for="bcc-translation-language"><?php esc_html_e('Language to edit', 'brendigo-cookieconsent'); ?></label>
+                        <select id="bcc-translation-language">
+                            <?php foreach (['hr' => 'Hrvatski', 'en' => 'English', 'de' => 'Deutsch', 'it' => 'Italiano', 'ar' => 'العربية', 'es' => 'Español', 'fr' => 'Français'] as $lang => $name) : ?>
+                                <option value="<?php echo esc_attr($lang); ?>"><?php echo esc_html($name); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <div id="bcc-translation-fields" style="max-width:710px;margin-top:14px">
+                            <?php foreach ([
+                                'heading' => 'Banner heading',
+                                'intro' => 'Banner description',
+                                'accept' => 'Accept button',
+                                'reject' => 'Reject button',
+                                'settings' => 'Preferences button',
+                            ] as $key => $label) : ?>
+                                <p>
+                                    <label for="<?php echo esc_attr('bcc-tr-' . $key); ?>"><strong><?php echo esc_html($label); ?></strong></label>
+                                    <?php if ($key === 'intro') : ?>
+                                        <textarea id="bcc-tr-intro" data-bcc-translation-field="intro" rows="3" maxlength="700" class="large-text" placeholder="<?php esc_attr_e('Leave blank to use the built-in translation', 'brendigo-cookieconsent'); ?>"></textarea>
+                                    <?php else : ?>
+                                        <input type="text" id="<?php echo esc_attr('bcc-tr-' . $key); ?>" data-bcc-translation-field="<?php echo esc_attr($key); ?>" maxlength="160" class="large-text" placeholder="<?php esc_attr_e('Leave blank to use the built-in translation', 'brendigo-cookieconsent'); ?>">
+                                    <?php endif; ?>
+                                </p>
+                            <?php endforeach; ?>
+                        </div>
+                        <details>
+                            <summary><?php esc_html_e('Advanced: all translated labels (JSON)', 'brendigo-cookieconsent'); ?></summary>
+                            <p class="description"><?php esc_html_e('Keys: heading, intro, accept, reject, settings, headingPrefs, descriptionPrefs, save, close, policy, category labels/descriptions, reopen and provider labels. JSON is strictly validated on save.', 'brendigo-cookieconsent'); ?></p>
+                            <textarea id="bcc-translations" class="large-text code" rows="6" maxlength="24000" name="<?php echo esc_attr(OPTION); ?>[translation_overrides]"><?php echo esc_textarea($o['translation_overrides']); ?></textarea>
+                        </details>
                     </td>
                 </tr>
                 <tr>
@@ -484,6 +556,10 @@ function frontend_assets(): void {
         'consentDays' => (int) $o['consent_days'],
         'revision' => (string) $o['revision'],
     ];
+    $translation_overrides = json_decode($o['translation_overrides'], true);
+    if (is_array($translation_overrides) && $translation_overrides) {
+        $config['translations'] = $translation_overrides;
+    }
     $json = wp_json_encode($config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
     if ($json) wp_add_inline_script('brendigo-cookieconsent', 'window.BCC_SITE_CONFIG = ' . $json . ';', 'before');
 }

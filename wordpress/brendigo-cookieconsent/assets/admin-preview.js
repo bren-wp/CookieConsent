@@ -21,7 +21,9 @@
       en:['Your privacy. Your choice.','Optional technologies require your consent.','Reject all','Customize','Accept all'],
       de:['Ihre Privatsphäre. Ihre Wahl.','Optionale Technologien benötigen Ihre Einwilligung.','Alle ablehnen','Einstellungen','Alle akzeptieren'],
       it:['La tua privacy. La tua scelta.','Le tecnologie facoltative richiedono il tuo consenso.','Rifiuta tutti','Personalizza','Accetta tutti'],
-      ar:['خصوصيتك، اختيارك','التقنيات الاختيارية تتطلب موافقتك.','رفض الكل','تخصيص','قبول الكل']
+      ar:['خصوصيتك، اختيارك','التقنيات الاختيارية تتطلب موافقتك.','رفض الكل','تخصيص','قبول الكل'],
+      es:['Tu privacidad, tu elección','Las tecnologías opcionales requieren tu consentimiento.','Rechazar todo','Personalizar','Aceptar todo'],
+      fr:['Votre vie privée, votre choix','Les technologies facultatives nécessitent votre consentement.','Tout refuser','Personnaliser','Tout accepter']
     };
     var output=[
       doc.getElementById('bcc-preview-heading'), doc.getElementById('bcc-preview-intro'),
@@ -50,9 +52,22 @@
       preview.style.setProperty('--bcc-demo-button-text',readable('#ffffff',accent));
       preview.style.setProperty('--bcc-demo-surface',surface);
       preview.style.setProperty('--bcc-demo-foreground',readable(body,surface));
-      var values=text[language]||text.en;
+      var values=(text[language]||text.en).slice();
+      var overrides={};
+      try {
+        var editor=doc.getElementById('bcc-translations');
+        overrides=JSON.parse(editor && editor.value || '{}');
+      } catch (_) { overrides={}; }
+      var selected=overrides && overrides[language];
+      if(selected && typeof selected==='object' && !Array.isArray(selected)){
+        ['heading','intro','reject','settings','accept'].forEach(function(key,i){
+          if(typeof selected[key]==='string' && selected[key].trim())values[i]=selected[key];
+        });
+      }
       output.forEach(function(node,i){if(node)node.textContent=values[i];});
     }
+    var translationSource=doc.getElementById('bcc-translations');
+    if(translationSource)translationSource.addEventListener('input',update);
     Object.keys(fields).forEach(function(key){
       if(fields[key]){
         fields[key].addEventListener('change',update);
