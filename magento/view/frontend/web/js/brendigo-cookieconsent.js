@@ -165,6 +165,8 @@
   var listenersAttached = false;
   var lastDecisionAt = null;
   var syncChannel = null;
+  var syncStorageAttached = false;
+  var syncCounter = 0;
   var serviceConsent = Object.create(null);
   var providers = Object.create(null);
   var providerStates = Object.create(null);
@@ -590,43 +592,70 @@
    * notification; no consent values or identifiers are broadcast. Receiving
    * tabs reread the site's own cookie instead.
    */
+  function reconcileTabConsent() {
+    if (!config) return;
+    var previous = getConsent();
+    var previousServices = getServiceConsent();
+    var next = readSaved();
+    var nextServices = normalizeServiceChoices(next, readServiceSaved());
+    var before = JSON.stringify([previous, previousServices]);
+    var after = JSON.stringify([next, nextServices]);
+    if (before === after) return;
+    consent = next;
+    serviceConsent = nextServices;
+    lastDecisionAt = next ? readDecisionDate() : null;
+    clearConfiguredCookies(previous, consent, previousServices, serviceConsent);
+    emit('change');
+    if ((previous && CATEGORIES.some(function (category) {
+      return category !== 'necessary' && previous[category] && !(consent && consent[category]);
+    })) || Object.keys(previousServices).some(function (id) {
+      return previousServices[id] === true && serviceConsent[id] !== true;
+    })) emit('revoked');
+    syncProviders();
+    applyGatedResources();
+    showBanner();
+    closePreferences();
+    if (consent) invokeHook('onConsent', getConsentReceipt());
+  }
   function listenForTabUpdates() {
-    if (syncChannel || !root.BroadcastChannel || !config) return;
+    if (!config) return;
+    // BroadcastChannel can be unavailable or suspended in background tabs.
+    // The same-origin StorageEvent is an independent, non-sensitive fallback.
+    if (!syncStorageAttached && typeof root.addEventListener === 'function') {
+      root.addEventListener('storage', function (event) {
+        var key = 'bcc-consent-update:' + config.cookieName;
+        if (!event || event.key !== key || typeof event.newValue !== 'string' ||
+            event.newValue.indexOf(config.revision + '|') !== 0) return;
+        reconcileTabConsent();
+      });
+      syncStorageAttached = true;
+    }
+    if (syncChannel || !root.BroadcastChannel) return;
     try {
       syncChannel = new root.BroadcastChannel('bcc-consent:' + config.cookieName);
       syncChannel.onmessage = function (event) {
         var notice = event && event.data;
         if (!notice || notice.type !== 'updated' || notice.revision !== config.revision) return;
-        var previous = getConsent();
-        var previousServices = getServiceConsent();
-        var next = readSaved();
-        var nextServices = normalizeServiceChoices(next, readServiceSaved());
-        var before = JSON.stringify([previous, previousServices]);
-        var after = JSON.stringify([next, nextServices]);
-        if (before === after) return;
-        consent = next;
-        serviceConsent = nextServices;
-        lastDecisionAt = next ? readDecisionDate() : null;
-        clearConfiguredCookies(previous, consent, previousServices, serviceConsent);
-        emit('change');
-        if ((previous && CATEGORIES.some(function (category) {
-            return category !== 'necessary' && previous[category] && !(consent && consent[category]);
-          })) || Object.keys(previousServices).some(function (id) {
-            return previousServices[id] === true && serviceConsent[id] !== true;
-          })) emit('revoked');
-        syncProviders();
-        applyGatedResources();
-        showBanner();
-        closePreferences();
-        if (consent) invokeHook('onConsent', getConsentReceipt());
+        reconcileTabConsent();
       };
     } catch (_) { syncChannel = null; }
   }
   function notifyOtherTabs() {
-    if (!syncChannel) return;
+    if (!config) return;
+    if (syncChannel) {
+      try {
+        syncChannel.postMessage({type:'updated', revision:config.revision});
+      } catch (_) { /* Use the same-origin storage event fallback below. */ }
+    }
     try {
-      syncChannel.postMessage({type: 'updated', revision: config.revision});
-    } catch (_) { /* Same-origin broadcast support may be disabled. */ }
+      // Contains only a policy revision, timestamp and a local monotonic counter,
+      // NEVER categories, service choices or visitor identifiers.
+      if (root.localStorage) {
+        syncCounter += 1;
+        root.localStorage.setItem('bcc-consent-update:' + config.cookieName,
+          config.revision + '|' + Date.now() + '|' + syncCounter);
+      }
+    } catch (_) { /* Storage may be unavailable or blocked by browser settings. */ }
   }
   function saveChoice(choice, services) {
     if (!config) throw new Error('Initialize CookieConsent before setting consent.');
