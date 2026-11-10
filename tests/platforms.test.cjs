@@ -80,3 +80,35 @@ test('presta, opencart and magento provide editable policy/revision fields',()=>
   assert.match(source,/revision/i);
  }
 });
+
+test('OpenCart uses store-root asset URLs and inert JSON config for strict CSP',()=>{
+  const source=read('opencart/catalog/controller/module/cookieconsent.php');
+  assert.match(source,/HTTPS_SERVER/);
+  assert.match(source,/type="application\/json"/);
+  assert.match(source,/bootstrap\.js/);
+  assert.doesNotMatch(source,/<script>window\.BCC_SITE_CONFIG/);
+  const bootstrap=read('opencart/catalog/view/javascript/bootstrap.js');
+  assert.match(bootstrap,/JSON\.parse/);
+  assert.doesNotMatch(bootstrap,/eval\s*\(/);
+});
+test('Shopify bridge queues only the last visitor decision and never registers on load',()=>{
+ const vm=require('node:vm'),bridge=read('shopify/extensions/brendigo-cookieconsent/assets/shopify-privacy-bridge.js');
+ const updates=[], callbacks=[],listeners=[];
+ const root={navigator:{globalPrivacyControl:true},console:{warn(){}},
+   addEventListener(type,handler){listeners.push([type,handler])},
+   Shopify:{loadFeatures(features,callback){callbacks.push(callback)},
+     customerPrivacy:{setTrackingConsent(values,callback){updates.push({...values});callback()}}}};
+ const context={window:root};vm.runInNewContext(bridge,context);
+ assert.equal(updates.length,0);
+ root.BrendigoShopifyPrivacyBridge.apply({analytics:true,marketing:true,preferences:true});
+ root.BrendigoShopifyPrivacyBridge.apply({analytics:false,marketing:false,preferences:true});
+ assert.equal(updates.length,0);
+ callbacks.shift()(null);
+ assert.equal(updates.length,1);
+ assert.equal(updates[0].analytics,false);
+ assert.equal(updates[0].preferences,true);
+ root.BrendigoShopifyPrivacyBridge.apply({analytics:true,marketing:true,preferences:true});
+ assert.equal(updates.length,2);
+ assert.equal(updates[1].marketing,false,'GPC must deny marketing');
+ assert.equal(updates[1].analytics,true);
+});

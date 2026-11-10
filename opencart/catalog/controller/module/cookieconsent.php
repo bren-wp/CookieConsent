@@ -29,10 +29,19 @@ class CookieConsent extends \Opencart\System\Engine\Controller
         ];
         $json = json_encode($config,
             JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT|JSON_UNESCAPED_SLASHES);
-        $base = 'extension/brendigo/catalog/view/javascript/';
+        // Resolve assets from the store root, not the current product/category URL.
+        // Relative paths break on nested SEO routes and stores in a subdirectory.
+        $server = defined('HTTPS_SERVER') && !empty($this->request->server['HTTPS'])
+            ? HTTPS_SERVER
+            : (defined('HTTP_SERVER') ? HTTP_SERVER : '/');
+        $base = htmlspecialchars(
+            rtrim((string) $server, '/') . '/extension/brendigo/catalog/view/javascript/',
+            ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'
+        );
         // This event edits only the header template's HTML before it is sent.
         $html = '<link rel="stylesheet" href="' . $base . 'brendigo-cookieconsent.css">' .
-            '<script>window.BCC_SITE_CONFIG=' . $json . ';</script>' .
+            '<script type="application/json" id="brendigo-cookieconsent-config">' . $json . '</script>' .
+            '<script defer src="' . $base . 'bootstrap.js"></script>' .
             '<script defer src="' . $base . 'brendigo-cookieconsent.js"></script>';
         if (stripos($output, '</head>') !== false) {
             $output = preg_replace('~</head>~i', $html . '</head>', $output, 1);
