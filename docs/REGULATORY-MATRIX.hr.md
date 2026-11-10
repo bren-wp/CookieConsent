@@ -1,6 +1,8 @@
 # Regulatorna matrica — CookieConsent by Brendigo
 
-**Ažurirano: 10. studenoga 2026.** Ovaj dokument opisuje tehničku podršku i potrebne korake vlasnika web-stranice; nije pravno mišljenje, certificirana CMP usluga ili automatska jamstvena izjava o usklađenosti.
+**Ažurirano: 10. studenoga 2026.**
+
+Ovaj dokument pripada isključivo Brendigo implementaciji i ne uključuje provjeru konkretne web-stranice. Ovaj dokument opisuje tehničku podršku i potrebne korake vlasnika web-stranice; nije pravno mišljenje, certificirana CMP usluga ili automatska jamstvena izjava o usklađenosti.
 
 ## Univerzalni konzervativni način
 
@@ -35,3 +37,11 @@ Nakon opoziva, jezgra javlja `brendigo:consentrevoked`, poziva registrirani `onR
 - [ICO — Iznimke za tehnologije pohrane/pristupa](https://ico.org.uk/for-organisations/direct-marketing-and-privacy-and-electronic-communications/guidance-on-the-use-of-storage-and-access-technologies/what-are-the-exceptions/)
 - [Google — Basic i Advanced Consent Mode](https://developers.google.com/tag-platform/security/concepts/consent-mode)
 - [CPPA — Global Privacy Control](https://cppa.ca.gov/announcements/2025/20250909.html)
+
+
+## Tehnički dodaci u izdanju 0.8.0
+
+- Korisnik može dobiti lokalnu JSON potvrdu odabira; potvrda nije digitalno ovjerena i ne zamjenjuje evidenciju kada je ona propisana.
+- Odabir se sinkronizira među otvorenim karticama istog origina ako je dostupna podrška preglednika.
+- WordPress tekstovi bannera mogu se urediti na podržanim jezicima, ali vlasnik mora osigurati istinit i razumljiv sadržaj.
+- Potpis `by Brendigo` prikazan je u službenoj distribuciji i ne utječe na pravnu valjanost korisnikova izbora.

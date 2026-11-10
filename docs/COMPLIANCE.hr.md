@@ -1,58 +1,48 @@
 # Pravna kontrolna lista — CookieConsent by Brendigo
 
-**Ovaj dokument nije pravni savjet ni certifikat sukladnosti.** Funkcionalnost upravitelja privole samo je jedan od elemenata usklađene web-stranice.
+**Ažurirano: 10. 11. 2026.** Ovaj dokument nije pravno mišljenje ili potvrda zakonske sukladnosti. Alat daje tehničke kontrole, a vlasnik web-stranice odgovoran je za ispravnu primjenu, transparentnost i nadzor svih usluga.
 
-## EU / EGP / Hrvatska
+## Hrvatska, EU i EGP
 
-- Inventurirajte kolačiće, lokalnu pohranu, piksele, third-party iframeove, skripte i usluge.
-- Nužne tehnologije klasificirajte samo kad doista ispunjavaju zakonske iznimke.
-- Prije privole blokirajte neobvezne tehnologije, uključujući marketing i analitiku kad je privola potrebna.
-- Osigurajte ravnopravan pristup gumbima **Prihvati sve**, **Odbij sve** i **Postavke**.
-- Nemojte unaprijed odabirati neobvezne kategorije ili koristiti zavaravajuće dizajne.
-- Omogućite trajno, jednostavno povlačenje privole i uklanjanje neobveznih tehnologija nakon povlačenja.
-- Opišite naziv svakog pružatelja, svrhu, primatelje, rok i način upravljanja.
-- Provjerite potrebe za evidencijom privole i odgovarajućim dokazima, poštujući minimizaciju podataka.
+- [ ] Napraviti stvaran popis cookiesa, lokalne pohrane, skripti, iframeova, piksela i server-side zahtjeva.
+- [ ] Jasno razlikovati nužne tehnologije od neobveznih prema primjenjivim iznimkama.
+- [ ] Blokirati neobvezne tehnologije prije odgovarajuće privole.
+- [ ] Osigurati razumljivo informiranje: naziv pružatelja, svrha, primatelji, trajanje i prijenosi.
+- [ ] Omogućiti ravnopravan, nezavaravajući izbor prihvaćanja/odbijanja te granularne postavke.
+- [ ] Ostaviti jasan i jednostavan način promjene i povlačenja odluke.
+- [ ] Odvojeno procijeniti dokazivost i eventualnu potrebu za evidencijom privole.
+- [ ] Provjeriti međunarodne prijenose, sigurnost, politiku privatnosti i ulogu pružatelja.
+- [ ] Obnoviti `revision` kada su promjene bitne za opseg privole.
 
-## UK
+## Ujedinjena Kraljevina
 
-Aktualizirane ICO smjernice za tehnologije pohrane i pristupa završene su 29. travnja 2026. Neke iznimke i obveze promijenile su se kroz UK Data (Use and Access) Act: za pojedine tehnologije može vrijediti poseban režim, pa se ne smije automatski tvrditi da je privola uvijek jedina pravna osnova. Odbijanje neizuzetih tehnologija mora ostati jednako jednostavno kao prihvaćanje. Smjernice: https://ico.org.uk/for-organisations/direct-marketing-and-privacy-and-electronic-communications/guidance-on-the-use-of-storage-and-access-technologies/
+UK PECR i UK GDPR imaju dodatna pravila i određene iznimke. ICO je 2026. ažurirao smjernice za storage/access tehnologije; prije primjene potrebno je provjeriti aktualnu primjenjivost iznimaka i mogućnost prigovora, umjesto pretpostavke da je svaki cookie u svakoj situaciji isti.
 
-## SAD
+## Sjedinjene Države
 
-GPC je signal koji u nekim jurisdikcijama predstavlja zahtjev za odbijanje prodaje ili dijeljenja podataka. U ovoj verziji marketing je konzervativno onemogućen uz GPC. To **ne zamjenjuje** pravila specifične države, prava korisnika, status prodaje/dijeljenja ili backend obradu.
+GPC može predstavljati zahtjev prema određenim državnim zakonima; Brendigo jezgra konzervativno isključuje marketing uz taj signal. Time **nije** implementiran potpuni Do Not Sell/Share postupak, backend opt-out, zahtjevi ispitanika ili obveze određene države.
 
 ## Brazil i druge jurisdikcije
 
-Za LGPD i ostala nacionalna pravila zasebno provjerite pravnu osnovu, obavijesti, svrhe i prava ispitanika. Sama prisutnost bannera ne može jamčiti zakonsku sukladnost.
+Provjerite LGPD i druga nacionalna pravila prema stvarnim svrhama, pravnim osnovama, obvezama obavještavanja i pravima ispitanika. Ne postoji automatska regionalna klasifikacija.
 
-## Trenutna ograničenja
+## Potvrda i povlačenje
 
-- Nema automatskog skenera ili automatskog blokiranja neoznačenih trackera.
-- Nema brisanja kolačića trećih strana ni poništavanja već izvršenog JavaScripta.
-- Nema server-side revizijskog dnevnika.
-- Opt-in Google Consent Mode v2 Basic adapter uključen je kao zasebna integracija. Ne učitava Google tagove; sam ne može automatski blokirati sve njihove načine ubacivanja. IAB TCF i certificirani Google CMP status nisu implementirani.
-- Nema GeoIP segmentacije ili cjelovitog opt-out postupka za američke propise.
+`getConsentReceipt()` omogućuje lokalnu kopiju izbora korisniku, ali ne predstavlja neovisno ovjeren dokaz. `onRevoke` i cleanup pravila pomažu zaustaviti priključene servise, no ne mogu automatski poništiti ranije zahtjeve ili izbrisati third-party/HttpOnly cookies.
 
-## Referentni izvori
+## Google Consent Mode v2 Basic
 
-- [EDPB Cookie Banner Taskforce](https://www.edpb.europa.eu/our-work-tools/our-documents/other/report-work-undertaken-cookie-banner-taskforce_en)
-- [ICO: How do we manage consent in practice?](https://ico.org.uk/for-organisations/direct-marketing-and-privacy-and-electronic-communications/guidance-on-the-use-of-storage-and-access-technologies/how-do-we-manage-consent-in-practice)
-- [CNIL: Dark patterns in cookie banners](https://cnil-d10.cnil.fr/en/dark-patterns-cookie-banners-cnil-issues-formal-notice-website-publishers)
-- [California Privacy Protection Agency: GPC](https://cppa.ca.gov/announcements/2025/20250909.html)
-- [Google consent mode guidance](https://developers.google.com/tag-platform/security/guides/consent)
+Opcionalni adapter postavlja konzervativni početni status signala. Vlasnik stranice i dalje mora pravilno odgoditi Google skripte u Basic načinu, testirati Tag Assistant te provjeriti je li za konkretnu primjenu potrebna posebna CMP certifikacija.
 
-Provjerite novije propise i smjernice prije svake produkcijske implementacije.
+## CDN
 
-## CDN i službeni potpis
+`cookie.brendigo.com`, nakon postavljanja, može obrađivati IP i metapodatke zahtjeva putem infrastrukturnih logova. Operator i vlasnik stranice moraju utvrditi pravne osnove, retenciju, ugovorne obveze i transparentnost. Sam GitHub ZIP ne znači da je CDN aktivan.
 
-CDN domena u produkciji može obrađivati IP adrese posjetitelja i metapodatke zahtjeva i zato zahtijeva odgovarajuću obavijest, konfiguraciju logiranja, sigurnost prijenosa i ugovorne procjene. Potpis **by Brendigo** mora se pojaviti u službenom prikazu; vizualni kredit nije pravno potreban za valjanu privolu. Postojeća MIT licencija zahtijeva očuvanje licencne obavijesti, ali ne jamči da vlasnik modificirane kopije neće sakriti vidljivi kredit.
+## Službeni izvori za provjeru
 
-## v0.3.0 — transparentnost pružatelja
+- [EDPB — Cookie Banner Taskforce](https://www.edpb.europa.eu/documents/task-force-report/report-of-the-work-undertaken-by-the-cookie-banner-taskforce_en)
+- [ICO — Storage and Access Technologies](https://ico.org.uk/for-organisations/direct-marketing-and-privacy-and-electronic-communications/guidance-on-the-use-of-storage-and-access-technologies/)
+- [Google — Consent Mode](https://developers.google.com/tag-platform/security/concepts/consent-mode)
+- [CPPA — California Privacy Protection Agency](https://cppa.ca.gov/)
 
-Prošireni katalog služi informiranju o pružatelju, svrsi, kolačićima, trajanju i politici privatnosti. Nijedna inventura se ne može smatrati automatskom ni potpunom: vlasnik web-stranice mora je redovito uspoređivati sa stvarnim mrežnim zahtjevima i stanjem preglednika. Dodani lifecycle callbackovi ne mogu automatski obrisati kolačiće drugih domena, a rollback aktivnog JavaScripta nije univerzalno moguć.
-
-Google Basic adapter se opcionalno uključuje u WordPressu; ne učitava i ne blokira sve tagove automatski. Sva ograničenja Google CMP certifikacije i IAB TCF-a i dalje vrijede.
-
-## v0.4.0
-
-Provjera identifikatora kolačića putem pregledničkog API-ja može vidjeti samo kolačiće dostupne JavaScriptu na istoj domeni; ovo **ne** obuhvaća HttpOnly, cross-origin podatke, poslužiteljsko praćenje i proizvode koji u potpunosti zaobilaze skripte. Provjeravajte službene, aktualne smjernice nadležnih tijela prije produkcije.
+Izvori se mogu promijeniti; konzultirajte aktualne tekstove i pravni savjet prije produkcije.

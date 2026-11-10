@@ -1,38 +1,47 @@
-# Distribucija i reproducibilnost — CookieConsent by Brendigo
+# Izdavanje i reproducibilnost — CookieConsent by Brendigo
 
-## Paketiranje
+## Verzije i paketi
 
-Pripremite izdanje bez obveznih npm produkcijskih ovisnosti:
+Aktualna testna verzija: **0.8.0**. Službeno izdanje koristi GitHub tag `v0.8.0` i sadrži tri različita ZIP paketa.
 
-```bash
+| Paket | Namjena |
+|---|---|
+| `cookieconsent-brendigo-standalone.zip` | HTML/PHP stranice i ostali CMS templateovi |
+| `brendigo-cookieconsent-wordpress.zip` | instalacija kroz WordPress administrator |
+| `brendigo-cookieconsent-cdn.zip` | verzionirani direktorij za vlastiti CDN hosting |
+
+## Lokalna provjera
+
+~~~bash
 npm run check
 npm test
+php -l wordpress/brendigo-cookieconsent/brendigo-cookieconsent.php
+php tests/wp-settings.php
 npm run build:cdn
 python3 tools/package.py
 python3 tools/package.py --verify
-```
+~~~
 
-U mapi `dist/` nastaju tri ZIP paketa: samostalni paket, WordPress dodatak i verzionirani CDN paket.
+Paketiranje koristi stabilan redoslijed datoteka, fiksne ZIP datume i SHA-256 provjeru sadržaja. Hash vrijednost mora biti ista pri ponovnoj izradi u istom Python/zlib okruženju. CDN `manifest.json` sadrži hash i veličinu artefakata, ali nije digitalni potpis.
 
-Za ZIP koriste se fiksni datumi (1. 1. 2020.), stabilan redoslijed putanja i jednake permisije. Izrada istog paketa u istom Python/zlib okruženju mora dati identičan SHA-256. U CI-u se ZIP ponovno izrađuje i provjerava identičnost.
+## GitHub Actions
 
-CDN `manifest.json` nema varijabilni `generatedAt` timestamp i bilježi SHA-256 i veličinu svake datoteke. Koristi se za provjeru integriteta, **ne** za digitalni potpis ili certifikaciju CDN-a.
+- `ci.yml`: JS i PHP provjere, browser E2E (Chromium, Firefox, WebKit) i automatizirane WCAG A/AA provjere.
+- `package.yml`: tri ZIP paketa u Actions Artifacts, neovisno o produkciji.
+- `publish.yml`: javni GitHub **prerelease** tek nakon uspješnog CI push događaja na `main` vlastitog repozitorija. Revalidira točno testirani commit i ne mijenja već objavljeni tag.
 
-## Što je potrebno za produkciju
+Provjerite status svih poslova **prije** preuzimanja konačnih paketa. CI ne postavlja hosting/CDN i ne daje pravni certifikat.
 
-- Odobrenje sadržaja pravila kolačića za konkretan web.
-- Prijenos datoteka na stvarni hosting i provjera da `cookie.brendigo.com` posluživanje radi preko HTTPS-a.
-- Skeniranje svih neobveznih skripti i mrežnih zahtjeva u produkciji.
-- Po potrebi certifikacija za ekosustave koji je zahtijevaju (npr. Google CMP/TCF), što ovaj projekt ne dodjeljuje sam sebi.
-- Provjera integracija i revokacije u svim korištenim preglednicima i urednicima.
-- Sigurnosne i pristupačne provjere dodataka/tema konkretne stranice.
+## Kontrolna lista za novo izdanje
 
-## Potpis
+- [ ] Uskladiti verzije u `package.json`, JS/PHP kodu, CDN putanji, testovima, WP readmeu i uputama.
+- [ ] Obnoviti README, API, INSTALL i CHANGELOG.
+- [ ] Provjeriti identične jezgrene WP i samostalne JS/CSS datoteke.
+- [ ] Provjeriti izostanak nepoželjnih vanjskih runtime ovisnosti.
+- [ ] Provjeriti reset, opoziv, servisne kontrole i prvi posjet.
+- [ ] Provjeriti sadržaj sva tri ZIP-a i hash.
+- [ ] Obaviti dodatnu provjeru stvarnog WordPress/hostinga prije produkcije.
 
-U službenom sučelju `by Brendigo` stalno je prisutan i ne postoji postavka za njegovo isključivanje. Open-source MIT licencija dopušta izmjene izvornog koda; zato tehničko jamstvo neuklonjivosti nije moguće bez drugačijeg licenciranja i distribucijskog modela.
+## Potpis i licencija
 
-## Automatizirano GitHub prerelease izdanje
-
-Workflow `.github/workflows/publish.yml` reagira **isključivo** na uspješan CI koji potječe od `push` događaja na `main` unutar vlastitog repozitorija. Izolira untrusted PR događaje, preuzima točno provjereni SHA, ponovno validira izvor, sastavlja sva tri paketa i objavljuje GitHub **prerelease** s oznakom `v<package.json.version>`. Postojeće izdanje s istom verzijom se ne mijenja.
-
-Ne obavlja produkcijsko postavljanje CDN-a, DNS-a ili TLS-a. GitHub Release nije regulatorni certifikat i ne može zamijeniti acceptance test konkretne web-stranice.
+Službena distribucija prikazuje `by Brendigo` bez konfiguracijskog prekidača. MIT licencija dopušta modifikacije izvornog koda i ne omogućuje tehničko jamstvo neuklonjivosti. Sačuvajte zakonski potrebnu licencnu obavijest.

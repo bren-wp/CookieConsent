@@ -1,43 +1,39 @@
-# Sigurnost i tehničke granice
+# Sigurnost i privatnost — CookieConsent by Brendigo
 
-## Načela
-- Nema slanja privole Brendigo poslužiteljima i nema vanjskih runtime biblioteka.
-- UI tekstovi ispisuju se preko sigurnog `textContent` API-ja.
-- Link politike kolačića ograničen je na HTTP(S).
-- Pohrana: first-party cookie, SameSite=Lax, Secure na HTTPS-u.
-- WordPress Settings API, provjera `manage_options` prava i sanitizacija postavki.
-- Neobvezne skripte moraju biti inertne prije učitavanja.
+## Prijava ranjivosti
 
-## Granice koje treba dokumentirati
-- Consent cookie nije autentikacijski token i čitljiv je vlastitom JavaScriptu.
-- Skripte koje su već izvršene ne mogu se poništiti samo promjenom oznake.
-- Ne brišu se automatski već stvoreni cookies trećih strana.
-- Ostale WP inline skripte, pixeli i servisi nisu obuhvaćeni generičkim filtrom.
-- Nema server-side dokaza privole ni obrade prava ispitanika.
-- Kompatibilnost sa svim CSP postavkama i alatima za praćenje nije potvrđena.
+Ne objavljujte aktivne exploit detalje, ključeve ili osobne podatke javno. Koristite privatni sigurnosni kanal projekta (ako je omogućen) ili službeni kontakt na https://brendigo.com. Za obične probleme koristite [GitHub Issues](https://github.com/bren-wp/CookieConsent/issues).
 
-## Prijava problema
+## Implementirane zaštite
 
-Za sigurnosne ranjivosti koristite privatnu GitHub sigurnosnu prijavu ako je omogućenja. Ne objavljujte podatke koji olakšavaju zlouporabu na javnom issueju.
+- Vanilla JS/CSS jezgra bez obveznih vanjskih runtime biblioteka.
+- Sanitizacija pozicija, tema, boja i drugih dopuštenih vrijednosti.
+- Tekst opisa usluga prikazuje se kao tekst, ne kao proizvoljan HTML.
+- Vanjski označeni JS/iframe URL-ovi prihvaćaju samo HTTP(S) shemu.
+- Granularni servisi koriste ograničene identifikatore i dopuštene kategorije.
+- WordPress administratorski JSON import/export zahtijeva prava i provjeru noncea.
+- Administratorska konfiguracija filtrira nedopuštene ključeve, tekstove, URL-ove i pravila.
+- Ograničena pravila brisanja samo imenovanih dostupnih first-party cookiesa; nema proizvoljnog regex izvršavanja.
+- GPC konzervativno onemogućuje marketinšku kategoriju.
+- Lokalna potvrda korisnikova izbora nema IP, ime ili centralno slanje na poslužitelj.
+- Sinkronizacija više kartica šalje samo signal revizije, ne sam sadržaj odluke.
+- Priložene su automatizirane provjere u tri preglednika i više PHP verzija.
 
-## Provjere
+## Integracijske odgovornosti
 
-`npm test`, `npm run check`, `php -l` i browser testovi čine početnu provjeru; oni ne zamjenjuju penetracijski test niti profesionalni security audit.
+- Svi vanjski servisi moraju biti klasificirani prije uključivanja.
+- Ne uključivati standardne neobvezne skripte prije valjane privole.
+- Provjeriti CSP, nonce, SRI, iframe domene, WordPress optimizatore i caching.
+- API callbackovi pružatelja moraju sigurno obrađivati opoziv.
+- Nemoguće je univerzalno zaustaviti već izvršen JS, server-side praćenje ili cookies drugih domena.
+- Pravila brisanja ne smiju ukloniti sesiju, prijavu, košaricu ili sigurnosne kolačiće.
 
-## v0.3.0 integracijski hookovi
+## CDN i IP podaci
 
-`registerProvider()` je namijenjen kontroliranim integracijama razvijatelja web-stranice. Funkcije `onGrant` i `onRevoke` izvršavaju se samo za poznate kategorije i ne zaustavljaju automatski već izvršene nepoznate skripte. Callbackovi mogu izazvati zahtjeve prema vlastitim trećim stranama: autor integracije mora poštovati valjanu privolu i provjeriti svoje cleanup funkcije.
+Kod lokalne instalacije nema obveznog Brendigo mrežnog zahtjeva. Ako je odabran CDN, hoster može obraditi IP adresu i metapodatke pristupa. Hosting politika, retencija, podugovaratelji, dostupnost i HTTPS moraju se potvrditi zasebno.
 
-Katalog pružatelja služi informiranju posjetitelja, **ne autorizaciji skripti**. Poveznice prihvaćaju HTTP(S) URL-ove, tekst se prikazuje kroz `textContent`, a URL-ovi iz administratorskih postavki se sanitiziraju. Za proizvodnu implementaciju preporučuje se HTTPS za sve vanjske politike.
+## Status i ograničenja
 
-U dijalogu detalji pružatelja više se ne nalaze unutar `<label>` elementa koji mijenja izbor kategorije, čime su poveznice odvojene od aktivacije checkboxa.
+Zeleni CI **nije** neovisni sigurnosni audit ili penetracijski test. Ne postoji centralni consent ledger, digitalno potpisana potvrda, certificirani CMP, automatsko brisanje third-party cookiesa niti univerzalni tracking skener.
 
-Nema automatskog brisanja cookiesa trećih strana, dokaznog server-side dnevnika, IP geolokacije ni skenera skripti.
-
-## Dodatne provjere u v0.5.0
-
-- `data-bcc-src` skripte i iframeovi provjeravaju URL shemu (HTTP i HTTPS). Nevažeci ili netipični protokoli ostaju inertni.
-- `auditLocal()` je isključivo lokalni API; preglednički podaci se ne šalju na CDN, server ili treće strane.
-- WordPress JSON import i export zahtijevaju administratorske ovlasti; import je ograničen na 64 KiB, podržanu shemu i sanitizaciju svih opcija. Podaci se spremaju tek nakon provjere.
-- Komponente čuvaju stalni potpis *by Brendigo*. MIT dopušta izmjene koda i nije mehanizam za tehničko onemogućavanje skrivanja.
-- Automatizirani Chromium testovi provjeravaju neke tokove, ali ne zamjenjuju puni WCAG audit, security pentest, certifikaciju CMP-a i stručni pravni pregled.
+[Pravna kontrolna lista](COMPLIANCE.hr.md) · [Pristupačnost](ACCESSIBILITY.hr.md) · [Produkcijski kontrolni popis](GO-LIVE.hr.md).

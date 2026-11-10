@@ -1,26 +1,29 @@
-# Kompatibilnost — CookieConsent by Brendigo v0.5.0
+# Kompatibilnost — CookieConsent by Brendigo v0.8.0
 
-## Izravno testirano u GitHub CI-u
+## Što se automatizirano provjerava
 
-| Okruženje | Provjera | Status |
+| Okruženje | Provjera | Granica testa |
 |---|---|---|
-| Chromium | Prvo otvaranje, accept/reject, pohrana, opoziv, iframe, devet pozicija, pet jezika, mobilni prikaz, axe-core WCAG A/AA smoke | Automatizirano |
-| Firefox | Jednake E2E provjere | Automatizirano |
-| WebKit | Jednake E2E provjere | Automatizirano |
-| PHP 7.4, 8.1–8.4 | PHP syntax, test sanitizacije postavki, katalog pružatelja, WooCommerce zaštita (s izoliranim WordPress stubovima) | Automatizirano |
-| ZIP paketi | Deterministički članovi, izvorne datoteke, fiksni timestamp, provjera sadržaja/CRC, SHA-256 | Automatizirano |
-| JS i CSS jezgra | Nema obveznih runtime biblioteka | U CI-u provjereno |
+| Chromium | first visit, privole, granularne usluge, reset, mobilni prikaz, tipkovnica, lokalni receipt i cross-tab | automatizirani scenariji, ne potpuni audit |
+| Firefox | isti E2E scenariji | bez potvrde svih mogućih ekstenzija |
+| WebKit | isti E2E scenariji | bez ručnih VoiceOver provjera |
+| axe-core | odabrana WCAG 2.0/2.1 A/AA pravila za banner i dialog | ne zamjenjuje ručni audit |
+| PHP 7.4, 8.1, 8.2, 8.3, 8.4 | sintaksa i izolirana sanitizacija WordPress postavki | bez stvarne WP instalacije |
+| CDN/ZIP | hash datoteka, reproducibilan sadržaj i provjera paketa | nije potvrda javnog CDN hostinga |
+| WordPress asseti | provjera jednakosti JS/CSS jezgre i plugina | nije sveobuhvatni integracijski test |
 
-## Podržani načini integracije
+Službena CI konfiguracija nalazi se u `.github/workflows/ci.yml`.
 
-| Platforma | Dostupna integracija | Status |
-|---|---|---|
-| Statični HTML, PHP stranice | Standalone JS/CSS i opcijski CDN loader | Spremno za integracijsko testiranje na stvarnoj stranici |
-| WordPress 6.2+ | Dodana administrator konfiguracija, katalog, lokalni/CDN način i ručno blokiranje registriranih skripti | **Nije testirano na punoj živoj WP instalaciji** |
-| WooCommerce | Zaštita osnovnih cart/checkout script handleova; katalog standardnih kolačića | Ograničena integracija — nisu obuhvaćeni svi dodaci |
-| Drupal, Joomla, Magento, drugi CMS | Vanilla skripta je namijenjena integraciji kroz template/head | Nema specifičnih službenih adaptera |
-| React/Vue/Next.js aplikacije | Vanilla API dostupan nakon mounta u browseru | Potrebna ručna integracija i SSR/hydration provjera |
-| Shared hosting | PHP plugin nema Composer runtime ovisnosti i koristi standardne WordPress API-je | **Stvarna instalacija i kompatibilnost hostinga nisu potvrđeni** |
-| cookie.brendigo.com | Verzionirani CDN ZIP i hash manifest | **DNS, TLS i javni server nisu postavljeni kroz ovaj repozitorij** |
+## Podržani načini uključivanja
 
-Zelena CI provjera **ne** dokazuje da je svaki konkretan web ispravno konfiguriran. Za produkciju su neophodni testovi na stvarnom hostingu, web pregledniku s uključenim ekstenzijama i audit svih izvora praćenja.
+| Platforma | Status |
+|---|---|
+| HTML/PHP stranice | samostalna JS/CSS integracija |
+| WordPress 6.2+ | vlastiti dodatak i postavke; testiranje na produkcijskom/staging WP-u još potrebno |
+| WooCommerce | osnovni zaštitni adapter; svi vanjski checkout/marketing dodaci moraju se posebno provjeriti |
+| Drugi CMS sustavi | moguće uključiti Vanilla CSS/JS kroz templating; nema provjerenih specifičnih adaptera |
+| SPA | moguća browser-side integracija; potrebni posebni hydration/dinamički testovi |
+| Shared hosting | nema obveznih Composer/runtime vanjskih ovisnosti; stvarne hosting konfiguracije nisu univerzalno provjerene |
+| cookie.brendigo.com | pripremljen paket, ali DNS/TLS/deployment nisu potvrđeni |
+
+**Uvjet produkcijske spremnosti:** ispitati stvarne servise, CSP, zahtjeve, pohranu i povlačenje odluke na konkretnoj stranici. [GO-LIVE.hr.md](GO-LIVE.hr.md).

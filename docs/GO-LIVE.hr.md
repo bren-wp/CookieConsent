@@ -1,24 +1,50 @@
-# Produkcijska kontrolna lista — CookieConsent by Brendigo
+# Produkcijski prihvatni popis — CookieConsent by Brendigo
 
-## Prije objave
+**Označite samo stavke koje su stvarno provjerene na konkretnoj web-stranici.**
 
-1. [ ] Popišite sve stvarne skripte, vanjske iframeove, lokalno pohranjene identifikatore, HttpOnly cookies, piksele i server-side eventove.
-2. [ ] Za svaku stavku utvrdite kategoriju, pravnu osnovu, svrhu, pružatelja, primatelje, rok i eventualne međunarodne prijenose.
-3. [ ] Sve neobvezne integracije moraju biti inertne prije izbora korisnika. Testirati Network u anonimnom prozoru i bez kolačića.
-4. [ ] Odbijanje mora ostaviti sve neobvezne tehnologije neaktivnima; prihvaćanje treba aktivirati samo odobrene kategorije.
-5. [ ] Opoziv mora obavijestiti stvarne providere, zaustaviti buduće eventove i provesti cleanup koliko je moguće; provjeriti stvarni mrežni promet.
-6. [ ] Dodajte istinita Pravila o kolačićima i Politiku privatnosti u jezicima korisnika, uključujući CDN operatora ako koristite CDN.
-7. [ ] Testirajte spremanje i ponovno traženje privole pri promjeni pravila (`revision`).
-8. [ ] Provjerite izvoz WordPress konfiguracije i sigurnosnu kopiju prije importa.
-9. [ ] Testirajte mobilni prikaz, tipkovnicu, različite DPI/zoom vrijednosti, govorne tehnologije i visoki kontrast.
-10. [ ] Ako je WooCommerce aktivan, provjerite košaricu, kupone, plaćanje i čuvanje narudžbi s odbijenim opcionalnim privolama.
-11. [ ] Za Google oznake provjerite Basic redoslijed i uključivanje tek nakon potrebne privole; ako je potrebna certifikacija CMP-a, ne proglašavajte ovaj alat certificiranim.
-12. [ ] Ako koristite `cookie.brendigo.com`, provjerite DNS, TLS, CORS/CSP (gdje je primjenjivo), cache-control, MIME vrste, logiranje i dostupnost CDN-a, kao i fallback.
-13. [ ] Pravni stručnjak treba potvrditi pravnu osnovu, iznimke i sadržaj za svaku ciljnu jurisdikciju.
-14. [ ] Potvrdite izvješće sigurnosne provjere i provjeru privole nakon deploya.
+## Instalacija
 
-**Ovaj popis je vodič za prihvatno testiranje, a ne dokaz da su gore navedene radnje izvršene.**
+- [ ] Službeni ZIP odgovara testiranom izdanju i sha256 provjeri.
+- [ ] JS/CSS i politika kolačića dostupni su putem HTTPS-a.
+- [ ] Lokalni ili CDN resursi ispravno se učitavaju i nije prisutan 404/MIME/CSP problem.
+- [ ] `revision` se ažurira kada je to pravno/tehnički potrebno.
+- [ ] Nema vanjskog runtime trackera koji se učitava kroz sam banner.
 
-## Ograničenje odgovornosti
+## Privola
 
-Consent cookie sam po sebi **nije kriptografski dokaz** valjanog pristanka i moguće ga je izmijeniti s iste domene. Ako je potreban dokaz na razini poslužitelja, implementirajte odgovarajući, zakonito utemeljen consent ledger i politiku čuvanja dokaza na vlastitoj infrastrukturi.
+- [ ] U čistom privatnom prozoru opcionalni servisi nisu učitani prije odabira.
+- [ ] „Odbij sve” zaustavlja sve neobvezne skripte i druge izvore praćenja.
+- [ ] „Prihvati sve” dopušta samo unaprijed jasno opisane svrhe.
+- [ ] Pojedinačni servis može se uključiti i isključiti neovisno kada je implementiran.
+- [ ] Ponovno učitavanje stranice zadržava važeću odluku.
+- [ ] Promjena i opoziv dostupni su trajno kroz postavke.
+- [ ] Opcionalni pružatelji nakon opoziva ne šalju buduće događaje.
+- [ ] First-party cleanup pravila ne brišu nužne, sesijske i košarične podatke.
+- [ ] Sinkronizacija među karticama radi kada preglednik podržava BroadcastChannel.
+- [ ] Korisnik može preuzeti lokalnu potvrdu; sadržaj ne uključuje osobne identifikatore.
+
+## Dizajn i pristupačnost
+
+- [ ] Testirano 9 položaja i konfigurirana tema na mobitelu i desktopu.
+- [ ] HR, EN, DE, IT, ES, FR i AR imaju ispravne oznake, ako se koriste.
+- [ ] RTL i tipkovnička navigacija su ispravni.
+- [ ] Provjerene su screen-reader oznake, kontrast, fokus i povećanje 200–400 %.
+- [ ] Potpis **by Brendigo** ostaje vidljiv u službenoj distribuciji.
+
+## WordPress i WooCommerce
+
+- [ ] Testirana stvarna WordPress/PHP instalacija i sukobi dodataka.
+- [ ] Provjereni caching i minifier redoslijed.
+- [ ] Testirani WooCommerce košarica, kuponi, checkout i završetak narudžbe.
+- [ ] Napravljen backup postavki prije importa/nadogradnje.
+- [ ] Odvojeno su auditirani svi marketinški i analitički WP dodaci.
+
+## Pravna i sigurnosna provjera
+
+- [ ] Popis kolačića/podataka u dokumentaciji odgovara stvarnim zahtjevima.
+- [ ] Pravna osnova, iznimke, svrhe i rokovi provjereni su za ciljnu jurisdikciju.
+- [ ] Po potrebi provjerena obveza dokazivosti i evidentiranja privole.
+- [ ] Odrađen sigurnosni pregled, osobito third-party skripti i CSP-a.
+- [ ] Ako je aktivan CDN: potvrđeni operator, IP logovi, TLS, retencija i monitoring.
+
+**Ne označavati stavke samo na temelju CI rezultata.** [Sigurnost](SECURITY.md) · [Pravne smjernice](COMPLIANCE.hr.md).

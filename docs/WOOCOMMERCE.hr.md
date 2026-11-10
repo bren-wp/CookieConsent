@@ -1,8 +1,10 @@
 # WooCommerce integracija — CookieConsent by Brendigo
 
-## Što ova integracija štiti
+## Svrha
 
-Ako je aktivan WooCommerce, dodatak može prikazati informativnu uslugu **WooCommerce — cart and checkout** i ne dopušta pogrešno pretvaranje sljedećih registriranih WooCommerce script handleova u neaktivne skripte:
+Ako je prisutan WooCommerce, sustav štiti od slučajnog blokiranja odabrane, poznate registrirane skripte osnovne košarice i naplate. Također može prikazati informativnu kategoriju standardnih WooCommerce cookiesa.
+
+## Zaštićeni registrirani handleovi
 
 - `woocommerce`
 - `wc-cart-fragments`
@@ -11,20 +13,30 @@ Ako je aktivan WooCommerce, dodatak može prikazati informativnu uslugu **WooCom
 - `wc-cart`
 - `wc-blocks-checkout`
 
-To sprječava da administrator slučajno blokira ključne korake košarice/naplate preko polja `Gate WordPress script handles`.
+Sama prisutnost tog adaptera **ne znači** da su svi dodaci i teme provjereni, da je svaki payment widget nužan ili da su sve WooCommerce skripte obuhvaćene.
 
-U katalogu su naznačeni uobičajeni nazivi: `woocommerce_cart_hash`, `woocommerce_items_in_cart` i `wp_woocommerce_session_*`. Stvarni popis kolačića, iznimke i vrijeme zadržavanja ovise o konfiguraciji trgovine. Provjerite stvarnu svrhu i pravnu osnovu.
+## Standardni informativni cookies
 
-## Što integracija NAMJERNO ne radi
+Tipični nazivi uključuju `woocommerce_cart_hash`, `woocommerce_items_in_cart` i `wp_woocommerce_session_*`. Stvarni cookies i vrijeme čuvanja ovise o konfiguraciji, verziji WooCommercea i povezanim dodacima. Provjerite stvarnu klasifikaciju i trajanje na konkretnoj trgovini.
 
-Ne daje automatsku privolu za Google Analytics, Meta Pixel, Google Ads, payment tracking, WooCommerce Analytics, marketing dodatke ni servisne skripte trećih strana. Ne provodi automatski audit svih WooCommerce ekstenzija. Nije univerzalni pravni certifikat za webshop.
+## Što nije automatski dopušteno
 
-## Prije produkcije
+- Web statistika i marketing.
+- Oglašivački pikseli i mjerenje kampanja.
+- Vanjski video/iframeovi i prošireni analitički dodaci.
+- Svaka dodatna usluga naplate koja koristi nepotrebno praćenje.
+- Server-side događaji prema marketinškim sustavima.
 
-1. Testirajte dodavanje u košaricu, izmjenu količina, primjenu kupona, naplatu i kreiranje narudžbe s opcijom „Odbij sve”.
-2. Provedite Network pregled svih opcionalnih usluga i skripti u temama i dodacima.
-3. Svaku analitičku ili marketinšku skriptu zasebno označite i kontrolirajte.
-4. Provjerite način pohrane i pravnu klasifikaciju konkretne naplatne integracije; funkcionalnost naplate može biti nužna, marketinško praćenje nije automatski nužno.
-5. Nakon povlačenja privole provjerite da povezani pružatelji prestaju slati zahtjeve; po potrebi pozovite njihov cleanup/opt-out API ili ponovno učitajte stranicu.
+## Testni scenariji
 
-**Upozorenje:** ova integracija je ograničeni zaštitni adapter za osnovne WooCommerce funkcije, a ne potpuni programatski adapter svih dodataka.
+1. Odbijte sve neobvezne kategorije u privatnom prozoru.
+2. Dodajte proizvod, izmijenite količinu i upotrijebite kupon.
+3. Prođite checkout bez opcionih trackera.
+4. Provjerite potvrdu narudžbe i e-mail obavijesti.
+5. Odobrite samo jednu neobveznu kategoriju i provjerite mrežne zahtjeve.
+6. Povucite privolu i provjerite da povezani servisi prestaju slati daljnje događaje.
+7. Ponovite s uključenim cache/minify dodacima i stvarnim gatewayom.
+
+Automatizirani PHP testovi trenutačno provjeravaju izoliranu logiku adaptera, **ne kompletan živ WooCommerce checkout**.
+
+[WordPress](WORDPRESS.hr.md) · [Produkcijska kontrolna lista](GO-LIVE.hr.md).

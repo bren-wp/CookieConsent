@@ -1,115 +1,86 @@
-# CookieConsent by Brendigo — instalacija i integracija
+# Instalacija i prvi koraci — CookieConsent by Brendigo
 
-## Samostalna instalacija
+**Verzija:** 0.8.0 · [README](../README.md) · [Dokumentacijski indeks](README.md)
 
-1. Prekopirajte `packages/core/brendigo-cookieconsent.js` i `.css` na svoj hosting.
-2. U `<head>` uključite lokalni CSS, `window.BCC_SITE_CONFIG` i skriptu s `defer` kao u glavnom README-u.
-3. Postavite stvarnu politiku kolačića i vidljivu trajnu poveznicu za promjenu izbora (`data-bcc-open`).
-4. Pregledajte sve treće strane i klasificirajte njihove tehnologije.
+## 1. Samostalna HTML/PHP instalacija
 
-| Konfiguracija | Zadano | Opis |
-|---|---|---|
-| `language` | `auto` | `hr`, `en`, `de`, `it` ili jezik stranice |
-| `policyUrl` | `/cookie-policy` | URL politike kolačića |
-| `accentColor` | `#4357e8` | Hex boja |
-| `revision` | `1` | Promjena zahtijeva novu privolu |
-| `position` | `bottom-center` | Jedna od 9 pozicija |
-| `bannerStyle` | `standard` | Standardni, kompaktni (`compact`) ili minimalistički (`minimal`) |
-| `surfaceColor` | `#ffffff` | Boja pozadine bannera |
-| `textColor` | `#17223e` | Boja teksta; nizak kontrast automatski se ispravlja |
-| `by Brendigo` | uvijek vidljivo | Nema opcije skrivanja potpisa u UI-u ni API-ju |
-| ponovno otvaranje | uvijek dostupno | Trajni gumb za postavke privole |
-| `consentDays` | `180` | Ograničeno na 1–365 dana |
-| `cookieName` | `bcc_consent` | First-party kolačić |
-| `translations` | — | Prilagođeni tekstovi po jeziku |
-| `onChange` | — | Funkcija koja prima odabrane kategorije |
+1. Preuzmite službeni `cookieconsent-brendigo-standalone.zip` ili prenesite `packages/core/brendigo-cookieconsent.css` i `.js` na svoj hosting.
+2. Uključite CSS, konfiguraciju i JavaScript u pravilnom redoslijedu.
+3. Povežite stvarnu politiku kolačića kroz `policyUrl` i definirajte smisleni `revision`.
+4. Popišite neobvezne skripte i iframeove te ih **učinite inertnima prije prve posjete**.
+5. Testirajte funkcionalnost u anonimnom prozoru.
 
-## Blokirane skripte i iframeovi
+~~~html
+<link rel="stylesheet" href="/assets/brendigo-cookieconsent.css">
+<script>
+  window.BCC_SITE_CONFIG = {
+    language: "hr",
+    position: "bottom-center",
+    theme: "custom",
+    accentColor: "#4357e8",
+    policyUrl: "/politika-kolacica",
+    revision: "2026-11",
+    consentDays: 180
+  };
+</script>
+<script defer src="/assets/brendigo-cookieconsent.js"></script>
+~~~
 
-```html
-<!-- Vanjska skripta se NE učitava dok korisnik ne dopusti kategoriju -->
-<script type="text/plain" data-bcc-category="marketing"
-        data-bcc-src="/assets/marketing.js"></script>
+## 2. Označavanje neobveznih resursa
 
-<!-- Inline skripta -->
-<script type="text/plain" data-bcc-category="analytics">
-  console.log('Aktivirano nakon privole');
+~~~html
+<script type="text/plain"
+        data-bcc-category="analytics"
+        data-bcc-src="/assets/analytics.js"></script>
+
+<script type="text/plain" data-bcc-category="marketing">
+  // Kod se ne pokreće do marketinške privole.
 </script>
 
-<!-- Vanjski video -->
-<iframe title="Vanjski video" data-bcc-category="marketing"
-        data-bcc-src="https://example.org/embed/video"></iframe>
-```
+<iframe title="Vanjski sadržaj" data-bcc-category="marketing"
+        data-bcc-src="https://example.org/embed"></iframe>
 
-Za dodatne dinamički ubačene elemente pozovite `BrendigoCookieConsent.refresh()`.
+<button type="button" data-bcc-open>Postavke kolačića</button>
+~~~
 
-**Važno:** svaka opcionalna integracija mora biti inertna prije prvog učitavanja. Ovaj sustav ne može blokirati normalne `<script src>`, pixele, dinamičke fetch pozive, server-side eventove ili HTML drugih dodataka ako nisu posebno povezani s upraviteljem privola.
+Za dinamički ubačene označene resurse koristite `BrendigoCookieConsent.refresh()`. Neoznačene skripte, poslužiteljska obrada i vanjska pohrana nisu univerzalno zaustavljeni. [Integracije](INTEGRATIONS.hr.md).
 
-## WordPress
+## 3. Izgled i više jezika
 
-Zahtjevi: WordPress 6.2+, PHP 7.4+.
+Postoji devet položaja bannera, tri stila i tri teme. Jezici: hrvatski, engleski, njemački, talijanski, španjolski, francuski i arapski. Možete prilagoditi naslov, opis, gumbe i druge oznake; boje se validiraju i kontrast teksta automatski poboljšava.
 
-- ZIP mora sadržavati mapu `brendigo-cookieconsent` i cijelu podmapu `assets`.
-- Instalirajte preko administratorskog izbornika Dodaci; aktivirajte plugin.
-- Pod **Postavke → CookieConsent** podesite 9 položaja bannera, tri boje, jezik, link, rok i reviziju privole. Unesite katalog pružatelja, zasebno klasificirajte skripte i po potrebi uključite opt-in Google adapter. Odaberite Local ili CDN nakon objave verzioniranog paketa. Potpis je uvijek uključen.
-- Za prijavljene WP skripte upišite `analytics:my-handle` ili `marketing:my-ad-handle` po retku.
-- Dodajte `<button type="button" data-bcc-open>Postavke kolačića</button>` u footer.
+Sve dostupne opcije: [Konfiguracija](CONFIGURATION.hr.md).
 
-Za inline skripte, piksele, embedove i izravno umetnute skripte iz tema ili drugih dodataka potrebne su posebne integracije. Skriptni *handle* razlikuje se od naziva datoteke ili URL-a.
+## 4. WordPress
 
-## Revokacija
+ZIP instalirajte kroz **Dodaci → Dodaj novi → Prenesi dodatak**, zatim otvorite **Postavke → CookieConsent**. Dostupne su postavke položaja, tema, jezika, kataloga usluga, editor prijevoda, vizualni pregled, JSON backup i opcionalni Google Basic adapter.
 
-Nakon revokacije nije moguće automatski poništiti već izvršeni JS. Implementacija mora ukloniti vlastite dodatne kolačiće i zaustaviti vanjske servise u skladu s njihovim API-jem; po potrebi ponovno učitajte stranicu uz već spremljen odbijeni izbor.
+[Kompletan WordPress vodič](WORDPRESS.hr.md). Za WooCommerce vrijedi [poseban kontrolni popis](WOOCOMMERCE.hr.md).
 
-## Testiranje
+## 5. CDN
 
-1. Privatni prozor, bez ranije privole: provjerite Network panel i kolačiće.
-2. Odbij sve: ne smije se učitati nijedna opcionalna označena skripta.
-3. Dopustite samo analitiku: smije se izvršiti samo analitička kategorija.
-4. Osvježite stranicu: odluka ostaje.
-5. Ponovno otvorite postavke i povucite privolu; provjerite zaustavljanje daljnjih zahtjeva i cleanup.
-6. Testirajte mobilni prikaz, tipkovnicu, HR/EN, WCAG i više preglednika.
+Verzionirani paket namijenjen je domeni `cookie.brendigo.com`. Publiciranje zahtijeva stvarni DNS, HTTPS i upload. **Repozitorij ne postavlja hosting samostalno.** Detalji: [CDN](CDN.hr.md).
 
-Privola se sprema u first-party cookie sa SameSite=Lax, Path=/ i Secure na HTTPS-u. Ne postoji centralni audit trail ili mrežna usluga.
+## 6. Provjera nakon instalacije
 
-**Za produkciju obvezno provjerite konkretne servise i primjenjive zakone.**
+- U privatnom prozoru obrišite prethodne kolačiće.
+- Prije odluke provjerite Network: nema neobveznih zahtjeva.
+- Testirajte `Odbij sve`, `Prihvati sve` i pojedinačni izbor.
+- Ponovno učitajte stranicu; provjerite trajnost privole.
+- Ponovno otvorite postavke i povucite odobrene kategorije.
+- Provjerite zaustavljanje servisnih zahtjeva i dostupni cookie cleanup.
+- Testirajte drugi tab iste stranice, RTL i mobilni prikaz.
+- Provjerite da je u službenom prikazu vidljiv `by Brendigo`.
+- Provedite [produkcijski kontrolni popis](GO-LIVE.hr.md).
 
-## CDN i Google Basic adapter
+## 7. Lokalni razvoj
 
-Upute za objavu `cookie.brendigo.com`, skriptni loader, DNS/TLS i opcionalni Consent Mode v2 adapter: [CDN vodič](CDN.hr.md). Koristite lokalni način kao zadani dok CDN nije provjeren.
+~~~bash
+npm run check
+npm test
+npm run build:cdn
+python3 tools/package.py
+python3 -m http.server 8000
+~~~
 
-## Katalog usluga
-
-Dodajte usluge u WordPress administratoru, jednu po retku:
-
-```text
-analytics|Primjer Analitike|Statistika korištenja|_example|13 mjeseci|https://example.org/privacy
-marketing|Primjer marketinga|Mjerenje kampanja|_ad_example|90 dana|https://example.org/privacy
-```
-
-Prva kolona mora biti `necessary`, `preferences`, `analytics` ili `marketing`. Katalog u prikazu privole informira posjetitelje, ali **ne zamjenjuje stvarno blokiranje skripti i dokumentiranje svih kolačića**. U samostalnoj integraciji zadajte `BCC_SITE_CONFIG.services` kao polje objekata s poljima `category`, `name`, `purpose`, `cookies`, `duration`, `privacyUrl`.
-
-## Programski lifecycle
-
-```javascript
-BrendigoCookieConsent.registerProvider({
-  id: 'analytics-local',
-  category: 'analytics',
-  onGrant: () => { /* pokreni pružatelja */ },
-  onRevoke: () => { /* ugasi API i očisti dostupne first-party cookies */ }
-});
-```
-
-`reset()` sada emitira promjenu privole, poziva `onRevoke` i isključuje označene iframeove. Skripte koje su već izvršene ostaju u memoriji dok se servis zasebno ne zaustavi ili stranica ne osvježi.
-
-## Vizualni konfigurator
-
-Otvorite `demo/configurator.html` putem lokalnog HTTP poslužitelja (`python3 -m http.server 8000`) i zatim adresu `http://localhost:8000/demo/configurator.html`. Promjenom pozicije, jezika i boja osvježava se izolirani prikaz bannera. Konfiguracijski isječak dostupan je za kopiranje. To je **demonstracijski alat**, ne automatski generator zakonski ispravne politike kolačića.
-
-## Izvoz i uvoz WordPress postavki
-
-U WordPress administratoru (**Postavke → CookieConsent**) koristite **Export JSON configuration**. Uvoz podržava JSON datoteke prethodno izvezene iz istog dodatka (sadržaj zalijepiti u polje za import) i može zamijeniti cijelu konfiguraciju. Import ima CSRF nonce, administrativnu provjeru ovlasti, shemu i ograničenje veličine te sanitizira sve vrijednosti. Prije importa napravite backup.
-
-## Lokalna dijagnostika
-
-`BrendigoCookieConsent.auditLocal()` izravno vraća browser-vidljive nazive first-party kolačića, ključeve `localStorage`/`sessionStorage` i popis skripti/iframeova sa statusom oznake kategorije. Podaci se **ne šalju** s korisnikove stranice. Ovaj pregled ne vidi HttpOnly cookies, drugi origin, serverske eventove ili ranije mrežne zahtjeve; za potpuno ispitivanje koristite browser Network panel i server logove.
+Otvorite `http://localhost:8000/demo/configurator.html`. Lokalna potvrda odabira dostupna je kroz `getConsentReceipt()` i gumb u postavkama nakon odluke; [opis ograničenja](CONSENT-RECEIPT.hr.md).
