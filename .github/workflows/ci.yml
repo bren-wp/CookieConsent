@@ -25,6 +25,7 @@ jobs:
       - name: Validate CMS manifests and PHP integration syntax
         run: |
           python3 tools/validate-integrations.py
+          php tests/platforms-php.php
           find joomla drupal magento opencart prestashop -type f -name '*.php' -print0 | xargs -0 -n1 php -l
       - name: WordPress plugin PHP syntax
         run: php -l wordpress/brendigo-cookieconsent/brendigo-cookieconsent.php
