@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="hr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CookieConsent by Brendigo — Upravljanje privolama za web i WordPress</title>
+<meta name="description" content="CookieConsent by Brendigo: lokalno ili putem vlastitog CDN-a, detaljna privola, WordPress dodatak, pregled postavki i višejezični cookie banner.">
+<meta name="author" content="Brendigo"><meta name="theme-color" content="#080f24">
+<link rel="canonical" href="https://cookie.brendigo.com/">
+<link rel="alternate" hreflang="en" href="https://cookie.brendigo.com/en.html"><link rel="alternate" hreflang="hr" href="https://cookie.brendigo.com/">
+<link rel="stylesheet" href="./styles.css"><link rel="icon" href="./favicon.svg" type="image/svg+xml">
+<meta property="og:title" content="CookieConsent by Brendigo"><meta property="og:description" content="Upravljanje privolama, WordPress dodatak i samostalna skripta."><meta property="og:type" content="website"><meta property="og:url" content="https://cookie.brendigo.com/">
+</head>
+<body>
+<a class="skip" href="#main">Preskoči na sadržaj</a>
+<header><div class="bar wrap"><a class="brand" href="/" aria-label="CookieConsent by Brendigo">Cookie<span>Consent</span><span class="credit">by Brendigo</span></a>
+<nav class="nav" aria-label="Glavna navigacija"><a href="#mogucnosti">Mogućnosti</a><a href="/installation.html">Instalacija</a><a href="#demo">Demo</a><a href="https://github.com/bren-wp/CookieConsent/blob/main/docs/README.md">Dokumentacija</a><a href="/en.html" lang="en">EN</a></nav></div></header>
+<main id="main">
+<section class="hero"><div class="wrap hero-grid">
+<div><div class="eyebrow">Web · WordPress · CDN · Privatnost</div><h1>Privola koja poštuje izbor korisnika.</h1>
+<p>Jedinstven sustav za upravljanje kolačićima i opcionalnim tehnologijama. Prilagodljiv dizajn, granularne kategorije i usluge, lokalna instalacija ili vlastiti CDN.</p>
+<div class="row-buttons"><a class="btn primary" href="https://github.com/bren-wp/CookieConsent/releases">Preuzmi CookieConsent</a><a class="btn dark" href="/installation.html">Upute za instalaciju</a></div>
+<div class="flags"><span>7 jezika + RTL</span><span>9 položaja</span><span>Bez obveznog računa</span><span>by Brendigo</span></div></div>
+<div id="demo" class="preview-shell"><div class="preview-top"><span>Interaktivni pregled</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span></div>
+<iframe src="./demo/index.html?preview=1" title="CookieConsent by Brendigo — interaktivni pregled" loading="lazy"></iframe>
+</div></div></section>
+<section id="mogucnosti"><div class="wrap"><div class="section-head"><span class="eyebrow">Mogućnosti</span><h2>Privatnost i kontrola u jednom proizvodu.</h2><p>Sustav se instalira na postojeću web-stranicu i povezuje s njezinim stvarnim uslugama.</p></div>
+<div class="grid">
+<article class="tile"><div class="number">01</div><h3>Početni opt-in</h3><p>Neobvezne kategorije ostaju isključene do valjane odluke. Prihvaćanje i odbijanje dostupni su u prvom sloju.</p></article>
+<article class="tile"><div class="number">02</div><h3>Granularna privola</h3><p>Kategorije i pojedinačne usluge uz svrhu, rok i vlastitu politiku pružatelja.</p></article>
+<article class="tile"><div class="number">03</div><h3>Vizualni editor</h3><p>Devet položaja, tri stila, svijetla i tamna tema, boje, položaj modala i tekstovi.</p></article>
+<article class="tile"><div class="number">04</div><h3>WordPress dodatak</h3><p>Administratorske postavke, lokalni pregled, editor prijevoda i izvoz/uvoz konfiguracije.</p></article>
+<article class="tile"><div class="number">05</div><h3>Web i CDN</h3><p>Samostalni JavaScript i CSS, uz opciju verzionirane distribucije s cookie.brendigo.com.</p></article>
+<article class="tile"><div class="number">06</div><h3>Povlačenje privole</h3><p>Trajna promjena izbora, API za integracije, lokalna potvrda odabira i sinkronizacija kartica.</p></article>
+</div></div></section>
+<section id="ugradnja"><div class="wrap cols"><div><div class="section-head"><span class="eyebrow">Jednostavna integracija</span><h2>Jedna skripta za web.</h2><p>Koristite vlastiti hosting ili verzionirani CDN nakon njegova puštanja u rad. Opcionalne skripte morate pravilno označiti i testirati.</p></div>
+<div class="row-buttons"><a class="btn primary" href="/installation.html">Sve upute</a><a class="btn" href="https://github.com/bren-wp/CookieConsent/tree/main/demo">Konfigurator</a></div></div>
+<div class="code-card"><pre><code>&lt;script&gt;
+  window.BCC_SITE_CONFIG = {
+    language: "hr",
+    revision: "1",
+    policyUrl: "/politika-kolacica"
+  };
+&lt;/script&gt;
+&lt;script defer
+  src="https://cookie.brendigo.com/v0.9.0/loader.js"&gt;
+&lt;/script&gt;</code></pre><p class="muted">Primjer CDN URL-a. Dostupnost treba potvrditi nakon stvarne objave.</p></div></div></section>
+<section class="cta"><div class="wrap"><div class="pane"><span class="eyebrow">CookieConsent by Brendigo</span><h2>Za web-stranice i WordPress projekte.</h2><p>Preuzmite standalone paket, WordPress dodatak ili pripremljeni CDN paket. Dostupna je i tehnička dokumentacija za implementaciju, testiranje i upravljanje privolama.</p><div class="row-buttons"><a class="btn primary" href="https://github.com/bren-wp/CookieConsent/releases">Pogledaj izdanja</a><a class="btn" href="https://github.com/bren-wp/CookieConsent/blob/main/docs/ROADMAP.md">Plan razvoja</a></div></div></div></section>
+</main>
+<footer><div class="wrap footerbar"><div><div class="brand">Cookie<span>Consent</span></div><span class="credit">by Brendigo · © 2026 Brendigo</span><p class="small">CookieConsent pruža tehničke kontrole, ali sama instalacija nije pravna certifikacija. Svaka stranica mora provjeriti stvarne tehnologije i primjenjive propise.</p></div>
+<div class="nav"><a href="https://brendigo.com">Autor: Brendigo</a><a href="/installation.html">Instalacija</a><a href="/legal.html">Pravne napomene</a><a href="https://github.com/bren-wp/CookieConsent">GitHub</a></div></div></footer>
+</body></html>

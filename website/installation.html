@@ -1,0 +1,18 @@
+<!doctype html><html lang="hr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="author" content="Brendigo"><meta name="description" content="Instalacija CookieConsent by Brendigo za HTML/PHP, WordPress i CDN."><title>Instalacija — CookieConsent by Brendigo</title><link rel="canonical" href="https://cookie.brendigo.com/installation.html"><link rel="stylesheet" href="./styles.css"><link rel="icon" href="./favicon.svg" type="image/svg+xml"></head><body><a class="skip" href="#main">Preskoči sadržaj</a>
+<header><div class="bar wrap"><a class="brand" href="/">Cookie<span>Consent</span><span class="credit">by Brendigo</span></a><nav class="nav"><a href="/">Naslovnica</a><a href="https://github.com/bren-wp/CookieConsent/releases">Izdanja</a><a href="/legal.html">Pravne napomene</a></nav></div></header>
+<main id="main" class="wrap content"><span class="eyebrow">Upute</span><h1>Instalacija CookieConsent</h1><p>Odaberite način instalacije, postavite vlastitu politiku kolačića i provedite provjeru stvarnih opcionalnih usluga.</p>
+<h2>1. Web — lokalna instalacija</h2><p>Preuzmite <a href="https://github.com/bren-wp/CookieConsent/releases">Standalone ZIP</a>, prenesite JS i CSS na vlastitu web-stranicu te ih uključite prije opcionalnih skripti.</p>
+<div class="code-card"><pre><code>&lt;link rel="stylesheet" href="/assets/brendigo-cookieconsent.css"&gt;
+&lt;script&gt;
+ window.BCC_SITE_CONFIG = {
+  language: "hr",
+  policyUrl: "/politika-kolacica",
+  revision: "1"
+ };
+&lt;/script&gt;
+&lt;script defer src="/assets/brendigo-cookieconsent.js"&gt;&lt;/script&gt;</code></pre></div>
+<h2>2. WordPress dodatak</h2><p>Preuzmite <strong>brendigo-cookieconsent-wordpress.zip</strong>, instalirajte ga kroz <strong>Dodaci → Dodaj novi → Prenesi dodatak</strong> i otvorite <strong>Postavke → CookieConsent</strong>. Konfigurirajte izgled, jezike, kategorije, katalog usluga i politiku kolačića.</p>
+<h2>3. Vlastiti CDN</h2><p>Za <strong>cookie.brendigo.com</strong> izrađuje se verzionirani CDN paket. Tek nakon stvarnog postavljanja DNS/TLS i datoteka moguće je koristiti sljedeći URL:</p>
+<div class="code-card"><pre><code>&lt;script defer src="https://cookie.brendigo.com/v0.9.0/loader.js"&gt;&lt;/script&gt;</code></pre></div>
+<h2>4. Prije objave</h2><ol><li>Napravite potpun popis stvarnih kolačića, skripti, piksela, iframeova i server-side događaja.</li><li>Neobvezne resurse blokirajte prije valjane privole.</li><li>Testirajte jednako jednostavno prihvaćanje i odbijanje te povlačenje privole.</li><li>Uskladite politiku privatnosti, svrhe, rokove i pravnu osnovu s stvarnim ponašanjem stranice.</li><li>Provjerite pristupačnost i stvarne mrežne zahtjeve.</li></ol>
+<p>Opsežnije upute: <a href="https://github.com/bren-wp/CookieConsent/blob/main/docs/INSTALL.hr.md">Instalacija</a> · <a href="https://github.com/bren-wp/CookieConsent/blob/main/docs/WORDPRESS.hr.md">WordPress</a> · <a href="https://github.com/bren-wp/CookieConsent/blob/main/docs/GO-LIVE.hr.md">Produkcijski prihvat</a>.</p></main><footer><div class="wrap footerbar"><strong>© 2026 Brendigo</strong><nav class="nav"><a href="/">Naslovnica</a><a href="https://brendigo.com">Autor</a><a href="/legal.html">Pravne napomene</a></nav></div></footer></body></html>
