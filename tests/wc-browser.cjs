@@ -31,6 +31,8 @@ const {chromium}=require('playwright');
    await page.locator('#billing_email').fill('buyer@example.org');
    await page.locator('#billing_phone').fill('0910000000');
    await page.locator('#billing_country').selectOption('HR');
+   // WooCommerce requires a state/county for HR and resets it on country change.
+   await page.locator('#billing_state').selectOption({label:'Primorje-Gorski Kotar County'});
    await page.locator('#billing_address_1').fill('Testna 1');
    await page.locator('#billing_city').fill('Rijeka');
    await page.locator('#billing_postcode').fill('51000');
