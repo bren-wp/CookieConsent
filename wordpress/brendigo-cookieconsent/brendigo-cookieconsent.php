@@ -332,6 +332,17 @@ function render_settings(): void {
             <code>[brendigo_cookie_catalog language="hr"]</code>
             <span class="description"><?php esc_html_e('Insert this into any public page to show the declared service and cookie inventory.', 'brendigo-cookieconsent'); ?></span>
         </p>
+        <div class="card" style="max-width:850px;padding:16px 20px;margin:18px 0">
+          <h2><?php esc_html_e('Brzi predlošci izgleda', 'brendigo-cookieconsent'); ?></h2>
+          <p><?php esc_html_e('Predlošci prilagođavaju samo prikaz. Ne mijenjaju privolu, sadržaj politike ni kategorizaciju usluga. Odaberite i spremite postavke.', 'brendigo-cookieconsent'); ?></p>
+          <p class="bcc-preset-actions">
+            <button type="button" class="button" data-bcc-design-preset="balanced">Uravnoteženi</button>
+            <button type="button" class="button" data-bcc-design-preset="floating">Plutajući</button>
+            <button type="button" class="button" data-bcc-design-preset="minimal">Minimalni</button>
+            <button type="button" class="button" data-bcc-design-preset="dark">Tamni premium</button>
+          </p>
+          <p id="bcc-preset-message" role="status" aria-live="polite"></p>
+        </div>
         <form action="options.php" method="post">
             <?php settings_fields('brendigo_cookieconsent'); ?>
             <table class="form-table" role="presentation">
