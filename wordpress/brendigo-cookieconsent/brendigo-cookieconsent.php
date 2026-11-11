@@ -542,7 +542,13 @@ function render_settings(): void {
         </form>
         <h2><?php esc_html_e('Visual preview', 'brendigo-cookieconsent'); ?></h2>
         <p><?php esc_html_e('Updates while you edit the controls above. This preview is illustrative; save settings to apply them publicly.', 'brendigo-cookieconsent'); ?></p>
-        <div id="bcc-admin-preview" class="bcc-preview" data-position="bottom-center" data-style="standard" aria-label="<?php esc_attr_e('Illustrative consent banner preview', 'brendigo-cookieconsent'); ?>">
+        <p class="bcc-preview-device-actions" role="group" aria-label="<?php esc_attr_e('Preview device width', 'brendigo-cookieconsent'); ?>">
+            <button type="button" class="button button-primary" data-bcc-preview-device="desktop" aria-pressed="true">Desktop</button>
+            <button type="button" class="button" data-bcc-preview-device="mobile" aria-pressed="false">Mobitel 390 px</button>
+            <button type="button" class="button" data-bcc-preview-device="narrow" aria-pressed="false">Mobitel 320 px</button>
+        </p>
+        <p id="bcc-preview-contrast" class="description" role="status" aria-live="polite"></p>
+        <div id="bcc-admin-preview" class="bcc-preview" data-device="desktop" data-position="bottom-center" data-style="standard" aria-label="<?php esc_attr_e('Illustrative consent banner preview', 'brendigo-cookieconsent'); ?>">
             <div class="bcc-preview-banner">
                 <div class="bcc-preview-content">
                     <span class="bcc-preview-eyebrow">COOKIECONSENT</span>

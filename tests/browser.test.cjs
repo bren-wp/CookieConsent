@@ -248,6 +248,46 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
           assert.equal(download.suggestedFilename(),'brendigo-cookieconsent-config.json');
         } finally {await context.close();}
       });
+      await t.test('design presets and contrast inspector preserve user controls',async()=>{
+        const context=await browser.newContext();
+        try{
+          const page=await context.newPage();
+          await page.goto(origin+'/demo/configurator.html');
+          const inspector=page.locator('#contrast-status');
+          assert.match(await inspector.innerText(),/4\.5:1/);
+          await page.locator('[data-bcc-design-preset="floating"]').click();
+          assert.equal(await page.locator('#bannerWidth').inputValue(),'520');
+          assert.equal(await page.locator('#position').inputValue(),'bottom-right');
+          assert.equal(await page.locator('#mobileWidth').inputValue(),'96');
+          await page.locator('#viewport').selectOption('narrow');
+          await page.waitForFunction(()=>{
+            const frame=document.querySelector('#preview');
+            return frame && frame.contentWindow && frame.contentWindow.innerWidth===320 &&
+              frame.contentDocument.querySelector('.bcc-banner');
+          });
+          await page.waitForFunction(()=>{
+            const node=document.querySelector('#preview-metrics');
+            return node && /Vidljivi gumbi: 3\/3/.test(node.textContent);
+          });
+          assert.match(await page.locator('#preview-metrics').innerText(),/Bez horizontalnog preljeva/);
+          const frame=page.frameLocator('#preview');
+          const banner=frame.locator('.bcc-banner');
+          assert.ok((await banner.boundingBox()).width<=320);
+          await page.locator('[data-bcc-design-preset="dark"]').click();
+          assert.equal(await page.locator('#theme').inputValue(),'dark');
+          assert.equal(await page.locator('#headingSize').inputValue(),'22');
+          assert.match(await inspector.innerText(),/Kontrast teksta/);
+          await page.locator('#bannerWidth').fill('999999');
+          const snippet=await page.locator('#snippet').inputValue();
+          assert.ok(snippet.includes('"bannerWidth": 0'),
+            'invalid dimensions are never exported');
+          assert.match(await page.locator('#design-validation').innerText(),/bannerWidth/);
+          await page.locator('[data-bcc-design-preset="balanced"]').click();
+          assert.equal(await page.locator('#bannerWidth').inputValue(),'0');
+          assert.equal(await page.locator('#theme').inputValue(),'custom');
+          assert.equal(await page.locator('#equal').isChecked(),true);
+        }finally{await context.close();}
+      });
       await t.test('individual service switches control only the selected tracker',async()=>{
         const context=await browser.newContext();
         try{

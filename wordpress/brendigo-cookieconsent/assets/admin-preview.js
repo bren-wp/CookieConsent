@@ -10,6 +10,7 @@
     var fields={
       position:doc.getElementById('bcc-position'),
       style:doc.getElementById('bcc-style'),
+      theme:doc.getElementById('bcc-theme'),
       language:doc.getElementById('bcc-language'),
       direction:doc.getElementById('bcc-direction'),
       accent:doc.getElementById('bcc-color'),
@@ -69,7 +70,10 @@
       var position=fields.position.value,style=fields.style.value;
       var language=fields.language.value==='auto'?'en':fields.language.value;
       var direction=fields.direction.value==='auto'?(language==='ar'?'rtl':'ltr'):fields.direction.value;
-      var accent=fields.accent.value,surface=fields.surface.value,body=fields.text.value;
+      var theme=fields.theme.value;
+      var accent=fields.accent.value;
+      var surface=theme==='dark'?'#171f34':theme==='light'?'#ffffff':fields.surface.value;
+      var body=theme==='dark'?'#f7f8ff':theme==='light'?'#17223e':fields.text.value;
       preview.dataset.position=position;
       preview.dataset.style=style;
       preview.dir=direction;
@@ -77,6 +81,11 @@
       preview.style.setProperty('--bcc-demo-button-text',readable('#ffffff',accent));
       preview.style.setProperty('--bcc-demo-surface',surface);
       preview.style.setProperty('--bcc-demo-foreground',readable(body,surface));
+      var ratio=contrast(readable(body,surface),surface);
+      var primary=contrast(readable('#ffffff',accent),accent);
+      var status=doc.getElementById('bcc-preview-contrast');
+      if(status)status.textContent='Kontrast teksta '+ratio.toFixed(1)+':1 · gumbi '+
+        primary.toFixed(1)+':1 (minimalni WCAG AA cilj za običan tekst: 4.5:1).';
       function setting(key) { return Number(fields[key] && fields[key].value); }
       function optional(key, auto, cssKey, transform) {
         var value=setting(key);
@@ -121,6 +130,20 @@
         update();
         var message=doc.getElementById('bcc-preset-message');
         if(message)message.textContent='Odabrani izgled je primijenjen. Spremite postavke za objavu.';
+      });
+    });
+    doc.querySelectorAll('[data-bcc-preview-device]').forEach(function(button){
+      button.addEventListener('click',function(){
+        var device=button.getAttribute('data-bcc-preview-device');
+        if(['desktop','mobile','narrow'].indexOf(device)===-1)return;
+        preview.dataset.device=device;
+        doc.querySelectorAll('[data-bcc-preview-device]').forEach(function(item){
+          var current=item===button;
+          item.setAttribute('aria-pressed',String(current));
+          if(item.classList){
+            item.classList.toggle('button-primary',current);
+          }
+        });
       });
     });
     var translationSource=doc.getElementById('bcc-translations');
