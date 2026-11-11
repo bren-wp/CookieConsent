@@ -44,6 +44,15 @@
       accentColor: previewParams.get('accent') || '#4357e8',
       surfaceColor: previewParams.get('surface') || '#ffffff',
       textColor: previewParams.get('text') || '#17223e',
+      bannerWidth: Number(previewParams.get('bannerWidth') || '0'),
+      mobileWidth: Number(previewParams.get('mobileWidth') || '100'),
+      bannerPadding: Number(previewParams.get('bannerPadding') || '0'),
+      bannerRadius: Number(previewParams.get('bannerRadius') || '-1'),
+      bannerOffset: Number(previewParams.get('bannerOffset') || '0'),
+      headingSize: Number(previewParams.get('headingSize') || '0'),
+      bodySize: Number(previewParams.get('bodySize') || '0'),
+      buttonHeight: Number(previewParams.get('buttonHeight') || '0'),
+      buttonRadius: Number(previewParams.get('buttonRadius') || '-1'),
       cookieName: previewMode ? 'bcc_demo_preview' : 'bcc_consent',
       translations: previewMode ? {
         [previewParams.get('language') || 'hr']: Object.fromEntries(

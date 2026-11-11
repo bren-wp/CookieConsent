@@ -207,3 +207,41 @@ test('scanner redacts URLs and reports bounded ResourceTiming metadata only',()=
  assert.ok(!JSON.stringify(report).includes('secret'));
  assert.ok(report.limitations.some(x=>x.includes('HttpOnly')));
 });
+
+test('design sizing limits allow safe accessible values and reject CSS injection',()=>{
+ const sanitize=consent.utils.sanitizeLayoutNumber;
+ assert.equal(sanitize('bannerWidth',920),920);
+ assert.equal(sanitize('bannerWidth',20000),0);
+ assert.equal(sanitize('bannerWidth','920px'),0);
+ assert.equal(sanitize('bannerWidth',320),320);
+ assert.equal(sanitize('mobileWidth',82),82);
+ assert.equal(sanitize('mobileWidth',50),100);
+ assert.equal(sanitize('bannerRadius',0),0);
+ assert.equal(sanitize('bannerRadius',-1),-1);
+ assert.equal(sanitize('bannerPadding',48),48);
+ assert.equal(sanitize('bannerPadding',9),0);
+ assert.equal(sanitize('buttonHeight',40),0);
+ assert.equal(sanitize('buttonHeight',44),44);
+ assert.equal(sanitize('headingSize',32),32);
+ assert.equal(sanitize('headingSize',100),0);
+ assert.equal(sanitize('buttonRadius','0;position:fixed'),-1);
+});
+test('standalone JSON import keeps numeric design settings and validates them',()=>{
+ const input={schema:'brendigo-cookieconsent-standalone-v1',
+   config:{bannerWidth:960,mobileWidth:90,bannerPadding:24,
+     bannerRadius:0,bannerOffset:30,headingSize:25,bodySize:16,
+     buttonHeight:48,buttonRadius:12}};
+ const config=consent.utils.parseConfigurationJSON(JSON.stringify(input));
+ assert.equal(config.bannerWidth,960);
+ assert.equal(config.mobileWidth,90);
+ assert.equal(config.bannerRadius,0);
+ assert.equal(config.headingSize,25);
+ assert.equal(config.buttonHeight,48);
+ input.config.bannerWidth='calc(100vw)';
+ input.config.mobileWidth=30;
+ input.config.buttonHeight=1;
+ const invalid=consent.utils.parseConfigurationJSON(JSON.stringify(input));
+ assert.equal(invalid.bannerWidth,0);
+ assert.equal(invalid.mobileWidth,100);
+ assert.equal(invalid.buttonHeight,0);
+});

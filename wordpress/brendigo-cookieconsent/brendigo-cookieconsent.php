@@ -374,7 +374,7 @@ function render_settings(): void {
                 <tr><th scope="row" colspan="2"><h2><?php esc_html_e('Size, spacing and typography', 'brendigo-cookieconsent'); ?></h2><p class="description"><?php esc_html_e('Responsive controls cannot hide reject or customize buttons. Values outside safe bounds are ignored.', 'brendigo-cookieconsent'); ?></p></th></tr>
                 <tr>
                     <th scope="row"><label for="bcc-width"><?php esc_html_e('Širina bannera (px)', 'brendigo-cookieconsent'); ?></label></th>
-                    <td><input id="bcc-width" type="number" min="320" max="1440" step="1" name="<?php echo esc_attr(OPTION); ?>[banner_width]" value="<?php echo esc_attr($o['banner_width']); ?>"><p class="description"><?php esc_html_e('0 = automatska širina prema položaju.', 'brendigo-cookieconsent'); ?></p></td>
+                    <td><input id="bcc-width" type="number" min="0" max="1440" step="1" name="<?php echo esc_attr(OPTION); ?>[banner_width]" value="<?php echo esc_attr($o['banner_width']); ?>"><p class="description"><?php esc_html_e('0 = automatska širina prema položaju.', 'brendigo-cookieconsent'); ?></p></td>
                 </tr>
                 <tr>
                     <th scope="row"><label for="bcc-mobile-width"><?php esc_html_e('Mobilna širina (%)', 'brendigo-cookieconsent'); ?></label></th>
@@ -382,7 +382,7 @@ function render_settings(): void {
                 </tr>
                 <tr>
                     <th scope="row"><label for="bcc-padding"><?php esc_html_e('Unutarnji razmak (px)', 'brendigo-cookieconsent'); ?></label></th>
-                    <td><input id="bcc-padding" type="number" min="12" max="48" step="1" name="<?php echo esc_attr(OPTION); ?>[banner_padding]" value="<?php echo esc_attr($o['banner_padding']); ?>"><p class="description"><?php esc_html_e('0 = zadani stil.', 'brendigo-cookieconsent'); ?></p></td>
+                    <td><input id="bcc-padding" type="number" min="0" max="48" step="1" name="<?php echo esc_attr(OPTION); ?>[banner_padding]" value="<?php echo esc_attr($o['banner_padding']); ?>"><p class="description"><?php esc_html_e('0 = zadani stil.', 'brendigo-cookieconsent'); ?></p></td>
                 </tr>
                 <tr>
                     <th scope="row"><label for="bcc-radius"><?php esc_html_e('Zaobljenost bannera (px)', 'brendigo-cookieconsent'); ?></label></th>
@@ -390,19 +390,19 @@ function render_settings(): void {
                 </tr>
                 <tr>
                     <th scope="row"><label for="bcc-offset"><?php esc_html_e('Razmak od ruba (px)', 'brendigo-cookieconsent'); ?></label></th>
-                    <td><input id="bcc-offset" type="number" min="8" max="80" step="1" name="<?php echo esc_attr(OPTION); ?>[banner_offset]" value="<?php echo esc_attr($o['banner_offset']); ?>"><p class="description"><?php esc_html_e('0 = zadani položaj; na mobitelu zadržava se sigurnih 12 px.', 'brendigo-cookieconsent'); ?></p></td>
+                    <td><input id="bcc-offset" type="number" min="0" max="80" step="1" name="<?php echo esc_attr(OPTION); ?>[banner_offset]" value="<?php echo esc_attr($o['banner_offset']); ?>"><p class="description"><?php esc_html_e('0 = zadani položaj; na mobitelu zadržava se sigurnih 12 px.', 'brendigo-cookieconsent'); ?></p></td>
                 </tr>
                 <tr>
                     <th scope="row"><label for="bcc-heading-size"><?php esc_html_e('Veličina naslova (px)', 'brendigo-cookieconsent'); ?></label></th>
-                    <td><input id="bcc-heading-size" type="number" min="16" max="32" step="1" name="<?php echo esc_attr(OPTION); ?>[heading_size]" value="<?php echo esc_attr($o['heading_size']); ?>"><p class="description"><?php esc_html_e('0 = zadani stil.', 'brendigo-cookieconsent'); ?></p></td>
+                    <td><input id="bcc-heading-size" type="number" min="0" max="32" step="1" name="<?php echo esc_attr(OPTION); ?>[heading_size]" value="<?php echo esc_attr($o['heading_size']); ?>"><p class="description"><?php esc_html_e('0 = zadani stil.', 'brendigo-cookieconsent'); ?></p></td>
                 </tr>
                 <tr>
                     <th scope="row"><label for="bcc-body-size"><?php esc_html_e('Veličina opisa (px)', 'brendigo-cookieconsent'); ?></label></th>
-                    <td><input id="bcc-body-size" type="number" min="12" max="20" step="1" name="<?php echo esc_attr(OPTION); ?>[body_size]" value="<?php echo esc_attr($o['body_size']); ?>"><p class="description"><?php esc_html_e('0 = zadani stil; preporučeno 14–18 px.', 'brendigo-cookieconsent'); ?></p></td>
+                    <td><input id="bcc-body-size" type="number" min="0" max="20" step="1" name="<?php echo esc_attr(OPTION); ?>[body_size]" value="<?php echo esc_attr($o['body_size']); ?>"><p class="description"><?php esc_html_e('0 = zadani stil; preporučeno 14–18 px.', 'brendigo-cookieconsent'); ?></p></td>
                 </tr>
                 <tr>
                     <th scope="row"><label for="bcc-button-height"><?php esc_html_e('Minimalna visina gumba (px)', 'brendigo-cookieconsent'); ?></label></th>
-                    <td><input id="bcc-button-height" type="number" min="44" max="64" step="1" name="<?php echo esc_attr(OPTION); ?>[button_height]" value="<?php echo esc_attr($o['button_height']); ?>"><p class="description"><?php esc_html_e('0 = zadani stil; preporučeno 44 px ili više.', 'brendigo-cookieconsent'); ?></p></td>
+                    <td><input id="bcc-button-height" type="number" min="0" max="64" step="1" name="<?php echo esc_attr(OPTION); ?>[button_height]" value="<?php echo esc_attr($o['button_height']); ?>"><p class="description"><?php esc_html_e('0 = zadani stil; preporučeno 44 px ili više.', 'brendigo-cookieconsent'); ?></p></td>
                 </tr>
                 <tr>
                     <th scope="row"><label for="bcc-button-radius"><?php esc_html_e('Zaobljenost gumba (px)', 'brendigo-cookieconsent'); ?></label></th>

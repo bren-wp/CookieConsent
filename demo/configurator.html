@@ -66,6 +66,18 @@
           <option value="minimal">Minimalistički</option>
         </select>
       </div>
+      <fieldset class="design-controls"><legend><strong>Dimenzije i tipografija — desktop / mobitel</strong></legend>
+        <p class="help">Sva polja su ograničena na sigurne vrijednosti. Promjene se vide u pregledu i izvoze u JSON.</p>
+        <div class="field"><label for="bannerWidth">Širina bannera — desktop (px)</label><input id="bannerWidth" type="number" min="0" max="1440" step="1" value="0"><small class="help">0 = automatski, stvarni raspon 320–1440</small></div>
+        <div class="field"><label for="mobileWidth">Širina — mobitel (%)</label><input id="mobileWidth" type="number" min="82" max="100" step="1" value="100"><small class="help">82–100 %, uz zaštitne rubove</small></div>
+        <div class="field"><label for="bannerPadding">Unutarnji razmak (px)</label><input id="bannerPadding" type="number" min="0" max="48" step="1" value="0"><small class="help">0 = automatski, inače 12–48</small></div>
+        <div class="field"><label for="bannerRadius">Zaobljenost bannera (px)</label><input id="bannerRadius" type="number" min="-1" max="40" step="1" value="-1"><small class="help">-1 = automatski, 0 = oštri kutovi</small></div>
+        <div class="field"><label for="bannerOffset">Razmak od ruba (px)</label><input id="bannerOffset" type="number" min="0" max="80" step="1" value="0"><small class="help">0 = automatski; na mobitelu ostaje sigurni rub</small></div>
+        <div class="field"><label for="headingSize">Naslov — veličina (px)</label><input id="headingSize" type="number" min="0" max="32" step="1" value="0"><small class="help">0 = automatski, inače 16–32</small></div>
+        <div class="field"><label for="bodySize">Opis — veličina (px)</label><input id="bodySize" type="number" min="0" max="20" step="1" value="0"><small class="help">0 = automatski, inače 12–20</small></div>
+        <div class="field"><label for="buttonHeight">Visina gumba (px)</label><input id="buttonHeight" type="number" min="0" max="64" step="1" value="0"><small class="help">0 = automatski, inače 44–64</small></div>
+        <div class="field"><label for="buttonRadius">Zaobljenost gumba (px)</label><input id="buttonRadius" type="number" min="-1" max="32" step="1" value="-1"><small class="help">-1 = automatski, 0 = oštri kutovi</small></div>
+      </fieldset>
       <div class="field">
         <label for="language">Jezik</label>
         <select id="language">
@@ -128,7 +140,14 @@
       <p class="help">Prikaz nije certifikat usklađenosti. Provjerite stvarne kolačiće, pravila i sve povezane servise.</p>
     </aside>
     <section class="preview-pane" aria-label="Prikaz bannera">
-      <div class="preview-head"><strong>Pregled bannera</strong><span>Desktop / Mobile — promijenite širinu prozora</span></div>
+      <div class="preview-head"><strong>Pregled bannera</strong>
+        <label for="viewport">Širina pregleda:
+          <select id="viewport" aria-label="Širina pregleda">
+            <option value="desktop">Desktop</option>
+            <option value="mobile">Mobitel (390 px)</option>
+            <option value="narrow">Mali mobitel (320 px)</option>
+          </select>
+        </label></div>
       <iframe id="preview" title="Pregled CookieConsent bannera" src="index.html?preview=1"></iframe>
       <div class="hint">Svaki pregled prikazuje stanje prije privole radi provjere dizajna.</div>
     </section>
@@ -137,7 +156,9 @@
   <script>
     (function () {
       'use strict';
-      var keys=['position','style','language','theme','prefs','accent','surface','text','heading','intro','accept','reject','settings'];
+      var keys=['position','style','language','theme','prefs','accent','surface','text','heading','intro','accept','reject','settings',
+        'bannerWidth','mobileWidth','bannerPadding','bannerRadius','bannerOffset',
+        'headingSize','bodySize','buttonHeight','buttonRadius'];
       var controls={};
       var imported={};
       var refreshTimer=null;
@@ -152,6 +173,10 @@
         o.flip=document.getElementById('flip').checked;
         o.equal=document.getElementById('equal').checked;
         o.reducedMotion=document.getElementById('reducedMotion').checked;
+        ['bannerWidth','mobileWidth','bannerPadding','bannerRadius','bannerOffset',
+          'headingSize','bodySize','buttonHeight','buttonRadius'].forEach(function(key){
+          o[key]=Number(o[key]);
+        });
         return o;
       }
       function buildConfig(o){
@@ -160,6 +185,10 @@
           preferencesPosition:o.prefs,flipButtons:o.flip,equalWeightButtons:o.equal,
           disableAnimations:o.reducedMotion,accentColor:o.accent,
           surfaceColor:o.surface,textColor:o.text,
+          bannerWidth:o.bannerWidth,mobileWidth:o.mobileWidth,
+          bannerPadding:o.bannerPadding,bannerRadius:o.bannerRadius,bannerOffset:o.bannerOffset,
+          headingSize:o.headingSize,bodySize:o.bodySize,
+          buttonHeight:o.buttonHeight,buttonRadius:o.buttonRadius,
           policyUrl:imported.policyUrl || '/politika-kolacica',
           revision:imported.revision || '1'
         });
@@ -188,11 +217,21 @@
         document.getElementById('snippet').value =
           'window.BCC_SITE_CONFIG = '+JSON.stringify(buildConfig(o),null,2)+';';
       }
+      document.getElementById('viewport').addEventListener('change',function(){
+        var selected=this.value;
+        var frame=document.getElementById('preview');
+        frame.style.maxWidth=selected==='desktop'?'none':selected==='mobile'?'390px':'320px';
+        frame.style.width=selected==='desktop'?'100%':selected==='mobile'?'390px':'320px';
+        frame.style.margin=selected==='desktop'?'0':'auto';
+      });
       document.getElementById('refresh').addEventListener('click',function(){
         if(refreshTimer!==null){clearTimeout(refreshTimer);refreshTimer=null;}
         refresh();
       });
-      keys.forEach(function(key){controls[key].addEventListener('change',refresh);});
+      keys.forEach(function(key){
+        controls[key].addEventListener('change',refresh);
+        if(controls[key].type==='number')controls[key].addEventListener('input',scheduleRefresh);
+      });
       ['flip','equal','reducedMotion'].forEach(function(key){
         document.getElementById(key).addEventListener('change',refresh);
       });
@@ -231,6 +270,10 @@
             var source={flip:'flipButtons',equal:'equalWeightButtons',
               reducedMotion:'disableAnimations'}[key];
             if(typeof parsed[source]==='boolean')document.getElementById(key).checked=parsed[source];
+          });
+          ['bannerWidth','mobileWidth','bannerPadding','bannerRadius','bannerOffset',
+            'headingSize','bodySize','buttonHeight','buttonRadius'].forEach(function(key){
+            if(Number.isInteger(parsed[key]))controls[key].value=parsed[key];
           });
           var lang=controls.language.value;
           var translated=parsed.translations && parsed.translations[lang] || {};
