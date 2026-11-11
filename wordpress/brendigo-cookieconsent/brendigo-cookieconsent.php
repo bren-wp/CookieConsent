@@ -3,7 +3,7 @@
  * Plugin Name: CookieConsent by Brendigo
  * Plugin URI: https://cookie.brendigo.com
  * Description: Privacy preferences and granular cookie consent for WordPress, with local or CDN delivery.
- * Version: 0.11.6
+ * Version: 0.11.7
  * Requires at least: 6.2
  * Requires PHP: 7.4
  * Author: Brendigo
@@ -18,7 +18,7 @@ namespace Brendigo\CookieConsent;
 
 defined('ABSPATH') || exit;
 
-const VERSION = '0.11.6';
+const VERSION = '0.11.7';
 const OPTION = 'brendigo_cookieconsent_options';
 
 function defaults(): array {
@@ -332,6 +332,17 @@ function render_settings(): void {
             <code>[brendigo_cookie_catalog language="hr"]</code>
             <span class="description"><?php esc_html_e('Insert this into any public page to show the declared service and cookie inventory.', 'brendigo-cookieconsent'); ?></span>
         </p>
+        <div class="card" style="max-width:850px;padding:16px 20px;margin:18px 0">
+          <h2><?php esc_html_e('Brzi predlošci izgleda', 'brendigo-cookieconsent'); ?></h2>
+          <p><?php esc_html_e('Predlošci prilagođavaju samo prikaz. Ne mijenjaju privolu, sadržaj politike ni kategorizaciju usluga. Odaberite i spremite postavke.', 'brendigo-cookieconsent'); ?></p>
+          <p class="bcc-preset-actions">
+            <button type="button" class="button" data-bcc-design-preset="balanced">Uravnoteženi</button>
+            <button type="button" class="button" data-bcc-design-preset="floating">Plutajući</button>
+            <button type="button" class="button" data-bcc-design-preset="minimal">Minimalni</button>
+            <button type="button" class="button" data-bcc-design-preset="dark">Tamni premium</button>
+          </p>
+          <p id="bcc-preset-message" role="status" aria-live="polite"></p>
+        </div>
         <form action="options.php" method="post">
             <?php settings_fields('brendigo_cookieconsent'); ?>
             <table class="form-table" role="presentation">
@@ -531,7 +542,13 @@ function render_settings(): void {
         </form>
         <h2><?php esc_html_e('Visual preview', 'brendigo-cookieconsent'); ?></h2>
         <p><?php esc_html_e('Updates while you edit the controls above. This preview is illustrative; save settings to apply them publicly.', 'brendigo-cookieconsent'); ?></p>
-        <div id="bcc-admin-preview" class="bcc-preview" data-position="bottom-center" data-style="standard" aria-label="<?php esc_attr_e('Illustrative consent banner preview', 'brendigo-cookieconsent'); ?>">
+        <p class="bcc-preview-device-actions" role="group" aria-label="<?php esc_attr_e('Preview device width', 'brendigo-cookieconsent'); ?>">
+            <button type="button" class="button button-primary" data-bcc-preview-device="desktop" aria-pressed="true">Desktop</button>
+            <button type="button" class="button" data-bcc-preview-device="mobile" aria-pressed="false">Mobitel 390 px</button>
+            <button type="button" class="button" data-bcc-preview-device="narrow" aria-pressed="false">Mobitel 320 px</button>
+        </p>
+        <p id="bcc-preview-contrast" class="description" role="status" aria-live="polite"></p>
+        <div id="bcc-admin-preview" class="bcc-preview" data-device="desktop" data-position="bottom-center" data-style="standard" aria-label="<?php esc_attr_e('Illustrative consent banner preview', 'brendigo-cookieconsent'); ?>">
             <div class="bcc-preview-banner">
                 <div class="bcc-preview-content">
                     <span class="bcc-preview-eyebrow">COOKIECONSENT</span>

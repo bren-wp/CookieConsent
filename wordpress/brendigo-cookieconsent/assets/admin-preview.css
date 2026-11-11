@@ -60,3 +60,19 @@
 .bcc-preview[data-button-radius="1"] .bcc-preview-actions span{border-radius:var(--bcc-demo-button-radius)}
 .bcc-preview[data-offset="1"][data-position^="bottom"] .bcc-preview-banner{bottom:var(--bcc-demo-offset)}
 .bcc-preview[data-offset="1"][data-position^="top"] .bcc-preview-banner{top:var(--bcc-demo-offset)}
+
+/* WordPress admin preview frame sizes; real responsive behavior is in core demo. */
+.bcc-preview-device-actions{display:flex;gap:8px;flex-wrap:wrap}
+.bcc-preview-device-actions button{min-height:40px}
+.bcc-preview[data-device="mobile"]{max-width:390px;height:480px}
+.bcc-preview[data-device="narrow"]{max-width:320px;height:500px}
+.bcc-preview[data-device="mobile"] .bcc-preview-banner,
+.bcc-preview[data-device="narrow"] .bcc-preview-banner{
+  display:block;left:50%;right:auto;transform:translateX(-50%);
+  width:min(calc(100% - 20px), var(--bcc-demo-mobile-width,100%));max-width:none;
+}
+.bcc-preview[data-device="mobile"] .bcc-preview-actions,
+.bcc-preview[data-device="narrow"] .bcc-preview-actions{
+  margin-top:12px;max-width:none;justify-content:flex-start
+}
+.bcc-preview[data-device="narrow"] .bcc-preview-actions span{white-space:normal}

@@ -22,7 +22,7 @@ jobs:
           npm test
           npm run build:cdn
           npm run build:wporg
-          test -s dist/cdn/v0.11.6/manifest.json
+          test -s dist/cdn/v0.11.7/manifest.json
       - name: Validate CMS manifests and PHP integration syntax
         run: |
           python3 tools/validate-integrations.py
@@ -169,6 +169,15 @@ jobs:
           if grep -Eq '(^|[[:space:]])ERROR([[:space:]]|$)' "$RUNNER_TEMP/plugin-check.txt"; then
             echo "WordPress Plugin Check found blocking errors"
             exit 1
+          fi
+      - name: Inspect local WordPress HTTP log on integration failure
+        if: failure() && matrix.wordpress == 'latest'
+        run: |
+          echo "WordPress local HTTP server log (last 80 lines):"
+          if [ -f "$RUNNER_TEMP/wp-http.log" ]; then
+            tail -80 "$RUNNER_TEMP/wp-http.log"
+          else
+            echo "No server log was produced"
           fi
       - name: Upload official Plugin Check report
         if: always() && matrix.wordpress == 'latest'

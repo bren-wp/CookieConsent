@@ -48,6 +48,19 @@ test('source security audit: unsafe dynamic JS and PHP execution sinks are absen
   assert.doesNotMatch(configJs,/\.innerHTML\s*=|\beval\s*\(/);
   assert.match(php,/WP_HTML_Tag_Processor/);
 });
+test('design presets do not have inline event handlers and cannot edit consent category controls',()=>{
+  const page=source('demo/configurator.html');
+  const wp=source('wordpress/brendigo-cookieconsent/brendigo-cookieconsent.php');
+  const preview=source('wordpress/brendigo-cookieconsent/assets/admin-preview.js');
+  for(const p of ['balanced','floating','minimal','dark']){
+    assert.match(page,new RegExp('data-bcc-design-preset="'+p+'"'));
+    assert.match(wp,new RegExp('data-bcc-design-preset="'+p+'"'));
+    assert.ok(preview.includes(p+':{'));
+  }
+  assert.doesNotMatch(preview,/\beval\s*\(|\.innerHTML\s*=/);
+  assert.match(page,/contrast-status/);
+  assert.match(wp,/bcc-preview-contrast/);
+});
 test('demo pages do not rely on inline HTML event-handler attributes',()=>{
   for(const page of ['demo/index.html','demo/configurator.html','demo/services.html','demo/catalog.html']){
     assert.doesNotMatch(source(page),/\bon(?:click|load|error|mouseover|focus)\s*=/i);

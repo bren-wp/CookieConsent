@@ -10,6 +10,7 @@
     var fields={
       position:doc.getElementById('bcc-position'),
       style:doc.getElementById('bcc-style'),
+      theme:doc.getElementById('bcc-theme'),
       language:doc.getElementById('bcc-language'),
       direction:doc.getElementById('bcc-direction'),
       accent:doc.getElementById('bcc-color'),
@@ -24,6 +25,22 @@
       bodySize:doc.getElementById('bcc-body-size'),
       buttonHeight:doc.getElementById('bcc-button-height'),
       buttonRadius:doc.getElementById('bcc-button-radius')
+    };
+    // Presets only change design fields. Existing consent categories, stored
+    // preferences, legal notices and service declarations remain untouched.
+    var presets={
+      balanced:{position:'bottom-center',style:'standard',accent:'#4357e8',surface:'#ffffff',
+        text:'#17223e',width:0,mobileWidth:100,padding:0,radius:-1,offset:0,
+        headingSize:0,bodySize:0,buttonHeight:0,buttonRadius:-1},
+      floating:{position:'bottom-right',style:'compact',accent:'#2563eb',surface:'#ffffff',
+        text:'#17223e',width:520,mobileWidth:96,padding:20,radius:22,offset:24,
+        headingSize:20,bodySize:14,buttonHeight:48,buttonRadius:12},
+      minimal:{position:'bottom-bar',style:'minimal',accent:'#173f93',surface:'#ffffff',
+        text:'#18243b',width:0,mobileWidth:100,padding:20,radius:0,offset:12,
+        headingSize:18,bodySize:14,buttonHeight:44,buttonRadius:4},
+      dark:{position:'bottom-center',style:'standard',accent:'#8ea4ff',surface:'#171f34',
+        text:'#f7f8ff',width:940,mobileWidth:100,padding:28,radius:20,offset:24,
+        headingSize:22,bodySize:16,buttonHeight:48,buttonRadius:12}
     };
     var text={
       hr:['Vaša privatnost, vaš izbor','Ostale tehnologije koristimo samo uz privolu.','Odbij sve','Postavke','Prihvati sve'],
@@ -53,7 +70,10 @@
       var position=fields.position.value,style=fields.style.value;
       var language=fields.language.value==='auto'?'en':fields.language.value;
       var direction=fields.direction.value==='auto'?(language==='ar'?'rtl':'ltr'):fields.direction.value;
-      var accent=fields.accent.value,surface=fields.surface.value,body=fields.text.value;
+      var theme=fields.theme.value;
+      var accent=fields.accent.value;
+      var surface=theme==='dark'?'#171f34':theme==='light'?'#ffffff':fields.surface.value;
+      var body=theme==='dark'?'#f7f8ff':theme==='light'?'#17223e':fields.text.value;
       preview.dataset.position=position;
       preview.dataset.style=style;
       preview.dir=direction;
@@ -61,6 +81,11 @@
       preview.style.setProperty('--bcc-demo-button-text',readable('#ffffff',accent));
       preview.style.setProperty('--bcc-demo-surface',surface);
       preview.style.setProperty('--bcc-demo-foreground',readable(body,surface));
+      var ratio=contrast(readable(body,surface),surface);
+      var primary=contrast(readable('#ffffff',accent),accent);
+      var status=doc.getElementById('bcc-preview-contrast');
+      if(status)status.textContent='Kontrast teksta '+ratio.toFixed(1)+':1 · gumbi '+
+        primary.toFixed(1)+':1 (minimalni WCAG AA cilj za običan tekst: 4.5:1).';
       function setting(key) { return Number(fields[key] && fields[key].value); }
       function optional(key, auto, cssKey, transform) {
         var value=setting(key);
@@ -77,7 +102,12 @@
       optional('bodySize',0,'--bcc-demo-body-size',function(v){return Math.round(v*.8)+'px';});
       optional('buttonHeight',0,'--bcc-demo-button-height',function(v){return Math.round(v*.7)+'px';});
       optional('buttonRadius',-1,'--bcc-demo-button-radius',function(v){return Math.round(v*.55)+'px';});
-      preview.dataset.mobileWidth=fields.mobileWidth.value;
+      // WP preview is illustrative; nevertheless reflect the actual configured
+      // mobile-width percentage rather than silently using full width.
+      var mobilePercent=Number(fields.mobileWidth.value);
+      if(!Number.isInteger(mobilePercent) || mobilePercent<82 || mobilePercent>100)mobilePercent=100;
+      preview.dataset.mobileWidth=String(mobilePercent);
+      preview.style.setProperty('--bcc-demo-mobile-width',mobilePercent+'%');
       var values=(text[language]||text.en).slice();
       var overrides={};
       try {
@@ -92,6 +122,35 @@
       }
       output.forEach(function(node,i){if(node)node.textContent=values[i];});
     }
+    doc.querySelectorAll('[data-bcc-design-preset]').forEach(function(button){
+      button.addEventListener('click',function(){
+        var choice=presets[button.getAttribute('data-bcc-design-preset')];
+        if(!choice)return;
+        Object.keys(choice).forEach(function(key){
+          if(fields[key]) fields[key].value=String(choice[key]);
+        });
+        // The WP theme selector remains free for subsequent editing.
+        var theme=doc.getElementById('bcc-theme');
+        if(theme)theme.value=button.getAttribute('data-bcc-design-preset')==='dark'?'dark':'custom';
+        update();
+        var message=doc.getElementById('bcc-preset-message');
+        if(message)message.textContent='Odabrani izgled je primijenjen. Spremite postavke za objavu.';
+      });
+    });
+    doc.querySelectorAll('[data-bcc-preview-device]').forEach(function(button){
+      button.addEventListener('click',function(){
+        var device=button.getAttribute('data-bcc-preview-device');
+        if(['desktop','mobile','narrow'].indexOf(device)===-1)return;
+        preview.dataset.device=device;
+        doc.querySelectorAll('[data-bcc-preview-device]').forEach(function(item){
+          var current=item===button;
+          item.setAttribute('aria-pressed',String(current));
+          if(item.classList){
+            item.classList.toggle('button-primary',current);
+          }
+        });
+      });
+    });
     var translationSource=doc.getElementById('bcc-translations');
     if(translationSource)translationSource.addEventListener('input',update);
     Object.keys(fields).forEach(function(key){

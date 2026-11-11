@@ -1,6 +1,6 @@
 # Razvojni plan — CookieConsent by Brendigo
 
-**Aktualno testno izdanje: v0.11.6** · Revizija 11. 11. 2026. · [Dokumentacija](README.md) · [Povijest](CHANGELOG.md)
+**Aktualno testno izdanje: v0.11.7** · Revizija 11. 11. 2026. · [Dokumentacija](README.md) · [Povijest](CHANGELOG.md)
 
 Projekt razlikuje **implementirano**, **automatizirano provjereno**, **ovisno o produkcijskoj instalaciji** i **vanjsku certifikaciju**. Svi preostali zadaci ostaju vidljivi. Zeleni CI ne zamjenjuje neovisnu sigurnosnu, pravnu ili pristupačnu validaciju.
 
@@ -88,16 +88,23 @@ Projekt razlikuje **implementirano**, **automatizirano provjereno**, **ovisno o 
 - [Arhiviranje verzija politike](POLICY-REVISION-ARCHIVE.hr.md)
 - Opt-in DNS/TLS monitoring: `.github/workflows/monitor.yml` (varijabla `BCC_PRODUCTION_DEPLOYED=true` aktivira dnevne provjere tek nakon stvarne objave).
 
-### Izdanje v0.11.6 — dodatno CSP učvršćivanje
+### Izdanje v0.11.7 — dodatno CSP učvršćivanje
 
 - [x] WordPress frontend konfiguracija prebačena s `wp_add_inline_script` na inertnu, escapiranu `meta` JSON oznaku i lokalni `wp-config.js`, učitan prije jezgre.
 - [x] CDN loader propagira nonce/crossorigin/referrerpolicy s vlastitog script elementa.
 - [x] Testovi za strogi CSP u browseru, realan WordPress prikaz i WordPress.org kandidata.
 - [ ] Potvrditi CSP s cache/minifier dodacima, stvarnim gatewayima i reprezentativnim WordPress temama; pokrivenost izvan Brendigo koda nije automatska.
 
-### Dizajn i personalizacija — v0.11.6
+### Dizajn i personalizacija — v0.11.7
 
 - [x] Devet numeričkih kontrola za responsive širinu, razmake, zaobljenost, tipografiju i gumbe uz postojeće boje, položaje, stilove i RTL.
 - [x] WordPress uređivanje i vizualni pregled; HTML konfigurator s desktop i mobilnim prikazima te JSON izvoznim i uvoznim postavkama.
 - [x] Sanitizacija svih parametara, testovi vidljivih odluka i granica bannera na desktopu, 390 px i 320 px.
 - [ ] Puna ručna WCAG provjera povećanja 400 %, čitača ekrana i tema/plugins na stvarnim web-stranicama ostaje otvorena.
+
+### Dizajnerski predlošci i provjere — v0.11.7
+
+- [x] Četiri standardizirana dizajnerska predloška u WordPressu i samostalnom konfiguratoru; sve postojeće kategorije, revizije politike i statusi privole ostaju nepromijenjeni.
+- [x] Lokalni pregled omjera kontrasta i očitanje stvarne širine bannera, vidljivih gumba i horizontalnog preljeva za tri viewporta.
+- [x] Sanitizacija numeričkih parametara već pri izvozu JSON-a; testiranje neispravnih vrijednosti.
+- [ ] Potvrditi potpuni WCAG 2.2 AA, ručni zoom 400 % i screen-reader na stvarnim temama, uređajima i stranicama.

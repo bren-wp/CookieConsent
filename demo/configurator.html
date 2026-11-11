@@ -25,6 +25,13 @@
     input[type=color]{height:42px;padding:3px;cursor:pointer}
     textarea{font:12px/1.5 ui-monospace,Consolas,monospace;min-height:172px;resize:vertical}
     .color-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .preset-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0 16px}
+    .preset-grid button{background:#f0f3fc;border:1px solid #cdd6ea;color:#263b65;padding:10px;min-height:44px;text-align:center}
+    .preset-grid button:focus-visible{outline:3px solid #4357e8;outline-offset:2px}
+    .preset-grid button:hover{background:#e5ebfb}
+    .design-feedback{padding:12px;border-radius:10px;background:#f1f5ff;color:#273866;font-size:13px;line-height:1.5}
+    .design-feedback strong{display:block;margin-bottom:3px}
+    @media(max-width:520px){.color-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.shell{padding-left:12px;padding-right:12px}.preset-grid{grid-template-columns:1fr}}
     button{background:#4357e8;color:#fff;border:0;border-radius:9px;padding:12px 16px;font:inherit;font-weight:700;cursor:pointer}
     button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #4357e8;outline-offset:2px}
     .preview-pane{display:flex;flex-direction:column;min-height:760px;overflow:hidden}
@@ -43,7 +50,16 @@
   <main class="shell">
     <aside>
       <strong>Postavke izgleda</strong>
-      <p>Promijenite položaj i boje. Pregled se osvježava lokalno; nikakvi podaci se ne šalju na poslužitelj.</p>
+      <p>Promijenite položaj, veličine, boje i tipografiju. Sve se obrađuje lokalno bez slanja postavki na poslužitelj.</p>
+      <fieldset><legend><strong>Brzi dizajnerski predlošci</strong></legend>
+        <div class="preset-grid" role="group" aria-label="Dizajnerski predlošci">
+          <button type="button" data-bcc-design-preset="balanced">Uravnoteženi</button>
+          <button type="button" data-bcc-design-preset="floating">Plutajući</button>
+          <button type="button" data-bcc-design-preset="minimal">Minimalni</button>
+          <button type="button" data-bcc-design-preset="dark">Tamni premium</button>
+        </div>
+        <p class="help">Predlošci mijenjaju samo izgled, nikada korisničku privolu, svrhe ni popis pružatelja. Sva polja možete kasnije urediti.</p>
+      </fieldset>
       <div class="field">
         <label for="position">Pozicija bannera</label>
         <select id="position">
@@ -115,6 +131,10 @@
         <div class="field"><label for="surface">Pozadina</label><input id="surface" type="color" value="#ffffff"></div>
         <div class="field"><label for="text">Tekst</label><input id="text" type="color" value="#17223e"></div>
       </div>
+      <div id="contrast-status" class="design-feedback" aria-live="polite" role="status">
+        <strong>Provjera kontrasta</strong> Izračun kontrasta pojavljuje se nakon odabira boja.
+      </div>
+      <p class="help" id="design-validation" role="status" aria-live="polite"></p>
       <div class="field"><label for="heading">Vlastiti naslov (neobavezno)</label>
         <input id="heading" type="text" maxlength="100" placeholder="Npr. Vaša privatnost, vaš izbor">
       </div>
@@ -150,6 +170,7 @@
         </label></div>
       <iframe id="preview" title="Pregled CookieConsent bannera" src="index.html?preview=1"></iframe>
       <div class="hint">Svaki pregled prikazuje stanje prije privole radi provjere dizajna.</div>
+      <div id="preview-metrics" class="hint" aria-label="Dimenzije stvarnog prikaza"></div>
     </section>
   </main>
   <script src="../packages/core/brendigo-cookieconsent.js"></script>
@@ -161,6 +182,26 @@
         'headingSize','bodySize','buttonHeight','buttonRadius'];
       var controls={};
       var imported={};
+      var presets={
+        balanced:{position:'bottom-center',style:'standard',theme:'custom',
+          accent:'#4357e8',surface:'#ffffff',text:'#17223e',
+          bannerWidth:0,mobileWidth:100,bannerPadding:0,bannerRadius:-1,bannerOffset:0,
+          headingSize:0,bodySize:0,buttonHeight:0,buttonRadius:-1},
+        floating:{position:'bottom-right',style:'compact',theme:'custom',
+          accent:'#2563eb',surface:'#ffffff',text:'#17223e',
+          bannerWidth:520,mobileWidth:96,bannerPadding:20,bannerRadius:22,bannerOffset:24,
+          headingSize:20,bodySize:14,buttonHeight:48,buttonRadius:12},
+        minimal:{position:'bottom-bar',style:'minimal',theme:'custom',
+          accent:'#173f93',surface:'#ffffff',text:'#18243b',
+          bannerWidth:0,mobileWidth:100,bannerPadding:20,bannerRadius:0,bannerOffset:12,
+          headingSize:18,bodySize:14,buttonHeight:44,buttonRadius:4},
+        dark:{position:'bottom-center',style:'standard',theme:'dark',
+          accent:'#8ea4ff',surface:'#171f34',text:'#f7f8ff',
+          bannerWidth:940,mobileWidth:100,bannerPadding:28,bannerRadius:20,bannerOffset:24,
+          headingSize:22,bodySize:16,buttonHeight:48,buttonRadius:12}
+      };
+      var numericKeys=['bannerWidth','mobileWidth','bannerPadding','bannerRadius','bannerOffset',
+        'headingSize','bodySize','buttonHeight','buttonRadius'];
       var refreshTimer=null;
       function scheduleRefresh(){
         if(refreshTimer!==null)clearTimeout(refreshTimer);
@@ -173,10 +214,17 @@
         o.flip=document.getElementById('flip').checked;
         o.equal=document.getElementById('equal').checked;
         o.reducedMotion=document.getElementById('reducedMotion').checked;
-        ['bannerWidth','mobileWidth','bannerPadding','bannerRadius','bannerOffset',
-          'headingSize','bodySize','buttonHeight','buttonRadius'].forEach(function(key){
-          o[key]=Number(o[key]);
+        var invalid=[];
+        numericKeys.forEach(function(key){
+          var raw=controls[key].value.trim();
+          var auto=(key==='bannerRadius'||key==='buttonRadius')?-1:key==='mobileWidth'?100:0;
+          var numeric=raw===''?auto:Number(raw);
+          var safe=window.BrendigoCookieConsent.utils.sanitizeLayoutNumber(key,numeric);
+          if(raw!=='' && safe!==numeric)invalid.push(key);
+          o[key]=safe;
         });
+        document.getElementById('design-validation').textContent=invalid.length?
+          'Neispravne dimenzije vraćene su na zadane vrijednosti: '+invalid.join(', ')+'.':'';
         return o;
       }
       function buildConfig(o){
@@ -208,8 +256,23 @@
         }
         return payload;
       }
+      function contrastStatus(o) {
+        var api=window.BrendigoCookieConsent.utils;
+        var surface=o.theme==='dark'?'#171f34':o.theme==='light'?'#ffffff':o.surface;
+        var requested=o.theme==='dark'?'#f7f8ff':o.theme==='light'?'#17223e':o.text;
+        var body=api.accessibleText(requested,surface);
+        var onButton=api.accessibleText('#ffffff',o.accent);
+        var textRatio=api.contrastRatio(body,surface);
+        var buttonRatio=api.contrastRatio(onButton,o.accent);
+        var corrected=body.toLowerCase()!==requested.toLowerCase();
+        var node=document.getElementById('contrast-status');
+        node.textContent='Kontrast teksta: '+textRatio.toFixed(1)+':1 | gumbi: '+
+          buttonRatio.toFixed(1)+':1 (WCAG AA cilj: 4.5:1).'+
+          (corrected?' Tekst se automatski prilagođava kontrastu.':'');
+      }
       function refresh(){
         var o=values();
+        contrastStatus(o);
         var preview=Object.assign({preview:'1'},o,{flip:o.flip?'1':'0',
           equal:o.equal?'1':'0',reducedMotion:o.reducedMotion?'1':'0'});
         var query=new URLSearchParams(preview);
@@ -217,6 +280,37 @@
         document.getElementById('snippet').value =
           'window.BCC_SITE_CONFIG = '+JSON.stringify(buildConfig(o),null,2)+';';
       }
+      document.querySelectorAll('[data-bcc-design-preset]').forEach(function(button){
+        button.addEventListener('click',function(){
+          var selected=presets[button.getAttribute('data-bcc-design-preset')];
+          if(!selected)return;
+          Object.keys(selected).forEach(function(key){
+            if(controls[key])controls[key].value=String(selected[key]);
+          });
+          // Presets are display-only: leave consent, services, policies and
+          // per-site imported settings untouched.
+          document.getElementById('message').textContent=
+            'Dizajnerski predložak primijenjen. Provjerite i spremite postavke.';
+          refresh();
+        });
+      });
+      function inspectPreview(){
+        var frame=document.getElementById('preview');
+        var node=document.getElementById('preview-metrics');
+        try{
+          var doc=frame.contentDocument;
+          var banner=doc.querySelector('.bcc-banner');
+          if(!banner){node.textContent='Pregled se učitava.';return;}
+          var bounds=banner.getBoundingClientRect();
+          var buttons=Array.from(banner.querySelectorAll('button'));
+          var visible=buttons.filter(function(el){return el.getClientRects().length>0;}).length;
+          var overflowing=doc.documentElement.scrollWidth>frame.contentWindow.innerWidth;
+          node.textContent='Širina bannera: '+Math.round(bounds.width)+' px · '+
+            'Vidljivi gumbi: '+visible+'/'+buttons.length+
+            (overflowing?' · Upozorenje: horizontalni preljev':' · Bez horizontalnog preljeva');
+        }catch(_){node.textContent='Pregled još nije spreman.';}
+      }
+      document.getElementById('preview').addEventListener('load',inspectPreview);
       document.getElementById('viewport').addEventListener('change',function(){
         var selected=this.value;
         var frame=document.getElementById('preview');
