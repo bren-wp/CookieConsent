@@ -36,6 +36,21 @@ bcc_live_verify(strpos($catalog,'https://example.org/privacy')!==false,'policy l
 
 do_action('wp_enqueue_scripts');
 bcc_live_verify(wp_script_is('brendigo-cookieconsent','enqueued'),'script enqueued');
+bcc_live_verify(wp_script_is('brendigo-cookieconsent-wp-config','enqueued'),
+    'CSP-safe config script enqueued');
+
+ob_start();
+\Brendigo\CookieConsent\frontend_config_meta();
+$head_config = ob_get_clean();
+bcc_live_verify(strpos($head_config, '<meta name="brendigo-cookieconsent-config"') !== false,
+    'escaped inert config meta emitted');
+bcc_live_verify(strpos($head_config, 'Statistics') !== false,
+    'real WP config contains stored provider name');
+bcc_live_verify(strpos($head_config, '<script') === false,
+    'frontend config contains no executable script');
+bcc_live_verify(strpos($head_config, 'site-statistics') !== false,
+    'granular service survives PHP -> meta transport');
+
 bcc_live_verify(wp_style_is('brendigo-cookieconsent','enqueued'),'style enqueued');
 bcc_live_verify(wp_script_is('brendigo-cookieconsent-video','enqueued'),'video adapter enqueued');
 $script=wp_scripts()->registered['brendigo-cookieconsent'];

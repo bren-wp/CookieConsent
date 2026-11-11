@@ -6,21 +6,26 @@ const path=require('node:path');
 const root=path.resolve(__dirname,'..');
 function source(file){return fs.readFileSync(path.join(root,file),'utf8');}
 test('source security audit: unsafe dynamic JS and PHP execution sinks are absent',()=>{
-  const jsFiles=[
-    'packages/core/brendigo-cookieconsent.js',
-    'wordpress/brendigo-cookieconsent/assets/brendigo-cookieconsent.js',
-    'wordpress/brendigo-cookieconsent/assets/admin-preview.js',
-    'wordpress/brendigo-cookieconsent/assets/translation-editor.js',
-    'packages/integrations/google-consent-basic.js',
-    'cdn/loader.js',
-    'shopify/extensions/brendigo-cookieconsent/assets/shopify-config.js',
-    'shopify/extensions/brendigo-cookieconsent/assets/shopify-privacy-bridge.js',
-    'magento/view/frontend/web/js/bootstrap.js',
-    'opencart/catalog/view/javascript/bootstrap.js',
-    'prestashop/views/js/bootstrap.js',
-    'joomla/media/js/bootstrap.js',
-    'drupal/js/bootstrap.js'
+  // Discover ALL shipped runtime JS files so new CMS/WordPress adapters cannot
+  // silently bypass the dangerous-sink audit when added in the future.
+  const runtimeDirs=[
+    'cdn','packages/core','packages/integrations',
+    'wordpress/brendigo-cookieconsent/assets',
+    'joomla/media/js','drupal/js',
+    'shopify/extensions/brendigo-cookieconsent/assets',
+    'magento/view/frontend/web/js','opencart/catalog/view/javascript',
+    'prestashop/views/js'
   ];
+  function runtimeSources(rel){
+    const absolute=path.join(root,rel);
+    return fs.readdirSync(absolute,{withFileTypes:true}).flatMap(entry=>{
+      const sub=path.posix.join(rel,entry.name);
+      return entry.isDirectory()?runtimeSources(sub):
+        entry.isFile() && /\.js$/.test(entry.name)?[sub]:[];
+    });
+  }
+  const jsFiles=runtimeDirs.flatMap(runtimeSources);
+  assert.ok(jsFiles.length>=23,'expected runtime files in every CMS distribution');
   for(const file of jsFiles){
     const value=source(file);
     for(const [name,pattern] of [
@@ -36,6 +41,11 @@ test('source security audit: unsafe dynamic JS and PHP execution sinks are absen
   assert.match(php,/check_admin_referer\('bcc_import_settings'\)/);
   assert.match(php,/current_user_can\('manage_options'\)/);
   assert.match(php,/wp_json_encode\(\$config,\s*JSON_HEX_TAG/);
+  assert.doesNotMatch(php,/wp_add_inline_script\s*\(/);
+  assert.match(php,/frontend_config_meta/);
+  assert.match(php,/esc_attr\(\$json\)/);
+  const configJs=source('wordpress/brendigo-cookieconsent/assets/wp-config.js');
+  assert.doesNotMatch(configJs,/\.innerHTML\s*=|\beval\s*\(/);
   assert.match(php,/WP_HTML_Tag_Processor/);
 });
 test('demo pages do not rely on inline HTML event-handler attributes',()=>{

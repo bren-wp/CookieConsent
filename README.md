@@ -8,14 +8,14 @@
 Samostalni sustav za informiranje posjetitelja i upravljanje privolama na HTML/PHP stranicama te u WordPressu, Joomli, Drupalu, Shopifyju, Magentu, OpenCartu i PrestaShopu.
 
 [![GitHub CI](https://github.com/bren-wp/CookieConsent/actions/workflows/ci.yml/badge.svg)](https://github.com/bren-wp/CookieConsent/actions/workflows/ci.yml)
-![Version](https://img.shields.io/badge/version-0.11.4-4357e8)
+![Version](https://img.shields.io/badge/version-0.11.5-4357e8)
 ![License](https://img.shields.io/badge/license-MIT-26387a)
 ![Runtime](https://img.shields.io/badge/runtime_dependencies-0-brightgreen)
 ![Brand](https://img.shields.io/badge/by-Brendigo-4357e8)
 
 **[Službena web-stranica](https://cookie.brendigo.com)** · **[Najnovija izdanja](https://github.com/bren-wp/CookieConsent/releases)** · **[Interaktivni konfigurator](demo/configurator.html)** · **[Dokumentacija](docs/README.md)** · **[Razvojni plan](docs/ROADMAP.md)** · **[Brendigo](https://brendigo.com)**
 
-> **Status: v0.11.4 — testno izdanje.** Sustav omogućuje implementaciju upravljanja privolama, ali ne jamči usklađenost pojedine web-stranice i nema status certificiranog CMP-a. Nije automatski blokator svih vanjskih servisa.
+> **Status: v0.11.5 — testno izdanje.** Sustav omogućuje implementaciju upravljanja privolama, ali ne jamči usklađenost pojedine web-stranice i nema status certificiranog CMP-a. Nije automatski blokator svih vanjskih servisa.
 
 ## Što dobivate
 
@@ -117,7 +117,7 @@ Projekt priprema verzionirani paket za predviđenu adresu:
     revision: "1"
   };
 </script>
-<script defer src="https://cookie.brendigo.com/v0.11.4/loader.js"></script>
+<script defer src="https://cookie.brendigo.com/v0.11.5/loader.js"></script>
 ~~~
 
 **Ta adresa nije automatski aktivirana objavom GitHub paketa.** Prije primjene moraju biti postavljeni DNS, HTTPS/TLS i stvarno posluživanje datoteka. Zadana WordPress opcija ostaje lokalno učitavanje. [CDN vodič](docs/CDN.hr.md).
@@ -143,7 +143,7 @@ window.BCC_SITE_CONFIG = {
 
 Ovo je opis i kontrola usluge **samo ako je ta usluga uistinu povezana sa sustavom blokiranja**. Katalog sam ne presreće svaki zahtjev.
 
-## Video integracije i produkcijske provjere (v0.11.4)
+## Video integracije i produkcijske provjere (v0.11.5)
 
 - **YouTube i Vimeo:** lokalni `video-embeds.js` dopušta samo provjerene video ID-ove, ne stvara iframe prije pozitivne privole, a pri povlačenju uklanja postojeći iframe. WordPress shortcode: `[brendigo_consent_video provider="youtube" id="dQw4w9WgXcQ" category="marketing"]`. [Primjer i sigurnosna ograničenja](docs/INTEGRATIONS.hr.md).
 - **Pasivni mrežni inventar:** `scanLocalResources()` navodi ograničene ResourceTiming URL-ove bez query parametara i vrijednosti pohrane. Ne vidi HttpOnly, tuđe cookies ili server-to-server događaje.

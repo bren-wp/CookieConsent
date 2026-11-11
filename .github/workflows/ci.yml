@@ -22,7 +22,7 @@ jobs:
           npm test
           npm run build:cdn
           npm run build:wporg
-          test -s dist/cdn/v0.11.4/manifest.json
+          test -s dist/cdn/v0.11.5/manifest.json
       - name: Validate CMS manifests and PHP integration syntax
         run: |
           python3 tools/validate-integrations.py
@@ -135,6 +135,12 @@ jobs:
           curl -fsS --retry 8 --retry-delay 2 --retry-all-errors http://127.0.0.1:8080/ -o "$RUNNER_TEMP/front.html"
           grep -q 'brendigo-cookieconsent.js' "$RUNNER_TEMP/front.html"
           grep -q 'brendigo-cookieconsent.css' "$RUNNER_TEMP/front.html"
+          grep -q 'brendigo-cookieconsent-config' "$RUNNER_TEMP/front.html"
+          grep -q 'wp-config.js' "$RUNNER_TEMP/front.html"
+          if grep -q 'window.BCC_SITE_CONFIG = ' "$RUNNER_TEMP/front.html"; then
+            echo "Executable inline WordPress configuration reintroduced"
+            exit 1
+          fi
       - name: WooCommerce activation and essentials smoke (latest WP)
         if: matrix.wordpress == 'latest'
         run: |

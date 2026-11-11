@@ -26,7 +26,7 @@ function makeServer() {
     const type = p.endsWith('.js') ? 'text/javascript' :
       p.endsWith('.css') ? 'text/css' : 'text/html';
     const headers={'Content-Type': type + '; charset=utf-8', 'Cache-Control':'no-store'};
-    if(p==='/demo/csp.html') {
+    if(p==='/demo/csp.html' || p==='/demo/wp-csp.html') {
       headers['Content-Security-Policy'] = "default-src 'none'; script-src 'self' 'nonce-bcc-test-nonce'; style-src 'self' 'unsafe-inline'; img-src data:; frame-src 'self'; connect-src 'self'; base-uri 'none'; object-src 'none'";
     }
     res.writeHead(200, headers);
@@ -507,6 +507,27 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
           await page.locator('.bcc-banner-actions').getByRole('button',{name:'Prihvati sve'}).click();
           assert.equal(await page.evaluate(()=>window.__BCC_CSP_EXECUTED__||0),1);
           assert.deepEqual(violations,[],'strict CSP should not block the permitted nonce code');
+        }finally{await context.close();}
+      });
+      await t.test('WordPress meta configuration boots under strict CSP with no inline code',async()=>{
+        const context=await browser.newContext();
+        try {
+          const page=await context.newPage();
+          const csp=[];
+          page.on('console',message=>{
+            if(message.type()==='error' && /content security policy|refused to (?:execute|load|apply)/i.test(message.text()))
+              csp.push(message.text());
+          });
+          page.on('pageerror',error=>csp.push(error.message));
+          await page.goto(origin+'/demo/wp-csp.html');
+          await page.locator('.bcc-banner').waitFor({state:'visible'});
+          assert.equal(await page.evaluate(()=>BCC_SITE_CONFIG.language),'en');
+          assert.equal(await page.evaluate(()=>BrendigoCookieConsent.version),'0.11.5');
+          assert.equal(await page.locator('.bcc-banner-actions').getByRole('button',{name:'Reject all'}).count(),1);
+          assert.equal(await page.evaluate(()=>BrendigoCookieConsent.hasConsent('analytics')),false);
+          await page.locator('.bcc-banner-actions').getByRole('button',{name:'Reject all'}).click();
+          assert.equal(await page.evaluate(()=>BrendigoCookieConsent.hasConsent('analytics')),false);
+          assert.deepEqual(csp,[],'script-src without unsafe-inline must not block WordPress config');
         }finally{await context.close();}
       });
       await t.test('resource scan exposes neither query tokens nor cookie values',async()=>{

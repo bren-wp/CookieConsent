@@ -51,3 +51,8 @@ Statički pretraživač ne može dokazati da je svaki event handler ili callback
 - Heuristički audit ne briše nepoznate callbackove, podatkovne atribute i lifecycle funkcije bez dokazanog nekorištenja. Stvarna pokrivenost izvršavanja zasebnih CMS sustava ostaje otvorena dok nisu dostupni reprezentativni staging environmenti.
 
 - **DC-11:** `npm run check` sada rekurzivno obuhvaća sve izvorne JS/CJS/MJS datoteke u proizvodnim integracijama, testovima i alatima, umjesto ručno održavanog djelomičnog popisa. Riječ je o sintaktičkoj provjeri, ne dokazu izvršne dosegljivosti.
+
+## Dodatak — v0.11.5
+
+- U WordPressu uklonjen je ovisni inline `wp_add_inline_script` konfiguracijski tok. Jedini izvor podataka o postavkama ostaje serverski sanitizirana konfiguracija; `wp-config.js` je mali, zasebno učitan čitač metapodataka.
+- Namjerno duplicirani runtime JS/CSS ostaju sinhronizirani kroz sve CMS pakete; nikakve funkcije nisu uklonjene samo zbog heurističkog dojma da se ne pozivaju.

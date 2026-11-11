@@ -3,7 +3,7 @@
  * Plugin Name: CookieConsent by Brendigo
  * Plugin URI: https://cookie.brendigo.com
  * Description: Privacy preferences and granular cookie consent for WordPress, with local or CDN delivery.
- * Version: 0.11.4
+ * Version: 0.11.5
  * Requires at least: 6.2
  * Requires PHP: 7.4
  * Author: Brendigo
@@ -18,7 +18,7 @@ namespace Brendigo\CookieConsent;
 
 defined('ABSPATH') || exit;
 
-const VERSION = '0.11.4';
+const VERSION = '0.11.5';
 const OPTION = 'brendigo_cookieconsent_options';
 
 function defaults(): array {
@@ -623,9 +623,25 @@ function frontend_assets(): void {
         // Enqueue this early in <head>. Actual Google tags must remain gated separately.
         wp_enqueue_script('brendigo-cookieconsent-google-basic', $base . 'google-consent-basic.js', [], VERSION, false);
     }
-    wp_enqueue_script('brendigo-cookieconsent', $base . 'brendigo-cookieconsent.js', [], VERSION, true);
+    // First-party, non-inline configuration bootstrap compatible with CSP script-src.
+    // Load configuration in <head>; the core is enqueued in the footer after it.
+    wp_enqueue_script('brendigo-cookieconsent-wp-config',
+        plugin_dir_url(__FILE__) . 'assets/wp-config.js', [], VERSION, false);
+    wp_enqueue_script('brendigo-cookieconsent', $base . 'brendigo-cookieconsent.js',
+        ['brendigo-cookieconsent-wp-config'], VERSION, true);
     wp_enqueue_script('brendigo-cookieconsent-video', $base . 'video-embeds.js',
         ['brendigo-cookieconsent'], VERSION, true);
+
+}
+add_action('wp_enqueue_scripts', __NAMESPACE__ . '\\frontend_assets', 20);
+
+/**
+ * The front-end config is emitted as inert meta data BEFORE WP head scripts.
+ * This avoids inline JavaScript under sites using CSP without unsafe-inline.
+ * Escaped JSON never becomes HTML or a script element.
+ */
+function frontend_config_meta(): void {
+    $o = options();
     $config = [
         'language' => $o['language'],
         'direction' => $o['direction'],
@@ -650,9 +666,15 @@ function frontend_assets(): void {
         $config['translations'] = $translation_overrides;
     }
     $json = wp_json_encode($config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
-    if ($json) wp_add_inline_script('brendigo-cookieconsent', 'window.BCC_SITE_CONFIG = ' . $json . ';', 'before');
+    if ($json) {
+        // JSON encoded as an escaped attribute is data, not executable script.
+        echo '<meta name="brendigo-cookieconsent-config" content="' .
+            esc_attr($json) . '">' . "\n";
+    }
 }
-add_action('wp_enqueue_scripts', __NAMESPACE__ . '\\frontend_assets', 20);
+add_action('wp_head', __NAMESPACE__ . '\\frontend_config_meta', 8);
+
+
 
 /**
  * Change *selected* WP enqueued script tags into inert scripts.

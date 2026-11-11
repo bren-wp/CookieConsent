@@ -72,3 +72,9 @@ Ovo je nadopuna internog pregleda iz prethodne verzije, ne vanjski penetracijski
 - GitHub Actions `checkout`, `upload-artifact` i `setup-php` vezani su na pregledane 40-znamenkaste commit SHA-ove (refovi `v4.2.2`, `v4.6.2`, `2.37.2` provjereni na GitHubu 11. 11. 2026.).
 - `npm run audit:supply-chain` odbija nepinane vanjske Actions reference i produkcijske npm ovisnosti; testovi i build ostaju bez produkcijskih npm paketa.
 - **Otvoreni rizici:** instaliranje browser test paketa i WordPress/WooCommerce/plugin-check tijekom CI-a koristi vanjske repozitorije; `wp-cli.phar` se dohvaća kao vanjski artefakt bez ugrađene checksum/provenance potvrde. Potrebni su zaključane testne ovisnosti, hash/provenance provjere i neovisni supply-chain review. Statička provjera nije neovisni pentest.
+
+## Nova revizija — v0.11.5 (11. 11. 2026.)
+
+- **SEC-11 (ispravljeno za WordPress bootstrap):** WordPress opcije prethodno su se serializirale u izvršni inline JS `window.BCC_SITE_CONFIG` preko `wp_add_inline_script`. Pod strogim `script-src` CSP-om to može biti odbijeno. Novi `wp_head` meta JSON s `JSON_HEX_*` i `esc_attr` uparuje se s lokalnim `wp-config.js`, s učitavanjem prije osnovne skripte i automatskim testom bez `unsafe-inline`.
+- **SEC-12 (dodatna obrana):** CDN loader propagira nonce, crossorigin i referrerpolicy oznake iz vlastite script oznake; nipošto ne generira nonce ili ne mijenja politika servera.
+- **Preostale granice:** za cjelokupni WordPress CSP potrebna su pravila svih tema i pluginova. CSS-in-JS/inline stilovi mogu zahtijevati posebnu `style-src` politiku; `nonce` se ne može automatski koristiti za proizvoljne 3rd-party skripte. Neovisni pentest i CSP provjera stvarnih instalacija i dalje su otvoreni.
