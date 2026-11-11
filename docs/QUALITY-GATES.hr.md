@@ -1,6 +1,6 @@
 # Matrica provjera — CookieConsent by Brendigo
 
-**Izdanje:** razvojna grana nakon v0.11.2 · [ROADMAP](ROADMAP.md) · [Sigurnost](SECURITY-AUDIT.hr.md)
+**Izdanje:** v0.11.3 — sigurnosna i integracijska zakrpa · [ROADMAP](ROADMAP.md) · [Sigurnost](SECURITY-AUDIT.hr.md)
 
 Zeleni GitHub CI znači da su prošli **konkretni automatizirani scenariji**. Ne znači da je svaki CMS dodatak funkcionalno validiran u stvarnoj trgovini.
 
@@ -26,3 +26,5 @@ Zeleni GitHub CI znači da su prošli **konkretni automatizirani scenariji**. Ne
 6. Obaviti stvaran sigurnosni i pravni pregled ciljne instalacije.
 
 **Nijedan preglednik, CMS ili pravni sustav ne dopušta jamstvo apsolutne bezgrešnosti samo temeljem statičkih provjera.**
+
+**Dodatno za v0.11.3:** Shopify CSP-safe bootstrap, restored/reset consent regresije, CDN redirect + size-limit zaštita i reproducibilni clean-build testovi. Stvarne CMS instalacije nisu potvrđene samo ovim testovima.

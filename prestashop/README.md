@@ -7,3 +7,5 @@ Install `brendigocookieconsent-prestashop.zip` through **Modules → Module Mana
 The module does not auto-disable all analytic/advertising add-ons. Validate theme rendering order, consent gates, cookie classes, cart and checkout before production. **Not runtime-tested on an actual PrestaShop installation;** static syntax/XML/asset tests are provided in CI.
 
 © 2026 Brendigo · MIT. Official UI displays **by Brendigo**.
+
+The module uses `$this->_path` for root-relative asset URLs, so CSS/JS resolve on product pages and shops installed under a URL subdirectory.

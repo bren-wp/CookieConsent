@@ -9,7 +9,7 @@ class BrendigoCookieConsent extends Module
     {
         $this->name = 'brendigocookieconsent';
         $this->tab = 'administration';
-        $this->version = '0.11.2';
+        $this->version = '0.11.3';
         $this->author = 'Brendigo';
         $this->need_instance = 0;
         $this->bootstrap = true;
@@ -119,7 +119,8 @@ class BrendigoCookieConsent extends Module
     public function hookActionFrontControllerSetMedia($params)
     {
         if (!Configuration::get('BRENDIGO_BCC_ENABLED')) return;
-        $base = 'modules/' . $this->name . '/views/';
+        // Module root is absolute to the shop base URI, including subfolder installs.
+        $base = $this->_path . 'views/';
         $this->context->controller->registerStylesheet('brendigo-cookieconsent-style',
             $base . 'css/brendigo-cookieconsent.css',['media'=>'all','priority'=>30]);
         $this->context->controller->registerJavascript('brendigo-cookieconsent-config',

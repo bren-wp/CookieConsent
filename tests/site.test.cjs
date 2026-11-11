@@ -37,3 +37,9 @@ test('website does not claim the operator infrastructure was deployed',()=>{
  assert.match(doc,/HTTPS/);
  assert.match(doc,/privatnosti/);
 });
+
+test('website bundle navigation from demo catalog resolves to the deployed root',()=>{
+ const html=src('demo/catalog.html');
+ assert.match(html,/href="\.\.\/index\.html"/);
+ assert.doesNotMatch(html,/href="\.\.\/website\/index\.html"/);
+});

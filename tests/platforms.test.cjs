@@ -34,6 +34,7 @@ test('platform plugins have native installation entrypoints',()=>{
  assert.match(read('opencart/admin/controller/module/cookieconsent.php'),/catalog\/view\/common\/header\/after/);
  assert.match(read('opencart/catalog/controller/module/cookieconsent.php'),/extension\/brendigo\/catalog\/view\/javascript/);
  assert.match(read('prestashop/brendigocookieconsent.php'),/registerHook\('actionFrontControllerSetMedia'\)/);
+ assert.match(read('prestashop/brendigocookieconsent.php'),/\$this->_path \. 'views\/'/);
 });
 test('Shopify app embed JSON schema uses compliance_head and explicit Customer Privacy API updates',()=>{
  const liquid=read('shopify/extensions/brendigo-cookieconsent/blocks/consent-banner.liquid');
@@ -47,7 +48,12 @@ test('Shopify app embed JSON schema uses compliance_head and explicit Customer P
  const bridge=read('shopify/extensions/brendigo-cookieconsent/assets/shopify-privacy-bridge.js');
  assert.match(bridge,/consent-tracking-api/);
  assert.match(bridge,/setTrackingConsent/);
- assert.match(liquid,/onDecision/);
+ assert.match(liquid,/shopify-config\.js/);
+ assert.match(liquid,/data-bcc-policy-url=/);
+ assert.doesNotMatch(liquid,/<script>\s*window\.BCC_SITE_CONFIG/);
+ const bootstrap=read('shopify/extensions/brendigo-cookieconsent/assets/shopify-config.js');
+ assert.match(bootstrap,/onConsent/);
+ assert.match(bootstrap,/onChange/);
  assert.doesNotMatch(bridge,/document\.cookie\s*=/);
 });
 test('CMS config serialization uses escaped JSON; no remote JS or PHP eval in integrators',()=>{
@@ -111,4 +117,36 @@ test('Shopify bridge queues only the last visitor decision and never registers o
  assert.equal(updates.length,2);
  assert.equal(updates[1].marketing,false,'GPC must deny marketing');
  assert.equal(updates[1].analytics,true);
+ root.BrendigoShopifyPrivacyBridge.apply(null);
+ assert.equal(updates.length,3,'reset must explicitly revoke optional Shopify tracking');
+ assert.equal(updates[2].analytics,false);
+ assert.equal(updates[2].marketing,false);
+ assert.equal(updates[2].preferences,false);
+ root.BrendigoShopifyPrivacyBridge.apply(null);
+ assert.equal(updates.length,3,'duplicate decisions must not generate extra writes');
 });
+test('Shopify CSP-safe bootstrap syncs restored consent and explicit withdrawal',()=>{
+ const vm=require('node:vm');
+ const source=read('shopify/extensions/brendigo-cookieconsent/assets/shopify-config.js');
+ const attrs={
+   'data-bcc-language':'hr','data-bcc-position':'top-right',
+   'data-bcc-policy-url':'/cookies','data-bcc-revision':'2',
+   'data-bcc-accent-color':'#123abc'
+ };
+ const calls=[];
+ const win={
+   document:{querySelector(selector){return selector==='meta[name="brendigo-cookieconsent-config"]'?
+     {getAttribute(key){return attrs[key]||null;}}:null;}},
+   BrendigoShopifyPrivacyBridge:{apply(choice){calls.push(choice);}}
+ };
+ vm.runInNewContext(source,{window:win});
+ const cfg=win.BCC_SITE_CONFIG;
+ assert.equal(cfg.language,'hr');
+ assert.equal(cfg.policyUrl,'/cookies');
+ cfg.onConsent({categories:{analytics:true,marketing:false,preferences:true}});
+ cfg.onChange(null);
+ assert.equal(calls.length,2);
+ assert.equal(calls[0].analytics,true);
+ assert.equal(calls[1],null);
+});
+

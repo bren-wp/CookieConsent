@@ -1,6 +1,6 @@
 # Razvojni plan — CookieConsent by Brendigo
 
-**Aktualno testno izdanje: v0.11.2** · Revizija 10. 11. 2026. · [Dokumentacija](README.md) · [Povijest](CHANGELOG.md)
+**Aktualno testno izdanje: v0.11.3** · Revizija 10. 11. 2026. · [Dokumentacija](README.md) · [Povijest](CHANGELOG.md)
 
 Projekt razlikuje **implementirano**, **automatizirano provjereno**, **ovisno o produkcijskoj instalaciji** i **vanjsku certifikaciju**. Svi preostali zadaci ostaju vidljivi. Zeleni CI ne zamjenjuje neovisnu sigurnosnu, pravnu ili pristupačnu validaciju.
 
@@ -23,6 +23,13 @@ Projekt razlikuje **implementirano**, **automatizirano provjereno**, **ovisno o 
 - [x] CI: Node, PHP 7.4 i 8.1–8.4, Chromium/Firefox/WebKit i automatizirane provjere pristupačnosti.
 - [x] Interni [sigurnosni audit](SECURITY-AUDIT.hr.md) i [dead-code audit](DEAD-CODE-AUDIT.hr.md), regresijski testovi i JS/CSS performance budget.
 - [x] Odvojena WordPress.org kandidatska distribucija s lokalnim resursima i dobrovoljnim potpisom; službeni Plugin Check kao CI kontrola.
+
+## Korekcije — v0.11.3
+
+- [x] Shopify: lokalni CSP-kompatibilni bootstrap, sinkronizacija spremljenog odabira, cross-tab promjena i resetiranja s Customer Privacy API-jem.
+- [x] PrestaShop: apsolutna putanja iz korijena modula umjesto relativnih ruta na ugniježđenim stranicama.
+- [x] CDN: odbijanje redirecta, ograničenje HTTP odgovora i čišćenje zastarjelih build datoteka uz regresije.
+- [ ] Potvrditi stvarne Shopify/PrestaShop izvedbe na reprezentativnim produkcijskim/staging trgovinama.
 
 ## Nove platformske integracije — v0.11.0
 
