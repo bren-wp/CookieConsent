@@ -1,6 +1,7 @@
 {% comment %}
   CookieConsent by Brendigo — Shopify app embed (requires registered Shopify app).
-  Settings are Liquid JSON-escaped before entering JavaScript.
+  Settings are Liquid HTML-escaped in a non-executable meta tag.
+  A local bootstrap converts them to the core configuration.
 {% endcomment %}
 <link rel="stylesheet" href="{{ 'brendigo-cookieconsent.css' | asset_url }}">
 <meta name="brendigo-cookieconsent-config"

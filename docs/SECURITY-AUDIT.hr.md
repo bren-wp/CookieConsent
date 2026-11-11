@@ -53,3 +53,16 @@ U obuhvaćenom izvornom kodu popravljene su konkretne sigurnosne i robusnosne po
 ## Popravak međukartične sinkronizacije
 
 Uveden je dodatni `storage` event kanal uz BroadcastChannel, s porukama koje sadrže samo reviziju politike, timestamp i lokalni brojač. Time se smanjuje rizik gubitka sinkronizacije u preglednicima koji privremeno ograničavaju BroadcastChannel. Nema prijenosa sadržaja privole na udaljeni server; za oba kanala potreban je isti origin.
+
+## Dodatna revizija za v0.11.3 (11. 11. 2026.)
+
+Ovo je nadopuna internog pregleda iz prethodne verzije, ne vanjski penetracijski test.
+
+| ID | Razina | Nalaz | Korektivna mjera |
+|---|---|---|---|
+| SEC-11 | Srednja | Shopify most ažurirao je Customer Privacy API samo pri novoj odluci. Obnovljena prethodna privola, cross-tab promjena i izričit reset nisu u svim putovima propagirani. | Vanjski bootstrap povezuje `onConsent` i `onChange` s mostom; `null` znači opoziv svih opcionalnih kategorija; deduplicirane identične odluke i dodani Node regresijski testovi. |
+| SEC-12 | Niska do srednja | Shopify embed izvršavao je konfiguraciju kroz inline JS; to otežava strogi CSP i pregled izlaza Liquid vrijednosti. | Konfiguracija se prenosi preko Liquid `escape` atributa neizvršivog `meta` elementa, a obrađuje u zasebnoj lokalnoj datoteci; uklonjen izvršivi inline JS iz embe­da. |
+| SEC-13 | Niska do srednja | CDN validator slijedio je redirect i učitavao puni odgovor bez gornje granice veličine. | Redirect se odbija prije praćenja cilja; `Content-Length` i streaming sadržaj imaju limit 2 MiB; SHA-256 provjera ostaje obvezna. |
+| SEC-14 | Niska | Preostale datoteke u direktoriju ranijeg CDN builda mogle su završiti u lokalno pakiranoj distribuciji bez stavke u manifestu. | Prije generiranja svakog verzioniranog CDN bundlea briše se isključivo njegov ciljni build direktorij; regresijski test provjerava uklanjanje datoteke bez manifesta. |
+
+**Provjera i granice:** Repo sadrži automatizirane regresije za navedene slučajeve, ali nijedna izolirana provjera ne dokazuje kompatibilnost s konkretnom Shopify trgovinom, realnim PrestaShop hostingom ili konfiguracijom `cookie.brendigo.com`. Posebno provjeriti Shopify pixel gating, CSP, ponovni pokušaj nakon privremenog API neuspjeha, zaštitu web kolačića i kvalitetu revocation cleanupa. Za zakonitost i sigurnost stvarne instalacije potrebni su staging, vanjski pentest i pravna analiza.

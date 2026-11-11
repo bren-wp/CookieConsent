@@ -42,3 +42,10 @@ Statički pretraživač ne može dokazati da je svaki event handler ili callback
 - Ne brisati namjerno odvojene isporuke bez migracijskog plana.
 
 [Security audit](SECURITY-AUDIT.hr.md) · [Razvoj](DEVELOPMENT.md) · [ROADMAP](ROADMAP.md).
+
+## Nadopuna revizije — v0.11.3 (11. 11. 2026.)
+
+- **DC-08:** iz Shopify embe­da uklonjen je duplicirani inline konfiguracijski tok; postavke čita lokalni `shopify-config.js`, dok `shopify-privacy-bridge.js` zadržava samo komunikaciju s platformom.
+- **DC-09:** više se ne zadržavaju stare datoteke u verzioniranom `dist/cdn` direktoriju nakon ponovnog builda. Sam manifest i ZIP pakiranje imaju jedinstven, kontroliran ulaz.
+- **DC-10:** različite platforme i dalje svjesno isporučuju identičan runtime JS/CSS kao lokalne kopije; provjera jednakosti iz `tools/check-release.mjs` ostaje obvezna.
+- Heuristički audit ne briše nepoznate callbackove, podatkovne atribute i lifecycle funkcije bez dokazanog nekorištenja. Stvarna pokrivenost izvršavanja zasebnih CMS sustava ostaje otvorena dok nisu dostupni reprezentativni staging environmenti.

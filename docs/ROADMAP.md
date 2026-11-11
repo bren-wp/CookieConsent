@@ -24,6 +24,13 @@ Projekt razlikuje **implementirano**, **automatizirano provjereno**, **ovisno o 
 - [x] Interni [sigurnosni audit](SECURITY-AUDIT.hr.md) i [dead-code audit](DEAD-CODE-AUDIT.hr.md), regresijski testovi i JS/CSS performance budget.
 - [x] Odvojena WordPress.org kandidatska distribucija s lokalnim resursima i dobrovoljnim potpisom; službeni Plugin Check kao CI kontrola.
 
+## Korekcije — v0.11.3
+
+- [x] Shopify: lokalni CSP-kompatibilni bootstrap, sinkronizacija spremljenog odabira, cross-tab promjena i resetiranja s Customer Privacy API-jem.
+- [x] PrestaShop: apsolutna putanja iz korijena modula umjesto relativnih ruta na ugniježđenim stranicama.
+- [x] CDN: odbijanje redirecta, ograničenje HTTP odgovora i čišćenje zastarjelih build datoteka uz regresije.
+- [ ] Potvrditi stvarne Shopify/PrestaShop izvedbe na reprezentativnim produkcijskim/staging trgovinama.
+
 ## Nove platformske integracije — v0.11.0
 
 - [x] Joomla 5 system plugin s lokalnim WebAssetManager resursima i administratorovim postavkama.

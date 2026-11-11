@@ -1,5 +1,14 @@
 # Povijest promjena — CookieConsent by Brendigo
 
+## 0.11.3 — testna sigurnosna i integracijska zakrpa
+
+- Shopify: spremni odabiri, promjene između kartica i reset/povlačenje privole usklađuju se s Customer Privacy API-jem. Ponavljanje iste odluke ne pokreće suvišne zahtjeve.
+- Shopify: Liquid postavke idu kroz escapirane HTML meta atribute i lokalnu bootstrap skriptu umjesto izvršivog inline JavaScripta; dodani su regresijski testovi.
+- PrestaShop: putanje lokalnih CSS/JS resursa počinju od korijena modula, uključujući instalacije trgovine u poddirektoriju.
+- CDN: validator odbija preusmjeravanja, ograničava veličinu odgovora na 2 MiB i nastavlja potvrđivati hash manifest; build čisti stare artefakte prije pakiranja.
+- Dopunjeni sigurnosni i dead-code nalazi; i dalje su obavezni stvarni CMS/storefront testovi, neovisni sigurnosni pregled te validacija objavljenog DNS/HTTPS hostinga.
+
+
 ## 0.11.2 — testno izdanje
 
 - OpenCart 4: URL-ovi resursa iz korijena trgovine, CSP-sigurna JSON konfiguracija i odvojeni bootstrap.
