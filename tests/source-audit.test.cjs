@@ -12,7 +12,14 @@ test('source security audit: unsafe dynamic JS and PHP execution sinks are absen
     'wordpress/brendigo-cookieconsent/assets/admin-preview.js',
     'wordpress/brendigo-cookieconsent/assets/translation-editor.js',
     'packages/integrations/google-consent-basic.js',
-    'cdn/loader.js'
+    'cdn/loader.js',
+    'shopify/extensions/brendigo-cookieconsent/assets/shopify-config.js',
+    'shopify/extensions/brendigo-cookieconsent/assets/shopify-privacy-bridge.js',
+    'magento/view/frontend/web/js/bootstrap.js',
+    'opencart/catalog/view/javascript/bootstrap.js',
+    'prestashop/views/js/bootstrap.js',
+    'joomla/media/js/bootstrap.js',
+    'drupal/js/bootstrap.js'
   ];
   for(const file of jsFiles){
     const value=source(file);
@@ -55,4 +62,12 @@ test('security invariants: expiry, safe URL scheme, local WordPress default',()=
  assert.match(php,/'asset_source' => 'local'/);
  assert.match(wporg,/showBranding === true/);
  assert.match(wporg,/Local plugin assets only/);
+});
+
+test('Shopify head embed avoids executable inline config and escapes Liquid attributes',()=>{
+ const liquid=source('shopify/extensions/brendigo-cookieconsent/blocks/consent-banner.liquid');
+ assert.doesNotMatch(liquid,/<script(?![^>]*\bsrc=)[^>]*>\s*window\./i);
+ for(const field of ['language','position','policy_url','revision','accent_color']){
+   assert.match(liquid,new RegExp('block\\.settings\\.'+field+' \\| escape'));
+ }
 });

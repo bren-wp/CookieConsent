@@ -3,21 +3,14 @@
   Settings are Liquid JSON-escaped before entering JavaScript.
 {% endcomment %}
 <link rel="stylesheet" href="{{ 'brendigo-cookieconsent.css' | asset_url }}">
-<script>
-  window.BCC_SITE_CONFIG = {
-    language: {{ block.settings.language | json }},
-    position: {{ block.settings.position | json }},
-    policyUrl: {{ block.settings.policy_url | json }},
-    revision: {{ block.settings.revision | json }},
-    accentColor: {{ block.settings.accent_color | json }},
-    onDecision: function(result) {
-      if (window.BrendigoShopifyPrivacyBridge && result && result.receipt) {
-        window.BrendigoShopifyPrivacyBridge.apply(result.receipt.categories);
-      }
-    }
-  };
-</script>
+<meta name="brendigo-cookieconsent-config"
+  data-bcc-language="{{ block.settings.language | escape }}"
+  data-bcc-position="{{ block.settings.position | escape }}"
+  data-bcc-policy-url="{{ block.settings.policy_url | escape }}"
+  data-bcc-revision="{{ block.settings.revision | escape }}"
+  data-bcc-accent-color="{{ block.settings.accent_color | escape }}">
 <script defer src="{{ 'shopify-privacy-bridge.js' | asset_url }}"></script>
+<script defer src="{{ 'shopify-config.js' | asset_url }}"></script>
 <script defer src="{{ 'brendigo-cookieconsent.js' | asset_url }}"></script>
 {% schema %}
 {

@@ -25,13 +25,33 @@ async function get(target, expectedMime){
   const controller=new AbortController();
   const timeout=setTimeout(()=>controller.abort(),12000);
   try {
-    const res=await fetch(url,{redirect:'follow',signal:controller.signal,
+    const res=await fetch(url,{redirect:'manual',signal:controller.signal,
       headers:{'Accept':'*/*','User-Agent':'Brendigo-CDN-Deployment-Validator/1'}});
+    if(res.status >= 300 && res.status < 400)throw new Error(target+' redirect is not allowed');
     if(!res.ok)throw new Error(target+' HTTP '+res.status);
     if(new URL(res.url).origin!==origin.origin)throw new Error(target+' redirected to another origin');
     const mime=res.headers.get('content-type') || '';
     if(expectedMime && !expectedMime.test(mime))throw new Error(target+' unexpected MIME '+mime);
-    const body=Buffer.from(await res.arrayBuffer());
+    // Do not buffer unbounded or attacker-controlled responses in the validator.
+    const maxBytes=2*1024*1024;
+    const advertised=res.headers.get('content-length');
+    if(advertised !== null && Number(advertised)>maxBytes) {
+      throw new Error(target+' exceeds the 2 MiB validation limit');
+    }
+    if(!res.body)throw new Error(target+' has no response body');
+    const reader=res.body.getReader();
+    const chunks=[];let length=0;
+    for(;;){
+      const part=await reader.read();
+      if(part.done)break;
+      length+=part.value.byteLength;
+      if(length>maxBytes){
+        await reader.cancel();
+        throw new Error(target+' exceeds the 2 MiB validation limit');
+      }
+      chunks.push(Buffer.from(part.value));
+    }
+    const body=Buffer.concat(chunks,length);
     if(!body.length)throw new Error(target+' is empty');
     console.log('OK ',res.status,body.length+' B',target);
     return body;

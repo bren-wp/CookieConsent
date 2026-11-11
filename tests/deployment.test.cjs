@@ -44,3 +44,39 @@ test('deployment verifier validates reachable files and checksum manifest on loc
   // The checked website is local. This test never claims public DNS is live.
  }finally{await new Promise(resolve=>server.close(resolve));}
 });
+
+test('deployment verifier refuses HTTP redirects before fetching target assets',async()=>{
+ const server=http.createServer((req,res)=>{
+   res.writeHead(302,{'Location':'http://127.0.0.1:1/untrusted'}).end();
+ });
+ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+ try{
+   const url='http://127.0.0.1:'+server.address().port+'/';
+   const result=await new Promise((resolve,reject)=>{
+     const child=spawn(process.execPath,['tools/verify-deployment.mjs',url],{cwd:root});
+     let output='';
+     child.stdout.on('data',part=>output+=part.toString());
+     child.stderr.on('data',part=>output+=part.toString());
+     child.once('error',reject);
+     child.once('close',code=>resolve({code,output}));
+   });
+   assert.notEqual(result.code,0);
+   assert.match(result.output,/redirect is not allowed/);
+ }finally{await new Promise(resolve=>server.close(resolve));}
+});
+test('CDN packaging removes stale files outside the checksum manifest',async()=>{
+ const version=require('../package.json').version;
+ const folder=path.join(root,'dist','cdn','v'+version);
+ fs.mkdirSync(folder,{recursive:true});
+ const stale=path.join(folder,'unmanifested-junk.js');
+ fs.writeFileSync(stale,'/* unsafe leftover */');
+ const result=await new Promise((resolve,reject)=>{
+   const child=spawn(process.execPath,['tools/build-cdn.mjs'],{cwd:root});
+   let output='';
+   child.stderr.on('data',part=>output+=part.toString());
+   child.once('error',reject);
+   child.once('close',code=>resolve({code,output}));
+ });
+ assert.equal(result.code,0,result.output);
+ assert.equal(fs.existsSync(stale),false);
+});

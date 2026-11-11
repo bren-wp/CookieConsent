@@ -4,22 +4,30 @@
  */
 (function (root) {
   'use strict';
-  var pending = null, privacy = null, loading = false;
+  var pending = null, privacy = null, loading = false, lastSubmitted = '';
   function submit(choice) {
     if (!privacy || !choice) return;
+    var signature = JSON.stringify(choice);
+    if (signature === lastSubmitted) return;
+    lastSubmitted = signature;
     privacy.setTrackingConsent({
       analytics: choice.analytics === true,
       marketing: choice.marketing === true && !(root.navigator && root.navigator.globalPrivacyControl),
       preferences: choice.preferences === true
     }, function (error) {
-      if (error && root.console) root.console.warn('[Brendigo] Shopify consent update failed.');
+      if (error) {
+        if (lastSubmitted === signature) lastSubmitted = '';
+        pending = choice;
+        if (root.console) root.console.warn('[Brendigo] Shopify consent update failed.');
+      }
     });
   }
   root.BrendigoShopifyPrivacyBridge = {
     apply: function (choice) {
-      if (!choice) return;
-      var data = {analytics:choice.analytics === true,
-        marketing:choice.marketing === true,preferences:choice.preferences === true};
+      // A null choice is an explicit withdrawal/reset: deny optional tracking.
+      var data = {analytics:!!(choice && choice.analytics === true),
+        marketing:!!(choice && choice.marketing === true),
+        preferences:!!(choice && choice.preferences === true)};
       if (privacy) submit(data);
       else pending = data; // Keep the latest choice only; never buffer unbounded decisions.
     }

@@ -13,6 +13,8 @@ const root = path.resolve(__dirname, '..');
 const version = require(path.join(root, 'package.json')).version;
 if (!/^\d+\.\d+\.\d+$/.test(version)) throw new Error('Invalid semver version');
 const target = path.join(root, 'dist', 'cdn', 'v' + version);
+// A clean output prevents stale, unmanifested files from entering installer ZIPs.
+fs.rmSync(target, {recursive:true, force:true});
 fs.mkdirSync(target, {recursive:true});
 const entries = [
   ['packages/core/brendigo-cookieconsent.js', 'brendigo-cookieconsent.js'],
