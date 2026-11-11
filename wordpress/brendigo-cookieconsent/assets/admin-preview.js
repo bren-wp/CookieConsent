@@ -102,7 +102,12 @@
       optional('bodySize',0,'--bcc-demo-body-size',function(v){return Math.round(v*.8)+'px';});
       optional('buttonHeight',0,'--bcc-demo-button-height',function(v){return Math.round(v*.7)+'px';});
       optional('buttonRadius',-1,'--bcc-demo-button-radius',function(v){return Math.round(v*.55)+'px';});
-      preview.dataset.mobileWidth=fields.mobileWidth.value;
+      // WP preview is illustrative; nevertheless reflect the actual configured
+      // mobile-width percentage rather than silently using full width.
+      var mobilePercent=Number(fields.mobileWidth.value);
+      if(!Number.isInteger(mobilePercent) || mobilePercent<82 || mobilePercent>100)mobilePercent=100;
+      preview.dataset.mobileWidth=String(mobilePercent);
+      preview.style.setProperty('--bcc-demo-mobile-width',mobilePercent+'%');
       var values=(text[language]||text.en).slice();
       var overrides={};
       try {

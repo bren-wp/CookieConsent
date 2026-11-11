@@ -107,3 +107,6 @@ Nakon spremanja testirati desktop, 390 px i 320 px viewport te naplatu i aktivac
 Iznad obrasca postavki četiri su **brza dizajnerska predloška** (Uravnoteženi / Plutajući / Minimalni / Tamni premium). Primjenjuju samo raspored, veličine, tipografiju i boje i **ne spremaju ništa** dok se ne pritisne WordPressov gumb `Spremi promjene`. Ne mijenjaju kategorije, postojeće kolačiće, privolu posjetitelja ni URL politike.
 
 Ilustrativni WordPress pregled ima gumbe Desktop / Mobitel 390 px / Mobitel 320 px, prikazuje objašnjenje omjera kontrasta teksta i gumba te uključuje ispravnu svijetlu/tamnu podlogu. Za vizualnu provjeru stvarnog motora i svih responzivnih ograničenja koristite i javni HTML konfigurator; WordPress preview namjerno nije zamjena za prikaz u punom web pregledniku.
+
+
+**Mobilna širina u previewu:** WP ilustrativni uređaj sada uvažava postotak `mobile_width` između 82 % i 100 % (i maksimalne rubove) bez mijenjanja produkcijske CSS jezgre. Nevrijedni brojevi u previewu vraćaju se na 100 %; PHP validacija potvrđuje spremljenu vrijednost pri spremanju.

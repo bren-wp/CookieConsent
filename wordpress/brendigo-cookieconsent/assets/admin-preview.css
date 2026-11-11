@@ -69,7 +69,7 @@
 .bcc-preview[data-device="mobile"] .bcc-preview-banner,
 .bcc-preview[data-device="narrow"] .bcc-preview-banner{
   display:block;left:50%;right:auto;transform:translateX(-50%);
-  width:min(calc(100% - 20px), var(--bcc-demo-width,100%));max-width:none;
+  width:min(calc(100% - 20px), var(--bcc-demo-mobile-width,100%));max-width:none;
 }
 .bcc-preview[data-device="mobile"] .bcc-preview-actions,
 .bcc-preview[data-device="narrow"] .bcc-preview-actions{
