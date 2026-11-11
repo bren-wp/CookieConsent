@@ -21,7 +21,7 @@ test('source security audit: unsafe dynamic JS and PHP execution sinks are absen
     return fs.readdirSync(absolute,{withFileTypes:true}).flatMap(entry=>{
       const sub=path.posix.join(rel,entry.name);
       return entry.isDirectory()?runtimeSources(sub):
-        entry.isFile() && /\\.js$/.test(entry.name)?[sub]:[];
+        entry.isFile() && /\.js$/.test(entry.name)?[sub]:[];
     });
   }
   const jsFiles=runtimeDirs.flatMap(runtimeSources);
