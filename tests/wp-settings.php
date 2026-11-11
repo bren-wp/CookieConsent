@@ -29,6 +29,7 @@ function esc_url_raw($url, $protocols = ['http','https']): string {
 }
 function absint($value): int { return abs((int)$value); }
 function esc_html($v): string { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
+function esc_html__($value, $domain = ''): string { return esc_html($value); }
 function esc_attr($v): string { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
 function esc_url($v): string { return is_string($v) && preg_match('~^https?://~', $v) ? esc_attr($v) : ''; }
 function determine_locale(): string { return 'hr_HR'; }
