@@ -47,16 +47,17 @@ const {chromium}=require('playwright');
    });
    await page.locator('#place_order').click();
    try{
-     await page.locator('.woocommerce-order').waitFor({timeout:20000});
+     await page.waitForURL(url=>new URL(url).searchParams.has('order-received'),{timeout:45000});
+     await page.getByText(/Thank you\. Your order has been received\./).waitFor({state:'visible',timeout:15000});
    }catch(error){
      const notices=await page.locator('.woocommerce-error,.woocommerce-NoticeGroup,.wc-block-components-notice-banner').allInnerTexts();
      console.error('WooCommerce checkout diagnostic:',JSON.stringify({
-       url:page.url(),notices,checkoutRequests,
+       confirmationUrl:page.url().split('&key=')[0],notices,checkoutRequests,
        errors,html: (await page.locator('body').innerText()).slice(-2500)
      },null,2));
      throw error;
    }
-   assert.ok((await page.locator('.woocommerce-order').innerText()).length>20);
+   assert.match(await page.locator('body').innerText(),/Your order has been received/);
    assert.deepEqual(errors,[], 'checkout must have no JS exceptions');
    console.log('PASS WooCommerce real browser cart -> checkout -> offline order with CookieConsent denied');
    await context.close();
