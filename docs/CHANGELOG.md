@@ -1,5 +1,14 @@
 # Povijest promjena — CookieConsent by Brendigo
 
+## 0.11.7 — dizajnerski predlošci, provjera kontrasta i prikaz na uređajima
+
+- Četiri predloška izgleda (Uravnoteženi, Plutajući, Minimalni, Tamni premium) za javni vizualni konfigurator i WordPress administraciju; mijenjaju samo dizajnerske parametre.
+- Preglednik kontrasta s izračunom stvarno odabranih (i prema potrebi automatski korigiranih) boja teksta i gumba, s prikazom omjera prema WCAG AA 4,5:1 za običan tekst.
+- Prikaz mjeri širinu stvarnog iframe bannera, prisutnost sve tri odluke i horizontalno prelijevanje; uključuje desktop, 390 px i 320 px.
+- WordPress ilustrativni admin pregled dobio je odabir širine i povratnu informaciju o kontrastu te podršku za svijetlu i tamnu temu.
+- Samostalni JSON izvoz ne propušta nedopuštene, pretjerane ili zlonamjerne numeričke dimenzije; sanitizacija koristi isti javni validator jezgre.
+- Regresijski testovi predložaka, kontrola odbijanja, malog zaslona i sigurnosti koda; bez eksternih resursa ili automatskog aktiviranja pružatelja.
+
 ## 0.11.6 — responsivna prilagodba veličina
 
 - Devet strogo validiranih numeričkih dizajnerskih opcija: desktop i mobilna širina, unutarnji razmak, zaobljenost bannera, razmak od ruba, veličina naslova/opisa, visina gumba i zaobljenost gumba.

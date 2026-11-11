@@ -1,6 +1,6 @@
 # Konfiguracija — CookieConsent by Brendigo
 
-**Izdanje:** 0.11.6 · [Dokumentacijski indeks](README.md) · [API](API.hr.md)
+**Izdanje:** 0.11.7 · [Dokumentacijski indeks](README.md) · [API](API.hr.md)
 
 Konfiguracija se postavlja u `window.BCC_SITE_CONFIG` prije učitavanja `brendigo-cookieconsent.js`. Parametri se učitavaju jednom pri inicijalizaciji. U WordPressu dostupni su kroz **Postavke → CookieConsent**, osim tamo gdje je izričito navedeno da je potrebna prilagođena integracija.
 
@@ -148,3 +148,11 @@ Sva brojčana polja prihvaćaju samo cijele brojeve unutar navedenih raspona. Ne
 Na desktopu `bannerWidth` može prilagoditi i bočne položaje, kao i sredinu/traku. Mobilni CSS ograničava širinu na prostor zaslona i centrira banner, bez obzira na izabranu stranu, kako nijedan gumb ne ostane izvan zaslona. Mobilni rub ostaje 12 px čak i ako desktop `bannerOffset` ima drugu vrijednost. Unutarnji sadržaj se pomiče unutar bannera kad je visina zaslona mala.
 
 Radi pristupačnosti korisniku se ne smije oduzeti mogućnost odbijanja. Provjerite prikaz na 320 px, 390 px, 200–400 % zoom, RTL i ekranskim čitačima, osobito uz duge prijevode. Automatski browser test ne zamjenjuje tu ručnu provjeru.
+
+## Vizualni predlošci i kontrast — v0.11.7
+
+Javni konfigurator (`demo/configurator.html`) i WordPress postavke nude četiri **dizajnerska predloška**: Uravnoteženi (zadani, centriran), Plutajući (kompaktan u kutu), Minimalni (traka) i Tamni premium (tamna tema). Odabirom predloška popunjavaju se samo polja izgleda; svaki od njih dopušta dodatne ručne promjene širine, boja, razmaka, položaja i tipografije. Odabir **ne postavlja privolu**, ne mijenja praćene usluge i ne mijenja reviziju politike.
+
+Konfigurator lokalno prikazuje omjer kontrasta za automatski prilagođen tekst i primarne gumbe (WCAG AA 4,5:1 za običan tekst). Dodatno iz stvarnog iframea čita geometriju bannera i broj vidljivih gumba na odabranom viewportu. Riječ je o pomoćnoj automatskoj dijagnostici, a ne potpunoj WCAG potvrdi: ne provjerava sve stanja, hover/fokus, svaki kontrast veze, preglednički zoom 400 % ni funkcionalnost čitača ekrana.
+
+Pri izvozu JSON-a svaki numerički layout parametar sanitizira se istom funkcijom kao u osnovnoj JS jezgri. Datoteka iz uvoza može sadržavati pravne i uslužne postavke, no predlošci mijenjaju samo vizualnu konfiguraciju.

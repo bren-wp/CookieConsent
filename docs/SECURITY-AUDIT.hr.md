@@ -85,3 +85,9 @@ Ovo je nadopuna internog pregleda iz prethodne verzije, ne vanjski penetracijski
 - Bez arbitrarnih CSS stringova ili HTML-a u dizajnerskim opcijama; u DOM se postavljaju samo unaprijed imenovane CSS varijable s jedinicama iz programskog koda.
 - Mobilni položaji i širine ograničeni su na viewport. Odbijanje, prihvaćanje i postavke ne mogu se ukloniti kroz konfiguraciju dizajna.
 - Ovo je pregled ulaza, a ne neovisna penetracijska revizija ili pravno jamstvo dostupnosti svih konfiguracija.
+
+## Dodatne kontrole — v0.11.7
+
+- Dizajnerski preset ne prima proizvoljan HTML, skripte ili URL-ove; unaprijed definirani brojevi i boje upisuju se samo u poznata polja. Ne postoji povezivanje sa server-side evidencijom privola niti bilo kakva automatska odluka u ime posjetitelja.
+- Samostalni izvoz numeric vrijednosti poziva `sanitizeLayoutNumber` prije serijalizacije; preglednik može pokazati upozorenje o nevaljanim vrijednostima.
+- Pregled kontrasta oslanja se na lokalne WCAG formule i postojeći kontrastni fallback iz motora. Nije neovisna accessibility revizija ni pravna potvrda.

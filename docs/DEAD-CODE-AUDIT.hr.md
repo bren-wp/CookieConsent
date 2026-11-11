@@ -62,3 +62,8 @@ Statički pretraživač ne može dokazati da je svaki event handler ili callback
 - Sve nove opcije imaju jedinstvenu putanju: konfigurator/WordPress → sanitizacija → zajednička JS jezgra → CSS varijable; WordPress admin-preview namjerno je pojednostavljena ilustracija.
 - Mirrors JS i CSS u sedam integracijskih paketa ostaju byte-for-byte jednaki jezgri; te kopije se **ne uklanjaju** jer su potrebne za lokalno izvođenje.
 - Dodatna nadzorna provjera u CI-u mora potvrditi da je svaka kontrola stvarno korištena i da ne uvodi neiskorištene grane ili neaktivne postavke.
+
+## Revizija v0.11.7
+
+- Četiri dizajnerska predloška su statički podatkovni zapisi s stvarnim UI potrošačima u HTML konfiguratoru i WordPress administratorskoj skripti; nisu mrtav kod.
+- Novi browser test izvršava preset prikaz i provjerava konverziju odabira u parametre te očitanje iframea. Namjerne vizualne razlike između WP ilustrativnog previewa i pune vanilla JS jezgre dokumentirane su kao ograničenje, ne kao duplicirani runtime.

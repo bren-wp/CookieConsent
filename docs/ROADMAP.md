@@ -101,3 +101,10 @@ Projekt razlikuje **implementirano**, **automatizirano provjereno**, **ovisno o 
 - [x] WordPress uređivanje i vizualni pregled; HTML konfigurator s desktop i mobilnim prikazima te JSON izvoznim i uvoznim postavkama.
 - [x] Sanitizacija svih parametara, testovi vidljivih odluka i granica bannera na desktopu, 390 px i 320 px.
 - [ ] Puna ručna WCAG provjera povećanja 400 %, čitača ekrana i tema/plugins na stvarnim web-stranicama ostaje otvorena.
+
+### Dizajnerski predlošci i provjere — v0.11.7
+
+- [x] Četiri standardizirana dizajnerska predloška u WordPressu i samostalnom konfiguratoru; sve postojeće kategorije, revizije politike i statusi privole ostaju nepromijenjeni.
+- [x] Lokalni pregled omjera kontrasta i očitanje stvarne širine bannera, vidljivih gumba i horizontalnog preljeva za tri viewporta.
+- [x] Sanitizacija numeričkih parametara već pri izvozu JSON-a; testiranje neispravnih vrijednosti.
+- [ ] Potvrditi potpuni WCAG 2.2 AA, ručni zoom 400 % i screen-reader na stvarnim temama, uređajima i stranicama.

@@ -158,6 +158,10 @@ U javnom konfiguratoru i WordPress administraciji dostupne su postavke širine b
 
 Izgled možete pogledati na desktopu, telefonu širine 390 px ili manjem telefonu širine 320 px u [konfiguratoru](demo/configurator.html); prilagodbe se izvoze kao validirani JSON i nisu izvršni kod. Banner i svi gumbi ostaju unutar granica mobilnog prikaza; prihvaćanje i odbijanje nisu skriveni niti se mijenja status privole samom promjenom dizajna. [Rasponi i primjeri](docs/CONFIGURATION.hr.md).
 
+### Brzi predlošci dizajna i pristupačnost (v0.11.7)
+
+U vizualnom konfiguratoru i WordPress postavkama dostupni su predlošci **Uravnoteženi**, **Plutajući**, **Minimalni** i **Tamni premium**. Automatski pregled kontrasta izračunava omjer teksta i primarnih gumba prema WCAG AA cilju, a pogled na desktop/390/320 px očitava stvarnu širinu bannera, vidljivost sva tri gumba i horizontalni preljev. Sve ostaje lokalno, s opcijom daljnje ručne prilagodbe. Predlošci nikada ne odlučuju o privoli posjetitelja umjesto njega.
+
 ## JavaScript API
 
 ~~~javascript

@@ -1,6 +1,6 @@
 # WordPress vodič — CookieConsent by Brendigo
 
-**Zahtjevi:** WordPress 6.2+, PHP 7.4+ · **Izdanje:** 0.11.5
+**Zahtjevi:** WordPress 6.2+, PHP 7.4+ · **Izdanje:** 0.11.7
 
 ## Instalacija
 
@@ -101,3 +101,9 @@ U **Postavke → CookieConsent → Size, spacing and typography** sada se uređu
 **Posebne vrijednosti:** `0` znači koristi zadani stil za širinu/padding/razmak/tekst/gumb; `-1` znači zadani stil za zaobljenost. Broj 0 za zaobljenost znači kvadratni rub, a ne automatski. `mobile_width=100` znači puni raspoloživi mobilni prostor unutar sigurnih rubova.
 
 Nakon spremanja testirati desktop, 390 px i 320 px viewport te naplatu i aktivaciju odbijanja. Vizualni preview u WordPressu je ilustracija; HTML demo konfigurator koristi stvarnu jezgru i pruža pouzdaniju usporedbu.
+
+## Brzi predlošci i pregled širina — v0.11.7
+
+Iznad obrasca postavki četiri su **brza dizajnerska predloška** (Uravnoteženi / Plutajući / Minimalni / Tamni premium). Primjenjuju samo raspored, veličine, tipografiju i boje i **ne spremaju ništa** dok se ne pritisne WordPressov gumb `Spremi promjene`. Ne mijenjaju kategorije, postojeće kolačiće, privolu posjetitelja ni URL politike.
+
+Ilustrativni WordPress pregled ima gumbe Desktop / Mobitel 390 px / Mobitel 320 px, prikazuje objašnjenje omjera kontrasta teksta i gumba te uključuje ispravnu svijetlu/tamnu podlogu. Za vizualnu provjeru stvarnog motora i svih responzivnih ograničenja koristite i javni HTML konfigurator; WordPress preview namjerno nije zamjena za prikaz u punom web pregledniku.

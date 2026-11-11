@@ -1,6 +1,6 @@
 # Matrica provjera — CookieConsent by Brendigo
 
-**Izdanje:** v0.11.4 — sigurnosna i integracijska zakrpa · [ROADMAP](ROADMAP.md) · [Sigurnost](SECURITY-AUDIT.hr.md)
+**Izdanje:** v0.11.7 — sigurnosna i integracijska zakrpa · [ROADMAP](ROADMAP.md) · [Sigurnost](SECURITY-AUDIT.hr.md)
 
 Zeleni GitHub CI znači da su prošli **konkretni automatizirani scenariji**. Ne znači da je svaki CMS dodatak funkcionalno validiran u stvarnoj trgovini.
 
@@ -35,3 +35,6 @@ Zeleni GitHub CI znači da su prošli **konkretni automatizirani scenariji**. Ne
 
 
 **Layout v0.11.7:** CI validira nove numeric bounds, JSON import/export, WordPress spremanje postavki i responsive viewport testove te provjerava da ni prilagođeni izgled ne može sakriti odbijanje ili postavke.
+
+
+**V0.11.7:** browser regresija aktivira sva nova dizajnerska predloška i provjerava kontrastne metrike, širinu i dostupnost gumba na 320 px. WordPress administratorska skripta i HTML kontrole prolaze source audit; neovisni screen-reader i terenski test ostaju otvoreni.
