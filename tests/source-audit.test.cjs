@@ -36,6 +36,11 @@ test('source security audit: unsafe dynamic JS and PHP execution sinks are absen
   assert.match(php,/check_admin_referer\('bcc_import_settings'\)/);
   assert.match(php,/current_user_can\('manage_options'\)/);
   assert.match(php,/wp_json_encode\(\$config,\s*JSON_HEX_TAG/);
+  assert.doesNotMatch(php,/wp_add_inline_script\s*\(/);
+  assert.match(php,/frontend_config_meta/);
+  assert.match(php,/esc_attr\(\$json\)/);
+  const configJs=source('wordpress/brendigo-cookieconsent/assets/wp-config.js');
+  assert.doesNotMatch(configJs,/\.innerHTML\s*=|\beval\s*\(/);
   assert.match(php,/WP_HTML_Tag_Processor/);
 });
 test('demo pages do not rely on inline HTML event-handler attributes',()=>{

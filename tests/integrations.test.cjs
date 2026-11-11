@@ -134,3 +134,41 @@ test('provider lifecycle rejects invalid registration and duplicate IDs', () => 
   cc.registerProvider({id:'provider-1',category:'analytics'});
   assert.throws(()=>cc.registerProvider({id:'provider-1',category:'analytics'}), /Invalid or duplicate CookieConsent provider/);
 });
+
+test('CDN loader propagates explicit CSP nonce and request credentials policy to local assets',()=>{
+  const nodes=[];
+  const doc={
+    currentScript:{src:'https://cookie.brendigo.com/v0.11.5/loader.js',
+      nonce:'nonce-from-page',crossOrigin:'anonymous',referrerPolicy:'no-referrer'},
+    head:{appendChild(n){nodes.push(n);}},
+    createElement(type){return {type,addEventListener(){}};}
+  };
+  vm.runInNewContext(fs.readFileSync(path.join(root,'cdn/loader.js'),'utf8'),{
+    document:doc,URL,window:{console}
+  });
+  assert.equal(nodes.length,2);
+  for(const node of nodes){
+    assert.equal(node.nonce,'nonce-from-page');
+    assert.equal(node.crossOrigin,'anonymous');
+    assert.equal(node.referrerPolicy,'no-referrer');
+  }
+});
+test('WordPress external config reader uses inert JSON without evaluating input',()=>{
+  const queries=[];
+  const win={BCC_SITE_CONFIG:null,document:{querySelector(selector){
+    queries.push(selector);
+    return {getAttribute(key){return key==='content'?
+      JSON.stringify({language:'hr',revision:'wp-v1',services:[],policyUrl:'/cookies'}):null;}};
+  }}};
+  const source=fs.readFileSync(path.join(root,'wordpress/brendigo-cookieconsent/assets/wp-config.js'),'utf8');
+  vm.runInNewContext(source,{window:win});
+  assert.equal(win.BCC_SITE_CONFIG.language,'hr');
+  assert.equal(win.BCC_SITE_CONFIG.revision,'wp-v1');
+  assert.equal(queries.length,1);
+  win.BCC_SITE_CONFIG={language:'en'};
+  vm.runInNewContext(source,{window:win});
+  assert.equal(win.BCC_SITE_CONFIG.language,'en','do not overwrite site-provided config');
+  const malformed={document:{querySelector(){return {getAttribute(){return '{incomplete';}}}}};
+  assert.doesNotThrow(()=>vm.runInNewContext(source,{window:malformed}));
+  assert.equal(malformed.BCC_SITE_CONFIG,undefined);
+});
