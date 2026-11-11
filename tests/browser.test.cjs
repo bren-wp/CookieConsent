@@ -278,6 +278,9 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
           assert.equal(await page.locator('#headingSize').inputValue(),'22');
           assert.match(await inspector.innerText(),/Kontrast teksta/);
           await page.locator('#bannerWidth').fill('999999');
+          await page.waitForFunction(()=>{
+            return document.getElementById('snippet').value.includes('"bannerWidth": 0');
+          });
           const snippet=await page.locator('#snippet').inputValue();
           assert.ok(snippet.includes('"bannerWidth": 0'),
             'invalid dimensions are never exported');
