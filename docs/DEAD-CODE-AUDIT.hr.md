@@ -49,3 +49,5 @@ Statički pretraživač ne može dokazati da je svaki event handler ili callback
 - **DC-09:** više se ne zadržavaju stare datoteke u verzioniranom `dist/cdn` direktoriju nakon ponovnog builda. Sam manifest i ZIP pakiranje imaju jedinstven, kontroliran ulaz.
 - **DC-10:** različite platforme i dalje svjesno isporučuju identičan runtime JS/CSS kao lokalne kopije; provjera jednakosti iz `tools/check-release.mjs` ostaje obvezna.
 - Heuristički audit ne briše nepoznate callbackove, podatkovne atribute i lifecycle funkcije bez dokazanog nekorištenja. Stvarna pokrivenost izvršavanja zasebnih CMS sustava ostaje otvorena dok nisu dostupni reprezentativni staging environmenti.
+
+- **DC-11:** `npm run check` sada rekurzivno obuhvaća sve izvorne JS/CJS/MJS datoteke u proizvodnim integracijama, testovima i alatima, umjesto ručno održavanog djelomičnog popisa. Riječ je o sintaktičkoj provjeri, ne dokazu izvršne dosegljivosti.

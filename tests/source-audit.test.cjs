@@ -71,3 +71,14 @@ test('Shopify head embed avoids executable inline config and escapes Liquid attr
    assert.match(liquid,new RegExp('block\\.settings\\.'+field+' \\| escape'));
  }
 });
+
+test('script syntax gate recursively checks every shipped runtime JS and build helper',()=>{
+ const checker=source('tools/check-scripts.mjs');
+ const packageFile=JSON.parse(source('package.json'));
+ assert.match(packageFile.scripts.check,/node tools\/check-scripts\.mjs/);
+ for(const dir of ['cdn','packages','wordpress','joomla','drupal','shopify',
+   'magento','opencart','prestashop','website','demo','tests','tools']) {
+   assert.ok(checker.includes("'"+dir+"'"),'missing JS audit directory '+dir);
+ }
+ assert.match(checker,/--check/);
+});
