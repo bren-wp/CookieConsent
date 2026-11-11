@@ -13,11 +13,12 @@ jobs:
     name: Core and WordPress checks
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: JavaScript syntax and unit tests
         run: |
           node --version
           npm run check
+          npm run audit:supply-chain
           npm test
           npm run build:cdn
           npm run build:wporg
@@ -44,7 +45,7 @@ jobs:
       matrix:
         browser: [chromium, firefox, webkit]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Install browser test dependency (CI only)
         run: npm install --no-save --no-package-lock playwright@1.56.1 axe-core@4.10.3
       - name: Install browser and OS libraries
@@ -62,8 +63,8 @@ jobs:
       matrix:
         php: ['7.4', '8.1', '8.2', '8.3', '8.4']
     steps:
-      - uses: actions/checkout@v4
-      - uses: shivammathur/setup-php@v2
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: ${{ matrix.php }}
           tools: none
@@ -94,8 +95,8 @@ jobs:
           --health-cmd="mysqladmin ping -h localhost -proot"
           --health-interval=10s --health-timeout=5s --health-retries=15
     steps:
-      - uses: actions/checkout@v4
-      - uses: shivammathur/setup-php@v2
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: '8.2'
           extensions: mysqli, mbstring, curl, zip
@@ -129,6 +130,14 @@ jobs:
         run: |
           php "$RUNNER_TEMP/bin/wp" --path="$RUNNER_TEMP/wordpress" plugin install woocommerce --activate --allow-root
           php "$RUNNER_TEMP/bin/wp" --path="$RUNNER_TEMP/wordpress" eval-file "$GITHUB_WORKSPACE/tests/wp-live.php" --allow-root
+      - name: Real WooCommerce cart and offline BACS checkout browser flow
+        if: matrix.wordpress == 'latest'
+        run: |
+          php "$RUNNER_TEMP/bin/wp" --path="$RUNNER_TEMP/wordpress" eval-file "$GITHUB_WORKSPACE/tests/wc-fixture.php" --allow-root > "$RUNNER_TEMP/bcc-wc-fixture.json"
+          cat "$RUNNER_TEMP/bcc-wc-fixture.json"
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+          BCC_WC_FIXTURE="$RUNNER_TEMP/bcc-wc-fixture.json" node tests/wc-browser.cjs
       - name: Official Plugin Check report (review aid, not approval)
         if: matrix.wordpress == 'latest'
         run: |
@@ -147,7 +156,7 @@ jobs:
           fi
       - name: Upload official Plugin Check report
         if: always() && matrix.wordpress == 'latest'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: wordpress-plugin-check-report
           path: ${{ runner.temp }}/plugin-check.txt

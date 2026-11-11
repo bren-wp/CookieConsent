@@ -12,7 +12,8 @@
     "build:wporg": "node tools/build-wporg.mjs",
     "audit:source": "node --test tests/source-audit.test.cjs",
     "validate:platforms": "python3 tools/validate-integrations.py",
-    "verify:deployment": "node tools/verify-deployment.mjs"
+    "verify:deployment": "node tools/verify-deployment.mjs",
+    "audit:supply-chain": "node tools/audit-supply-chain.mjs"
   },
   "engines": {
     "node": ">=18"

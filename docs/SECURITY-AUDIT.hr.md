@@ -66,3 +66,9 @@ Ovo je nadopuna internog pregleda iz prethodne verzije, ne vanjski penetracijski
 | SEC-14 | Niska | Preostale datoteke u direktoriju ranijeg CDN builda mogle su završiti u lokalno pakiranoj distribuciji bez stavke u manifestu. | Prije generiranja svakog verzioniranog CDN bundlea briše se isključivo njegov ciljni build direktorij; regresijski test provjerava uklanjanje datoteke bez manifesta. |
 
 **Provjera i granice:** Repo sadrži automatizirane regresije za navedene slučajeve, ali nijedna izolirana provjera ne dokazuje kompatibilnost s konkretnom Shopify trgovinom, realnim PrestaShop hostingom ili konfiguracijom `cookie.brendigo.com`. Posebno provjeriti Shopify pixel gating, CSP, ponovni pokušaj nakon privremenog API neuspjeha, zaštitu web kolačića i kvalitetu revocation cleanupa. Za zakonitost i sigurnost stvarne instalacije potrebni su staging, vanjski pentest i pravna analiza.
+
+## Supply-chain nadopuna za v0.11.4
+
+- GitHub Actions `checkout`, `upload-artifact` i `setup-php` vezani su na pregledane 40-znamenkaste commit SHA-ove (refovi `v4.2.2`, `v4.6.2`, `2.37.2` provjereni na GitHubu 11. 11. 2026.).
+- `npm run audit:supply-chain` odbija nepinane vanjske Actions reference i produkcijske npm ovisnosti; testovi i build ostaju bez produkcijskih npm paketa.
+- **Otvoreni rizici:** instaliranje browser test paketa i WordPress/WooCommerce/plugin-check tijekom CI-a koristi vanjske repozitorije; `wp-cli.phar` se dohvaća kao vanjski artefakt bez ugrađene checksum/provenance potvrde. Potrebni su zaključane testne ovisnosti, hash/provenance provjere i neovisni supply-chain review. Statička provjera nije neovisni pentest.

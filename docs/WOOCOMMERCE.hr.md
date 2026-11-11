@@ -40,3 +40,9 @@ Tipični nazivi uključuju `woocommerce_cart_hash`, `woocommerce_items_in_cart` 
 Automatizirani PHP testovi trenutačno provjeravaju izoliranu logiku adaptera, **ne kompletan živ WooCommerce checkout**.
 
 [WordPress](WORDPRESS.hr.md) · [Produkcijska kontrolna lista](GO-LIVE.hr.md).
+
+## CI stvarni checkout — kontrolirani BACS test
+
+Od v0.11.4 CI na najnovijem WordPressu instalira pravi WooCommerce, kreira virtualni proizvod i stranice s klasičnim shortcodeovima košarice i naplate te koristi Playwright/Chromium za provjeru toka **dodavanje u košaricu → pregled košarice → odbijanje opcionalne privole → popunjavanje naplate → kreiranje narudžbe**. Naplatni način je ugrađeni **BACS (bankovna uplata bez online terećenja)**, bez stvarnog plaćanja.
+
+Ova automatizacija provjerava jedan stvarni tok na CI konfiguraciji. **Ne dokazuje** kompatibilnost svih payment gatewaya, WooCommerce Checkout Blocks, tema ili minifier/cache dodataka. Te slučajeve treba zasebno testirati na stagingu uz zapis verzije teme i gateway dodatka.
