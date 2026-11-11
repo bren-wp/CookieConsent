@@ -37,6 +37,23 @@
   function sanitizeColor(value, fallback) {
     return typeof value === 'string' && /^#[0-9a-fA-F]{6}$/.test(value) ? value.toLowerCase() : fallback;
   }
+  // Size controls accept integers only: never allow raw CSS, calc(), url() or
+  // attacker-provided strings to flow into CSS declarations.
+  var LAYOUT_LIMITS = {
+    bannerWidth: [320, 1440, 0], mobileWidth: [82, 100, 100],
+    bannerPadding: [12, 48, 0], bannerRadius: [0, 40, -1],
+    bannerOffset: [8, 80, 0], headingSize: [16, 32, 0],
+    bodySize: [12, 20, 0], buttonHeight: [44, 64, 0],
+    buttonRadius: [0, 32, -1]
+  };
+  function sanitizeLayoutNumber(key, value) {
+    var limits = LAYOUT_LIMITS[key];
+    if (!limits) return null;
+    if (value === undefined || value === null || value === '') return limits[2];
+    if (typeof value !== 'number' || !Number.isInteger(value)) return limits[2];
+    return (value === limits[2] || (value >= limits[0] && value <= limits[1]))
+      ? value : limits[2];
+  }
   function luminance(hex) {
     var channels = [1, 3, 5].map(function (index) {
       var x = parseInt(hex.slice(index, index + 2), 16) / 255;
@@ -883,6 +900,26 @@
     holder.style.setProperty('--bcc-text', accessibleText(textColor, surfaceColor));
     holder.style.setProperty('--bcc-subtle', accessibleText('#66708c', surfaceColor));
     holder.style.setProperty('--bcc-link', accessibleText(config.accentColor, surfaceColor));
+    // Explicit optional layout overrides. Default presets retain existing
+    // sizing; mobile width and offsets are bounded by the viewport in CSS.
+    var layout = [
+      ['bannerWidth', 'bcc-has-width', '--bcc-custom-width', 'px', 0],
+      ['bannerPadding', 'bcc-has-padding', '--bcc-custom-padding', 'px', 0],
+      ['bannerRadius', 'bcc-has-radius', '--bcc-custom-radius', 'px', -1],
+      ['bannerOffset', 'bcc-has-offset', '--bcc-custom-offset', 'px', 0],
+      ['headingSize', 'bcc-has-heading-size', '--bcc-custom-heading', 'px', 0],
+      ['bodySize', 'bcc-has-body-size', '--bcc-custom-body', 'px', 0],
+      ['buttonHeight', 'bcc-has-button-height', '--bcc-custom-button-height', 'px', 0],
+      ['buttonRadius', 'bcc-has-button-radius', '--bcc-custom-button-radius', 'px', -1]
+    ];
+    layout.forEach(function (entry) {
+      if (config[entry[0]] !== entry[4]) {
+        holder.classList.add(entry[1]);
+        holder.style.setProperty(entry[2], config[entry[0]] + entry[3]);
+      }
+    });
+    if (config.mobileWidth !== 100)
+      holder.style.setProperty('--bcc-mobile-width', config.mobileWidth + '%');
     var banner = element('section', 'bcc-banner');
     banner.setAttribute('role', 'region');
     banner.setAttribute('aria-label', t.heading);
@@ -965,6 +1002,11 @@
     if (output.revision) output.revision = output.revision.slice(0,40);
     ['flipButtons','equalWeightButtons','disableAnimations'].forEach(function (key) {
       if (typeof input[key] === 'boolean') output[key] = input[key];
+    });
+    Object.keys(LAYOUT_LIMITS).forEach(function (key) {
+      if (Object.prototype.hasOwnProperty.call(input, key)) {
+        output[key] = sanitizeLayoutNumber(key, input[key]);
+      }
     });
     if (Number.isInteger(input.consentDays)) {
       output.consentDays = Math.max(1, Math.min(365,input.consentDays));
@@ -1125,6 +1167,15 @@
       accentColor: sanitizeColor(options.accentColor, '#4357e8'),
       surfaceColor: sanitizeColor(options.surfaceColor, '#ffffff'),
       textColor: sanitizeColor(options.textColor, '#17223e'),
+      bannerWidth: sanitizeLayoutNumber('bannerWidth', options.bannerWidth),
+      mobileWidth: sanitizeLayoutNumber('mobileWidth', options.mobileWidth),
+      bannerPadding: sanitizeLayoutNumber('bannerPadding', options.bannerPadding),
+      bannerRadius: sanitizeLayoutNumber('bannerRadius', options.bannerRadius),
+      bannerOffset: sanitizeLayoutNumber('bannerOffset', options.bannerOffset),
+      headingSize: sanitizeLayoutNumber('headingSize', options.headingSize),
+      bodySize: sanitizeLayoutNumber('bodySize', options.bodySize),
+      buttonHeight: sanitizeLayoutNumber('buttonHeight', options.buttonHeight),
+      buttonRadius: sanitizeLayoutNumber('buttonRadius', options.buttonRadius),
       services: normalizeServices(options.services),
       cookieCleanupRules: normalizeCleanupRules(options.cookieCleanupRules),
       consentDays: options.consentDays || 180,
@@ -1164,6 +1215,7 @@
       contrastRatio: contrastRatio, accessibleText: accessibleText,
       normalizeServices: normalizeServices,
       normalizeCleanupRules: normalizeCleanupRules, parseServiceRecord: parseServiceRecord,
+      sanitizeLayoutNumber: sanitizeLayoutNumber,
       parseConfigurationJSON: parseConfigurationJSON
     }
   };
