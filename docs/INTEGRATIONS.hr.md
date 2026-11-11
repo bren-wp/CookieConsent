@@ -76,3 +76,21 @@ WordPress može inertno označiti odabrane registrirane `script handles`. Nije a
 Nemojte uključivati neprovjerene vanjske URL-ove, proizvoljne third-party skripte ili nesanitiziran HTML u konfiguraciju. Uz strogi CSP provjerite sigurnosne atribute `nonce`, `integrity`, `crossorigin`, `referrerpolicy` te dopuštene odredišne domene.
 
 [API](API.hr.md) · [Konfiguracija](CONFIGURATION.hr.md) · [WooCommerce](WOOCOMMERCE.hr.md).
+
+## YouTube i Vimeo — kontrolirani video adapter
+
+Novi lokalni `video-embeds.js` podržava **YouTube (privacy-enhanced `youtube-nocookie.com`)** i **Vimeo (`dnt=1`)**. Ne učitava nijedan vanjski video prije privole; dopušteni su samo valjani video ID-ovi i unaprijed definirane HTTPS domene. Iframe se uklanja pri opozivu kategorije ili pojedinačne usluge.
+
+```html
+<div data-bcc-video="youtube" data-bcc-video-id="dQw4w9WgXcQ"
+     data-bcc-category="marketing" data-bcc-video-title="Primjer videa">
+  Video je dostupan nakon odobravanja marketing kategorije.
+  <button type="button" data-bcc-open>Postavke kolačića</button>
+</div>
+<script defer src="/js/brendigo-cookieconsent.js"></script>
+<script defer src="/js/video-embeds.js"></script>
+```
+
+Prilagodite kategoriju stvarnoj svrsi i ponašanju pružatelja; `preferences` je također podržana za opravdan funkcionalni slučaj. Za granularno uključivanje dodajte `data-bcc-service="video-provider-id"` i prijavite uslugu s `toggleable: true` u konfiguraciji jezgre. Pri dinamičkom dodavanju pozovite `BrendigoVideoEmbeds.refresh()`. Oznaka `data-bcc-video-id` nije proizvoljni URL.
+
+**Ograničenje:** `youtube-nocookie.com` i `dnt=1` ne dokazuju potpunu odsutnost identifikatora nakon odobrenja i interakcije s playerom. Već poslani zahtjevi ne mogu se povući. Provjerite politike pružatelja, pravnu osnovu i stvarno ponašanje u Network tabu.

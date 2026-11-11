@@ -53,8 +53,8 @@ Projekt razlikuje **implementirano**, **automatizirano provjereno**, **ovisno o 
 
 - [ ] Potvrditi stvarne WooCommerce košarice i checkout tokove s konkretnim gatewayima, temama i dodatcima.
 - [ ] Potvrditi CSP, nonce/hash konfiguraciju, opt-in i opoziv na reprezentativnim produkcijskim/staging web-stranicama.
-- [ ] Dodati i dokumentirati integracijske adaptere za konkretne pružatelje prema stvarnim zahtjevima korisnika; svaki s testom opoziva i upravljanjem učitavanjem.
-- [ ] Proširiti browser-visible skeniranje uz jasnu granicu: ne vidi HttpOnly, cross-origin i server-side događaje.
+- [x] YouTube/Vimeo iframe adapter s kontrolom učitavanja i opoziva, WordPress shortcodeom te browser testom; ostali pružatelji i dalje zahtijevaju zasebne adaptere i analizu.
+- [x] Pasivni browser-visible skener nadopunjen je ograničenim ResourceTiming metapodacima, redakcijom URL query/fragmenta te izričitim popisom nedostupnih HttpOnly, cross-origin i server-side podataka.
 - [ ] Provjeriti mobile/desktop raspored, zoom 200–400 %, RTL i ručne čitače ekrana.
 - [ ] Dodati stvarne metrike prvog učitavanja (CPU, mreža) na više uređaja; postoje testovi veličine statičnih paketa.
 - [ ] Provjeriti sigurnost s neovisnim penetration testom i reviewom dependency/CI supply-chain.

@@ -38,6 +38,12 @@ test('website does not claim the operator infrastructure was deployed',()=>{
  assert.match(doc,/privatnosti/);
 });
 
+test('strict CSP fixture uses external configuration and a nonce-gated inert script',()=>{
+ const html=src('demo/csp.html');
+ assert.match(html,/data-bcc-nonce="bcc-test-nonce"/);
+ assert.match(html,/src="\.\/csp-config\.js"/);
+ assert.match(src('demo/csp-config.js'),/BCC_SITE_CONFIG/);
+});
 test('website bundle navigation from demo catalog resolves to the deployed root',()=>{
  const html=src('demo/catalog.html');
  assert.match(html,/href="\.\.\/index\.html"/);
