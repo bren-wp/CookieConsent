@@ -1005,17 +1005,56 @@
    */
   function scanLocalResources() {
     var snapshot = auditLocal();
+    // Never include URL credentials, search parameters, fragments or storage
+    // values in a report. URL query strings may carry private tokens.
+    function redactUrl(raw) {
+      if (typeof raw !== 'string' || !raw) return '';
+      try {
+        var url = new root.URL(raw, root.location && root.location.href || 'https://invalid.example/');
+        url.username = '';
+        url.password = '';
+        url.search = '';
+        url.hash = '';
+        return url.href.slice(0, 500);
+      } catch (_) { return raw.split(/[?#]/)[0].slice(0, 500); }
+    }
+    function sanitized(items) {
+      return items.map(function (entry) {
+        return {category: entry.category, enabled: entry.enabled,
+          source: redactUrl(entry.source), marked: entry.marked};
+      });
+    }
+    var timing = [];
+    if (root.document && root.performance && typeof root.performance.getEntriesByType === 'function') {
+      try { timing = root.performance.getEntriesByType('resource') || []; }
+      catch (_) { timing = []; }
+    }
+    var total = timing.length;
+    var recent = Array.prototype.slice.call(timing, -100);
+    var resources = recent.map(function (entry) {
+      var url = redactUrl(entry.name);
+      var external = null;
+      try {
+        external = !!(root.location && new root.URL(url).origin !== root.location.origin);
+      } catch (_) { /* Invalid or browser-private URL; leave origin unknown. */ }
+      return {url: url, initiator: String(entry.initiatorType || 'other').slice(0, 32),
+        thirdParty: external};
+    });
     return {
-      schema: 'brendigo-local-audit-v1',
+      schema: 'brendigo-local-audit-v2',
       collectedAt: new Date().toISOString(),
-      visibility: 'same-origin browser-visible only; HttpOnly, cross-origin and server events excluded',
+      visibility: 'browser-visible current document only; resource timing can omit requests; never scans HttpOnly/cross-origin storage/server-side activity',
+      limitations: ['No HttpOnly cookie visibility', 'No cross-origin cookie or storage contents',
+        'No server-to-server events', 'No guaranteed coverage of earlier or blocked requests',
+        'Resource timing lists URLs only, never responses or request payloads'],
       cookies: snapshot.cookies,
       localStorage: snapshot.localStorage,
       sessionStorage: snapshot.sessionStorage,
-      markedScripts: snapshot.scripts.filter(function (r) { return r.marked; }),
-      unclassifiedScripts: snapshot.scripts.filter(function (r) { return !r.marked; }),
-      markedIframes: snapshot.iframes.filter(function (r) { return r.marked; }),
-      unclassifiedIframes: snapshot.iframes.filter(function (r) { return !r.marked; })
+      markedScripts: sanitized(snapshot.scripts.filter(function (r) { return r.marked; })),
+      unclassifiedScripts: sanitized(snapshot.scripts.filter(function (r) { return !r.marked; })),
+      markedIframes: sanitized(snapshot.iframes.filter(function (r) { return r.marked; })),
+      unclassifiedIframes: sanitized(snapshot.iframes.filter(function (r) { return !r.marked; })),
+      resourceRequests: resources, resourceRequestCount: total, resourceRequestTruncated: total > 100
     };
   }
   /**

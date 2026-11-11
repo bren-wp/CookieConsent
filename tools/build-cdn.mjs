@@ -21,6 +21,7 @@ const entries = [
   ['packages/core/brendigo-cookieconsent.css', 'brendigo-cookieconsent.css'],
   ['cdn/loader.js', 'loader.js'],
   ['packages/integrations/google-consent-basic.js', 'google-consent-basic.js'],
+  ['packages/integrations/video-embeds.js', 'video-embeds.js'],
   ['LICENSE', 'LICENSE']
 ];
 const manifest = { schema: 1, version, origin: 'https://cookie.brendigo.com', files: {} };

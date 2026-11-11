@@ -128,3 +128,15 @@ verify(strpos($catalog,'https://example.org/privacy') !== false, 'catalog includ
 verify(strpos($catalog,'scope="col"') !== false, 'catalog is semantic table');
 verify(strpos(\Brendigo\CookieConsent\render_catalog_shortcode(['language'=>'ar']),'dir="rtl"') !== false,
  'catalog supports RTL direction');
+
+$video = \Brendigo\CookieConsent\render_video_shortcode([
+    'provider'=>'youtube','id'=>'dQw4w9WgXcQ','title'=>'<b>Video</b>',
+    'category'=>'marketing'
+]);
+verify(strpos($video, '<iframe') === false, 'video shortcode must not embed before consent');
+verify(strpos($video,'data-bcc-video="youtube"') !== false, 'video placeholder declared');
+verify(strpos($video,'<b>') === false, 'video title escapes HTML');
+verify(\Brendigo\CookieConsent\render_video_shortcode(['provider'=>'youtube','id'=>'javascript:1']) === '',
+    'invalid video identifiers rejected');
+verify(\Brendigo\CookieConsent\render_video_shortcode(['provider'=>'vimeo','id'=>'12345678',
+  'category'=>'necessary']) === '', 'video category must be optional');

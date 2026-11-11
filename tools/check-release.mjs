@@ -62,5 +62,8 @@ for(const platform of [
     if(!a.equals(b))errors.push('Shared '+ext+' differs from '+platform[i]);
   }
 }
-if(errors.length){errors.forEach(x=>process.stderr.write('FAIL '+x+'\n'));process.exit(1);}
+const video=fs.readFileSync(path.join(root,'packages/integrations/video-embeds.js'));
+const wpVideo=fs.readFileSync(path.join(root,'wordpress/brendigo-cookieconsent/assets/video-embeds.js'));
+if(!video.equals(wpVideo))errors.push('Video adapter and WordPress copy differ');
+if(errors.length){errors.forEach(x=>process.stderr.write('FAIL '+x+'\\n'));process.exit(1);}
 process.stdout.write('Version consistency OK: v'+version+'\n');
