@@ -40,7 +40,7 @@ bcc_live_verify(wp_script_is('brendigo-cookieconsent-wp-config','enqueued'),
     'CSP-safe config script enqueued');
 
 ob_start();
-\\Brendigo\\CookieConsent\\frontend_config_meta();
+\Brendigo\CookieConsent\frontend_config_meta();
 $head_config = ob_get_clean();
 bcc_live_verify(strpos($head_config, '<meta name="brendigo-cookieconsent-config"') !== false,
     'escaped inert config meta emitted');

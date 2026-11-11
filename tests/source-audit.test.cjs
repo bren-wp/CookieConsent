@@ -11,6 +11,7 @@ test('source security audit: unsafe dynamic JS and PHP execution sinks are absen
     'wordpress/brendigo-cookieconsent/assets/brendigo-cookieconsent.js',
     'wordpress/brendigo-cookieconsent/assets/admin-preview.js',
     'wordpress/brendigo-cookieconsent/assets/translation-editor.js',
+    'wordpress/brendigo-cookieconsent/assets/wp-config.js',
     'packages/integrations/google-consent-basic.js',
     'cdn/loader.js',
     'shopify/extensions/brendigo-cookieconsent/assets/shopify-config.js',

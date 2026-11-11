@@ -17,4 +17,7 @@ test('directory candidate uses bundled assets and opt-in credit',()=>{
   assert.match(js,/config && config\.showBranding === true/);
   assert.match(readme,/off by default/);
   assert.ok(fs.existsSync(path.join(dir,'assets/admin-preview.js')));
+  assert.ok(fs.existsSync(path.join(dir,'assets/wp-config.js')));
+  assert.match(php,/brendigo-cookieconsent-config/);
+  assert.doesNotMatch(php,/wp_add_inline_script/);
 });
