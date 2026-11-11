@@ -3,7 +3,7 @@
  * Plugin Name: CookieConsent by Brendigo
  * Plugin URI: https://cookie.brendigo.com
  * Description: Privacy preferences and granular cookie consent for WordPress, with local or CDN delivery.
- * Version: 0.11.3
+ * Version: 0.11.4
  * Requires at least: 6.2
  * Requires PHP: 7.4
  * Author: Brendigo
@@ -18,7 +18,7 @@ namespace Brendigo\CookieConsent;
 
 defined('ABSPATH') || exit;
 
-const VERSION = '0.11.3';
+const VERSION = '0.11.4';
 const OPTION = 'brendigo_cookieconsent_options';
 
 function defaults(): array {
@@ -586,6 +586,33 @@ function render_catalog_shortcode($attrs = []): string {
 }
 add_shortcode('brendigo_cookie_catalog', __NAMESPACE__ . '\\render_catalog_shortcode');
 
+/**
+ * [brendigo_consent_video provider="youtube" id="dQw4w9WgXcQ" category="marketing"]
+ * Returns only a first-party placeholder. The optional JS adapter validates IDs
+ * and creates the provider iframe after explicit consent.
+ */
+function render_video_shortcode($attrs = []): string {
+    $attrs = array_merge(['provider' => '', 'id' => '', 'category' => 'marketing',
+        'service_id' => '', 'title' => 'Video'], is_array($attrs) ? $attrs : []);
+    $provider = sanitize_key($attrs['provider']);
+    $id = is_string($attrs['id']) ? $attrs['id'] : '';
+    $category = sanitize_key($attrs['category']);
+    $service_id = is_string($attrs['service_id']) ? $attrs['service_id'] : '';
+    if (!($provider === 'youtube' && preg_match('/^[a-zA-Z0-9_-]{11}$/', $id)) &&
+        !($provider === 'vimeo' && preg_match('/^[0-9]{1,12}$/', $id))) return '';
+    if (!in_array($category, ['preferences', 'marketing'], true)) return '';
+    if ($service_id !== '' && !preg_match('/^[a-zA-Z0-9._-]{1,64}$/', $service_id)) return '';
+    $title = substr(sanitize_text_field($attrs['title']), 0, 120);
+    if ($title === '') $title = 'Video';
+    $service = $service_id !== '' ? ' data-bcc-service="' . esc_attr($service_id) . '"' : '';
+    return '<div class="bcc-video-placeholder" data-bcc-video="' . esc_attr($provider) .
+        '" data-bcc-video-id="' . esc_attr($id) . '" data-bcc-video-title="' .
+        esc_attr($title) . '" data-bcc-category="' . esc_attr($category) . '"' . $service .
+        '><p>' . esc_html($title) . '</p><button type="button" data-bcc-open>' .
+        esc_html__('Postavke kolačića', 'brendigo-cookieconsent') . '</button></div>';
+}
+add_shortcode('brendigo_consent_video', __NAMESPACE__ . '\\render_video_shortcode');
+
 function frontend_assets(): void {
     $o = options();
     $base = $o['asset_source'] === 'cdn'
@@ -597,6 +624,8 @@ function frontend_assets(): void {
         wp_enqueue_script('brendigo-cookieconsent-google-basic', $base . 'google-consent-basic.js', [], VERSION, false);
     }
     wp_enqueue_script('brendigo-cookieconsent', $base . 'brendigo-cookieconsent.js', [], VERSION, true);
+    wp_enqueue_script('brendigo-cookieconsent-video', $base . 'video-embeds.js',
+        ['brendigo-cookieconsent'], VERSION, true);
     $config = [
         'language' => $o['language'],
         'direction' => $o['direction'],
@@ -632,6 +661,7 @@ add_action('wp_enqueue_scripts', __NAMESPACE__ . '\\frontend_assets', 20);
 function gate_enqueued_script(string $tag, string $handle, string $src): string {
     if ($handle === 'brendigo-cookieconsent' ||
         $handle === 'brendigo-cookieconsent-google-basic' ||
+        $handle === 'brendigo-cookieconsent-video' ||
         protected_woocommerce_script($handle)) return $tag;
     $raw = options()['blocked_handles'];
     if (!$raw || !class_exists('WP_HTML_Tag_Processor')) return $tag;

@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const consent = require('../packages/core/brendigo-cookieconsent.js');
 
 test('core can be loaded without DOM or third-party packages', () => {
-  assert.equal(consent.version, '0.11.3');
+  assert.equal(consent.version, '0.11.4');
   assert.equal(typeof consent.init, 'function');
 });
 test('optional categories are denied by default', () => {
@@ -158,7 +158,8 @@ test('standalone JSON import verifies schema, limits and sanitizes untrusted fie
 });
 test('local passive scanner provides report without DOM or network',()=>{
  const scan=consent.scanLocalResources();
- assert.equal(scan.schema,'brendigo-local-audit-v1');
+ assert.equal(scan.schema,'brendigo-local-audit-v2');
+  assert.deepEqual(scan.resourceRequests,[]);
  assert.deepEqual(scan.unclassifiedScripts,[]);
  assert.deepEqual(scan.cookies,[]);
  assert.equal(consent.renderCatalog('#inventory'),false);
@@ -180,4 +181,29 @@ test('does not treat malformed stored objects as a category consent',()=>{
   const record=encodeURIComponent(JSON.stringify({version:1,revision:'obj',
     date:new Date().toISOString(),categories:[]}));
   assert.equal(consent.utils.parseRecord(record,'obj'),null);
+});
+
+// No cookie values or URL query tokens should appear in the local inventory.
+test('scanner redacts URLs and reports bounded ResourceTiming metadata only',()=>{
+ const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+ const doc={readyState:'loading',documentElement:{lang:'en'},cookie:'session=secret',
+   addEventListener(){}, querySelectorAll(selector){
+     return selector.startsWith('script')?[{
+       getAttribute(key){return key==='src'?'https://analytics.example/collect?token=SECRET#frag':null;}
+     }]:[];
+   }};
+ const win={document:doc,location:{href:'https://example.org/',origin:'https://example.org'},
+   navigator:{},URL,performance:{getEntriesByType(){return [
+    {name:'https://cdn.example/test.js?api_key=TOPSECRET',initiatorType:'script'}
+   ]}}};
+ vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../packages/core/brendigo-cookieconsent.js'),'utf8'),
+   {window:win,globalThis:win});
+ const report=win.BrendigoCookieConsent.scanLocalResources();
+ assert.equal(report.schema,'brendigo-local-audit-v2');
+ assert.equal(report.resourceRequests.length,1);
+ assert.equal(report.resourceRequests[0].thirdParty,true);
+ assert.ok(!JSON.stringify(report).includes('TOPSECRET'));
+ assert.ok(!JSON.stringify(report).includes('SECRET'));
+ assert.ok(!JSON.stringify(report).includes('secret'));
+ assert.ok(report.limitations.some(x=>x.includes('HttpOnly')));
 });

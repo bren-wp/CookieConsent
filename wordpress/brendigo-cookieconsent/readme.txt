@@ -4,7 +4,7 @@ Tags: cookie, consent, privacy, preference-manager, gdpr
 Requires at least: 6.2
 Requires PHP: 7.4
 Tested up to: 7.1
-Stable tag: 0.11.3
+Stable tag: 0.11.4
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
@@ -60,7 +60,7 @@ https://cookie.brendigo.com
 
 == Changelog ==
 
-= 0.11.3 =
+= 0.11.4 =
 * Hardening of OpenCart storefront paths and CSP configuration.
 * Shopify customer privacy bridge stability and explicit-choice tests.
 * Isolated PHP smoke tests for Joomla, Drupal, Magento, OpenCart, and PrestaShop.

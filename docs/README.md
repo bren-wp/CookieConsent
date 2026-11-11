@@ -45,3 +45,10 @@ Svi vodiči odnose se na vlastiti sustav **CookieConsent by Brendigo**. Funkcije
 - [Podrška i sigurnosne prijave](SUPPORT.hr.md)
 
 **Važno:** dokumentacija i zeleni automatizirani testovi nisu certifikat pravne sukladnosti, potvrda stvarnog deploymenta niti zamjena za pregled konkretnih vanjskih integracija.
+
+## Produkcijski prihvat i sigurnost
+
+- [Staging testovi](STAGING-VALIDATION.hr.md)
+- [Privacy nacrt](PRIVACY-WEBSITE-DRAFT.hr.md)
+- [Evidencija privola — dizajn](CONSENT-LEDGER-DESIGN.hr.md)
+- [Arhiviranje verzija politika](POLICY-REVISION-ARCHIVE.hr.md)

@@ -45,3 +45,9 @@ Nakon opoziva, jezgra javlja `brendigo:consentrevoked`, poziva registrirani `onR
 - Odabir se sinkronizira među otvorenim karticama istog origina ako je dostupna podrška preglednika.
 - WordPress tekstovi bannera mogu se urediti na podržanim jezicima, ali vlasnik mora osigurati istinit i razumljiv sadržaj.
 - Potpis `by Brendigo` prikazan je u službenoj distribuciji i ne utječe na pravnu valjanost korisnikova izbora.
+
+## Novost: TCF 2.3 i Google certificirani CMP (stanje 11. 11. 2026.)
+
+Za izdavače koji koriste Google AdSense/Ad Manager/AdMob za personalizirane oglase prema korisnicima EGP-a, UK-a ili Švicarske mogu se primjenjivati Googleovi zahtjevi za **Google-certified CMP** integriran s IAB TCF. Novi TC stringovi nakon 1. ožujka 2026. moraju primjenjivati **TCF v2.3**. CookieConsent by Brendigo ne implementira TCF string, GVL, CMP ID ni Google certifikaciju; Consent Mode v2 Basic adapter sam nije zamjena. Za takve web-stranice prije objave mora se odabrati certificirani CMP ili zasebno razviti, registrirati i validirati cjelovita TCF implementacija.
+
+Izvori: [Google CMP zahtjevi](https://support.google.com/adsense/answer/13554116), [Google IAB TCF 2.3](https://support.google.com/admanager/answer/9805023), [IAB Europe](https://iabeurope.eu/transparency-consent-framework/).

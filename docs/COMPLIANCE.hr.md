@@ -46,3 +46,7 @@ Opcionalni adapter postavlja konzervativni početni status signala. Vlasnik stra
 - [CPPA — California Privacy Protection Agency](https://cppa.ca.gov/)
 
 Izvori se mogu promijeniti; konzultirajte aktualne tekstove i pravni savjet prije produkcije.
+
+## Google oglašavanje: razdvajanje slučajeva
+
+Za oglašivače s Google oznakama provjerava se pravilna konfiguracija Consent Mode v2, blokiranje tagova i prikaz relevantnih signala. Za izdavače s personaliziranim Google oglasima u EGP/UK/Švicarskoj provjerava se dodatna obveza **Google-certified CMP + IAB TCF 2.3**. Navedeni zahtjev ne zadovoljava osnovni Brendigo adapter. [Službena Google CMP pravila](https://support.google.com/adsense/answer/13554116).

@@ -77,3 +77,11 @@ Lokalne datoteke zadana su opcija i ne trebaju Brendigo poslužitelj. CDN opciju
 Službeni paket ima `Plugin URI: https://cookie.brendigo.com`, `Author: Brendigo`, `Author URI: https://brendigo.com` i `Contributors: brendigo` u WordPress `readme.txt`. Za javni WordPress.org direktorij `Contributors` mora odgovarati stvarnom WordPress.org računu.
 
 **Razlika u pravilima:** brendirani GitHub ZIP ostavlja stalni potpis `by Brendigo` i nudi opcionalno učitavanje CDN skripti. Pravila WordPress.org direktorija zahtijevaju da javni kredit bude izboran i zadano isključen te u pravilu ne dopuštaju vanjsko učitavanje običnog plug-in JS/CSS koda. Stoga se **ne smije tvrditi** da je ova brendirana distribucija već odobrena za WordPress.org. Za direktorij je potrebna prilagođena distribucija uz zaseban Plugin Check audit. Službena dokumentacija: https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/ .
+
+## Ugradnja videozapisa uz privolu
+
+`[brendigo_consent_video provider="youtube" id="dQw4w9WgXcQ" category="marketing" title="Video"]`
+ili
+`[brendigo_consent_video provider="vimeo" id="12345678" category="preferences" title="Video"]`.
+
+WordPress generira samo lokalni placeholder bez iframea. Priložena skripta `video-embeds.js` učitava video tek nakon privole, a pri opozivu uklanja iframe. Opcionalni `service_id` mora odgovarati prijavljenoj granularnoj usluzi. Svi nazivi i ID-ovi sanitiziraju se; proizvoljni embed URL nije dopušten. Ovaj shortcode ne zamjenjuje klasifikaciju i informiranje o stvarnoj namjeni videa.

@@ -1,6 +1,6 @@
 # Razvojni plan — CookieConsent by Brendigo
 
-**Aktualno testno izdanje: v0.11.3** · Revizija 10. 11. 2026. · [Dokumentacija](README.md) · [Povijest](CHANGELOG.md)
+**Aktualno testno izdanje: v0.11.4** · Revizija 10. 11. 2026. · [Dokumentacija](README.md) · [Povijest](CHANGELOG.md)
 
 Projekt razlikuje **implementirano**, **automatizirano provjereno**, **ovisno o produkcijskoj instalaciji** i **vanjsku certifikaciju**. Svi preostali zadaci ostaju vidljivi. Zeleni CI ne zamjenjuje neovisnu sigurnosnu, pravnu ili pristupačnu validaciju.
 
@@ -24,7 +24,7 @@ Projekt razlikuje **implementirano**, **automatizirano provjereno**, **ovisno o 
 - [x] Interni [sigurnosni audit](SECURITY-AUDIT.hr.md) i [dead-code audit](DEAD-CODE-AUDIT.hr.md), regresijski testovi i JS/CSS performance budget.
 - [x] Odvojena WordPress.org kandidatska distribucija s lokalnim resursima i dobrovoljnim potpisom; službeni Plugin Check kao CI kontrola.
 
-## Korekcije — v0.11.3
+## Korekcije — v0.11.4
 
 - [x] Shopify: lokalni CSP-kompatibilni bootstrap, sinkronizacija spremljenog odabira, cross-tab promjena i resetiranja s Customer Privacy API-jem.
 - [x] PrestaShop: apsolutna putanja iz korijena modula umjesto relativnih ruta na ugniježđenim stranicama.
@@ -53,22 +53,22 @@ Projekt razlikuje **implementirano**, **automatizirano provjereno**, **ovisno o 
 
 - [ ] Potvrditi stvarne WooCommerce košarice i checkout tokove s konkretnim gatewayima, temama i dodatcima.
 - [ ] Potvrditi CSP, nonce/hash konfiguraciju, opt-in i opoziv na reprezentativnim produkcijskim/staging web-stranicama.
-- [ ] Dodati i dokumentirati integracijske adaptere za konkretne pružatelje prema stvarnim zahtjevima korisnika; svaki s testom opoziva i upravljanjem učitavanjem.
-- [ ] Proširiti browser-visible skeniranje uz jasnu granicu: ne vidi HttpOnly, cross-origin i server-side događaje.
+- [x] YouTube/Vimeo iframe adapter s kontrolom učitavanja i opoziva, WordPress shortcodeom te browser testom; ostali pružatelji i dalje zahtijevaju zasebne adaptere i analizu.
+- [x] Pasivni browser-visible skener nadopunjen je ograničenim ResourceTiming metapodacima, redakcijom URL query/fragmenta te izričitim popisom nedostupnih HttpOnly, cross-origin i server-side podataka.
 - [ ] Provjeriti mobile/desktop raspored, zoom 200–400 %, RTL i ručne čitače ekrana.
-- [ ] Dodati stvarne metrike prvog učitavanja (CPU, mreža) na više uređaja; postoje testovi veličine statičnih paketa.
-- [ ] Provjeriti sigurnost s neovisnim penetration testom i reviewom dependency/CI supply-chain.
+- [x] CI dodaje sintetička Chromium mjerenja prvog učitavanja (desktop i dva simulirana mobilna profila, CPU slowdown, ResourceTiming i transfer size); **stvarna mjerenja na fizičkim uređajima i RUM ostaju otvoreni**.
+- [x] Pinani GitHub Actions SHA-ovi i uveden statički supply-chain gate; **neovisni pentest, provenance i checksum testnih preuzimanja ostaju otvoreni**.
 - [ ] Potvrditi stvarno hosting okruženje shared hostinga i sukobe s cache/minifier dodacima.
 
 ## C. Infrastruktura, pravne obveze i javna distribucija — ovisi o vanjskom pristupu
 
-- [ ] Postaviti i potvrditi DNS, HTTPS/TLS, hosting, cache pravila, politiku logova i monitoring za `cookie.brendigo.com`.
-- [ ] Dovršiti produkcijsku politiku privatnosti web-stranice proizvoda s pravim operatorom, kontaktom i retencijom logova.
+- [ ] Potvrditi stvarno postavljen DNS, HTTPS/TLS, hosting, cache pravila, politiku logova i monitoring za `cookie.brendigo.com`. Uveden je lokalni read-only alat `npm run verify:hosting -- https://cookie.brendigo.com` (TLS, DNS, MIME, sigurnosna zaglavlja); objava i javni prihvat i dalje nisu dokazani.
+- [ ] Dovršiti produkcijsku politiku privatnosti s točnim operatorom, kontaktom i retencijom logova. Pripremljen je **nacrt**, ali nije dopušteno objaviti ga prije popunjavanja i pravne provjere.
 - [ ] Obaviti stvarni pravni pregled ciljne web-stranice prema HR/EU i ostalim primjenjivim jurisdikcijama.
 - [ ] Provjeriti je li za oglašivački use-case potreban certificirani CMP/IAB TCF; nema automatske certifikacije samom instalacijom.
 - [ ] Poslati zaseban WordPress.org kandidat na direktorij s potvrđenim `Contributors` računom i proći službeni ljudski review.
-- [ ] Ako je za konkretan projekt potrebna serverska evidencija privola, projektirati odvojeni zakonit ledger s minimizacijom, rokom čuvanja, obvezama pristupa i sigurnosti.
-- [ ] Dokumentirati arhiviranje prijašnjih verzija politike i procjenu ponovnog traženja privole na stvarnoj stranici.
+- [x] Dokumentiran je opcionalni, neimplementirani ledger s minimizacijom, rokom pohrane, HMAC integritetom i pravima ispitanika; backend se neće aktivirati bez potvrđene potrebe i pravnog opsega.
+- [x] Dokumentiran postupak arhiviranja politike i odlučivanja o novom opt-inu; stvarne ranije verzije politike i operaterova potvrda još nisu dostupni.
 
 ## Kriteriji za stabilnu verziju 1.0
 
@@ -79,3 +79,11 @@ Projekt razlikuje **implementirano**, **automatizirano provjereno**, **ovisno o 
 5. Operativni monitoring, sigurnosna ažuriranja i plan rollbacka za javnu CDN infrastrukturu.
 
 **Status:** glavne funkcije i šest dodatnih izvorišnih CMS integracija isporučeni su u repozitoriju. Vanjski deployment, neovisna certifikacija i sve stvarne integracije nisu označeni dovršenima bez dokaza.
+
+### Dodatna produkcijska dokumentacija
+
+- [Staging matrica](STAGING-VALIDATION.hr.md)
+- [Predložak politike privatnosti](PRIVACY-WEBSITE-DRAFT.hr.md)
+- [Opcionalni ledger](CONSENT-LEDGER-DESIGN.hr.md)
+- [Arhiviranje verzija politike](POLICY-REVISION-ARCHIVE.hr.md)
+- Opt-in DNS/TLS monitoring: `.github/workflows/monitor.yml` (varijabla `BCC_PRODUCTION_DEPLOYED=true` aktivira dnevne provjere tek nakon stvarne objave).

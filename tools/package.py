@@ -54,6 +54,7 @@ def planned_archives() -> dict[str, dict[str, bytes]]:
         f"standalone/{name}": (ROOT / "packages/core" / name).read_bytes()
         for name in ("brendigo-cookieconsent.js", "brendigo-cookieconsent.css")
     }
+    standalone["standalone/video-embeds.js"] = (ROOT / "packages/integrations/video-embeds.js").read_bytes()
     for name, source in {
         "README.md": ROOT / "README.md",
         "INSTALL.hr.md": ROOT / "docs/INSTALL.hr.md",
@@ -77,6 +78,7 @@ def planned_archives() -> dict[str, dict[str, bytes]]:
         if p.is_file() and not p.is_symlink()
     }
     website.update(directory_members(ROOT / "packages/core", "packages/core"))
+    website.update(directory_members(ROOT / "packages/integrations", "packages/integrations"))
     website.update(directory_members(ROOT / "demo", "demo"))
     website.update(directory_members(ROOT / "assets/brand", "assets/brand"))
     website.update(cdn)

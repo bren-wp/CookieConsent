@@ -25,8 +25,11 @@ function makeServer() {
     }
     const type = p.endsWith('.js') ? 'text/javascript' :
       p.endsWith('.css') ? 'text/css' : 'text/html';
-    res.writeHead(200, {'Content-Type': type + '; charset=utf-8',
-      'Cache-Control':'no-store'});
+    const headers={'Content-Type': type + '; charset=utf-8', 'Cache-Control':'no-store'};
+    if(p==='/demo/csp.html') {
+      headers['Content-Security-Policy'] = "default-src 'none'; script-src 'self' 'nonce-bcc-test-nonce'; style-src 'self' 'unsafe-inline'; img-src data:; frame-src 'self'; connect-src 'self'; base-uri 'none'; object-src 'none'";
+    }
+    res.writeHead(200, headers);
     fs.createReadStream(resolved).pipe(res);
   });
 }
@@ -431,6 +434,101 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
           assert.equal(await page.locator('.bcc-catalog caption').textContent(),'Katalog kolačića i usluga');
           assert.equal(await page.locator('.bcc-catalog tbody a').count(),2);
           assert.equal(await page.locator('.bcc-catalog tbody script').count(),0);
+        }finally{await context.close();}
+      });
+
+      await t.test('YouTube/Vimeo providers remain absent before consent and stop after withdrawal',async()=>{
+        const context=await browser.newContext();
+        try{
+          const page=await context.newPage();
+          const observed=[];
+          await page.route('https://www.youtube-nocookie.com/**',async route=>{
+            observed.push(route.request().url());
+            await route.fulfill({status:200,contentType:'text/html',body:'<!doctype html><title>Stub</title>'});
+          });
+          await page.route('https://player.vimeo.com/**',async route=>{
+            observed.push(route.request().url());
+            await route.fulfill({status:200,contentType:'text/html',body:'<!doctype html><title>Stub</title>'});
+          });
+          await page.goto(origin+'/demo/index.html?preview=1');
+          await page.locator('.bcc-banner').waitFor({state:'visible'});
+          await page.evaluate(()=>{
+            for(const [provider,id,category] of [
+              ['youtube','dQw4w9WgXcQ','marketing'],['vimeo','12345678','preferences']
+            ]){
+              const node=document.createElement('div');
+              node.id='video-'+provider;
+              node.dataset.bccVideo=provider;
+              node.dataset.bccVideoId=id;
+              node.dataset.bccCategory=category;
+              document.body.appendChild(node);
+            }
+          });
+          await page.addScriptTag({url:origin+'/packages/integrations/video-embeds.js'});
+          assert.equal(await page.locator('[data-bcc-video-frame]').count(),0);
+          assert.equal(observed.length,0,'provider cannot fetch before consent');
+          await page.evaluate(()=>BrendigoCookieConsent.setConsent({preferences:true,marketing:true}));
+          assert.equal(await page.locator('[data-bcc-video-frame]').count(),2);
+          assert.match(await page.locator('#video-youtube iframe').getAttribute('src'),
+            /^https:\/\/www\.youtube-nocookie\.com\/embed\//);
+          assert.match(await page.locator('#video-vimeo iframe').getAttribute('src'),
+            /^https:\/\/player\.vimeo\.com\/video\//);
+          await page.evaluate(()=>BrendigoCookieConsent.setConsent({preferences:true,marketing:false}));
+          assert.equal(await page.locator('#video-youtube iframe').count(),0);
+          assert.equal(await page.locator('#video-vimeo iframe').count(),1);
+          await page.evaluate(()=>BrendigoCookieConsent.reset());
+          assert.equal(await page.locator('[data-bcc-video-frame]').count(),0);
+          await page.evaluate(()=>{
+            const bad=document.createElement('div');
+            bad.dataset.bccVideo='youtube';
+            bad.dataset.bccVideoId='javascript:bad';
+            bad.dataset.bccCategory='marketing';
+            document.body.appendChild(bad);
+            BrendigoVideoEmbeds.refresh();
+            BrendigoCookieConsent.setConsent({marketing:true});
+          });
+          assert.equal(await page.locator('[data-bcc-video-id="javascript:bad"] iframe').count(),0,
+            'invalid embed ID never creates a frame');
+        }finally{await context.close();}
+      });
+      await t.test('strict CSP allows nonce-gated opt-in and no dynamic inline evaluation',async()=>{
+        const context=await browser.newContext();
+        try{
+          const page=await context.newPage();
+          const violations=[];
+          page.on('console',message=>{
+            if(message.type()==='error' && /content security policy|refused to (?:execute|load|apply)/i.test(message.text()))
+              violations.push(message.text());
+          });
+          page.on('pageerror',error=>violations.push(error.message));
+          await page.goto(origin+'/demo/csp.html');
+          await page.locator('.bcc-banner').waitFor({state:'visible'});
+          assert.equal(await page.evaluate(()=>window.__BCC_CSP_EXECUTED__||0),0);
+          await page.locator('.bcc-banner-actions').getByRole('button',{name:'Prihvati sve'}).click();
+          assert.equal(await page.evaluate(()=>window.__BCC_CSP_EXECUTED__||0),1);
+          assert.deepEqual(violations,[],'strict CSP should not block the permitted nonce code');
+        }finally{await context.close();}
+      });
+      await t.test('resource scan exposes neither query tokens nor cookie values',async()=>{
+        const context=await browser.newContext();
+        try{
+          const page=await context.newPage();
+          await page.goto(origin+'/demo/index.html?preview=1');
+          await page.evaluate(()=>{
+            document.cookie='scan_cookie=SUPERPRIVATE; Path=/';
+            const script=document.createElement('script');
+            script.type='text/plain';
+            script.dataset.bccCategory='analytics';
+            script.dataset.bccSrc='https://stats.example/collect?token=HIDDENQUERY';
+            document.body.appendChild(script);
+          });
+          const report=await page.evaluate(()=>BrendigoCookieConsent.scanLocalResources());
+          assert.equal(report.schema,'brendigo-local-audit-v2');
+          assert.ok(Array.isArray(report.resourceRequests));
+          assert.ok(report.cookies.includes('scan_cookie'));
+          assert.ok(!JSON.stringify(report).includes('SUPERPRIVATE'));
+          assert.ok(!JSON.stringify(report).includes('HIDDENQUERY'));
+          assert.ok(report.limitations.some(x=>x.includes('cross-origin')));
         }finally{await context.close();}
       });
       await t.test('cookie inventory does not send data and focus remains within dialog',async()=>{

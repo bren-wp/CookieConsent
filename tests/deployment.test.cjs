@@ -10,6 +10,7 @@ test('deployment verifier validates reachable files and checksum manifest on loc
   ['brendigo-cookieconsent.js','packages/core/brendigo-cookieconsent.js'],
   ['brendigo-cookieconsent.css','packages/core/brendigo-cookieconsent.css'],
   ['google-consent-basic.js','packages/integrations/google-consent-basic.js'],
+  ['video-embeds.js','packages/integrations/video-embeds.js'],
   ['LICENSE','LICENSE']
  ])files[name]=fs.readFileSync(path.join(root,source));
  const manifest={schema:1,version,origin:'http://127.0.0.1',files:{}};

@@ -70,7 +70,7 @@ const manifest=JSON.parse((await get(prefix+'manifest.json',json)).toString('utf
 if(manifest.version!==version || manifest.schema!==1 || !manifest.files ||
     typeof manifest.files!=='object')throw new Error('CDN manifest version/schema mismatch');
 for(const name of ['loader.js','brendigo-cookieconsent.js',
-  'brendigo-cookieconsent.css','google-consent-basic.js','LICENSE']){
+  'brendigo-cookieconsent.css','google-consent-basic.js','video-embeds.js','LICENSE']){
   const listed=manifest.files[name];
   if(!listed || !/^[a-f0-9]{64}$/.test(listed.sha256))throw new Error('Missing checksum '+name);
   const expect=name.endsWith('.js')?script:name.endsWith('.css')?css:null;

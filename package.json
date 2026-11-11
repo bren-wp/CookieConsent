@@ -1,6 +1,6 @@
 {
   "name": "@brendigo/cookieconsent",
-  "version": "0.11.3",
+  "version": "0.11.4",
   "private": true,
   "description": "CookieConsent by Brendigo — self-hosted privacy choices",
   "license": "MIT",
@@ -12,7 +12,10 @@
     "build:wporg": "node tools/build-wporg.mjs",
     "audit:source": "node --test tests/source-audit.test.cjs",
     "validate:platforms": "python3 tools/validate-integrations.py",
-    "verify:deployment": "node tools/verify-deployment.mjs"
+    "verify:deployment": "node tools/verify-deployment.mjs",
+    "audit:supply-chain": "node tools/audit-supply-chain.mjs",
+    "test:metrics": "node tests/browser-metrics.cjs",
+    "verify:hosting": "node tools/verify-hosting.mjs"
   },
   "engines": {
     "node": ">=18"
