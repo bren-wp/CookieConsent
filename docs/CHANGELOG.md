@@ -1,6 +1,21 @@
 # Povijest promjena — CookieConsent by Brendigo
 
-## 0.11.3 — testna sigurnosna i integracijska zakrpa
+## 0.11.4 — produkcijski QA kandidatsko testno izdanje
+
+- Browser-visible skener: ograničeni ResourceTiming metapodaci, redakcija URL parametara, eksplicitna ograničenja (HttpOnly, cross-origin i server-to-server).
+- Namjenski YouTube i Vimeo adapteri s provjerom ID-a, HTTPS allowlistom, prvotnim blokiranjem i uklanjanjem iframea na opoziv; WordPress shortcode.
+- Strogi CSP test s nonceom; granularni browser testovi video provajdera u Chromiumu, Firefoxu i WebKitu.
+- Stvarna WooCommerce virtualna košarica i BACS checkout Playwright test na WordPressu i MySQL-u, bez realnog terećenja računa.
+- GitHub Actions vezan uz SHA vrijednosti i statička provjera CI supply-chain konfiguracije.
+- Sintetička Chromium mjerenja CPU/ResourceTiming mreže i tri desktop/mobile profila kao CI artefakti; nisu real-device.
+- Read-only DNS/TLS/HTTP provjera hostinga i uvjetni dnevni GitHub Actions monitoring tek nakon eksplicitne potvrde deploya.
+- Detaljna staging matrica, ledger dizajn, postupak arhiviranja politika i predložak politike privatnosti **bez izmišljanja operatorovih podataka**.
+- IAB/Google CMP TCF v2.3 upozorenja za prikladne publisher use-caseove; bez tvrdnje o certificiranosti.
+
+**I dalje otvoreno:** stvarna javna domena, stvarne Shopify/PrestaShop i druge staging trgovine, svi payment gatewayi, nezavisni pentest, pravni review, WordPress.org ljudsko odobrenje i stvarni DPO/operator podaci.
+
+
+## 0.11.4 — testna sigurnosna i integracijska zakrpa
 
 - Shopify: spremni odabiri, promjene između kartica i reset/povlačenje privole usklađuju se s Customer Privacy API-jem. Ponavljanje iste odluke ne pokreće suvišne zahtjeve.
 - Shopify: Liquid postavke idu kroz escapirane HTML meta atribute i lokalnu bootstrap skriptu umjesto izvršivog inline JavaScripta; dodani su regresijski testovi.

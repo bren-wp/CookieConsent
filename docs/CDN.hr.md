@@ -1,12 +1,12 @@
 # CDN distribucija — cookie.brendigo.com
 
-**Izdanje: 0.11.3.** Repozitorij generira verzionirani CDN paket, ali **ne postavlja DNS, TLS ili produkcijsko posluživanje**. Prije upotrebe URL mora biti provjeren s stvarnim HTTPS zahtjevom.
+**Izdanje: 0.11.4.** Repozitorij generira verzionirani CDN paket, ali **ne postavlja DNS, TLS ili produkcijsko posluživanje**. Prije upotrebe URL mora biti provjeren s stvarnim HTTPS zahtjevom.
 
 ## Izrada
 
 ~~~bash
 npm run build:cdn
-# dist/cdn/v0.11.3/
+# dist/cdn/v0.11.4/
 python3 tools/package.py
 python3 tools/package.py --verify
 ~~~
@@ -25,7 +25,7 @@ Sadržaj verzioniranog direktorija: `loader.js`, `brendigo-cookieconsent.js`, `b
     theme: "custom"
   };
 </script>
-<script defer src="https://cookie.brendigo.com/v0.11.3/loader.js"></script>
+<script defer src="https://cookie.brendigo.com/v0.11.4/loader.js"></script>
 ~~~
 
 Loader čita verzionirani URL vlastite datoteke i uključuje CSS i jezgru s istog prefiksa. Ne koristi vanjski analytics. WordPress može odabrati CDN kroz postavke, ali samo nakon postavljanja datoteka.
@@ -35,7 +35,7 @@ Loader čita verzionirani URL vlastite datoteke i uključuje CSS i jezgru s isto
 1. DNS A/AAAA ili CNAME za `cookie.brendigo.com`.
 2. Valjani HTTPS/TLS certifikat s automatskom obnovom.
 3. MIME tipovi `text/javascript` i `text/css`.
-4. `Cache-Control: public, max-age=31536000, immutable` za nepromjenjive `/v0.11.3/*` resurse.
+4. `Cache-Control: public, max-age=31536000, immutable` za nepromjenjive `/v0.11.4/*` resurse.
 5. Ne prepisivati već objavljene verzionirane datoteke; za izmjene izdati novu verziju.
 6. Uskladiti CSP (`script-src` i `style-src`), a ako postoji inline konfiguracija, nonce/hash pravila.
 7. Odrediti `Referrer-Policy`, evidenciju zahtjeva, retenciju logova i podugovaratelje.
@@ -48,9 +48,9 @@ Loader čita verzionirani URL vlastite datoteke i uključuje CSS i jezgru s isto
 ## Google Consent Mode v2 Basic (opcionalno)
 
 ~~~html
-<script src="https://cookie.brendigo.com/v0.11.3/google-consent-basic.js"></script>
+<script src="https://cookie.brendigo.com/v0.11.4/google-consent-basic.js"></script>
 <!-- Google oznake moraju ostati blokirane do potrebne privole. -->
-<script defer src="https://cookie.brendigo.com/v0.11.3/loader.js"></script>
+<script defer src="https://cookie.brendigo.com/v0.11.4/loader.js"></script>
 ~~~
 
 Adapter nije certificirani CMP, ne implementira IAB TCF i ne blokira automatski sve načine uključivanja Google oznaka. Testirajte redoslijed i mrežne zahtjeve na ciljnoj stranici.
