@@ -93,3 +93,11 @@ Brendigo WordPress dodatak šalje konfiguraciju kao escapirani `<meta name="bren
 **Za produkciju:** dopustite relevantne izvore u `script-src` (`'self'` u lokalnom modu, ili i odobreni `https://cookie.brendigo.com` za opcijski CDN). Kod strožih `script-src 'nonce-...'` pravila host mora dodijeliti nonce relevantnim skriptnim oznakama, osobito uz `strict-dynamic`. `style-src`/`style-src-attr` zahtijevaju posebno testiranje zbog dinamičkih UI stilova i same WordPress teme. Ne pretpostavljajte da ostali dodaci prestaju koristiti inline kod.
 
 Provjerite u Developer Tools da HTML sadrži `brendigo-cookieconsent-config` i `wp-config.js` prije jezgre, bez `window.BCC_SITE_CONFIG = ...` inline skripte, a zatim anonimni opt-in, odbijanje i opoziv.
+
+## Prilagodba dimenzija i dizajna — v0.11.6
+
+U **Postavke → CookieConsent → Size, spacing and typography** sada se uređuju širina bannera u px, mobilna širina u postocima, padding, zaobljenost bannera/gumba, razmak od ruba, veličina naslova i opisa te visina gumba. Boje, devet položaja, stilovi, tema, RTL i prijevodi ostaju u istom administratorskom sučelju. Sve nove vrijednosti koriste strogu serversku sanitizaciju i prikazuju se u vizualnom pregledu.
+
+**Posebne vrijednosti:** `0` znači koristi zadani stil za širinu/padding/razmak/tekst/gumb; `-1` znači zadani stil za zaobljenost. Broj 0 za zaobljenost znači kvadratni rub, a ne automatski. `mobile_width=100` znači puni raspoloživi mobilni prostor unutar sigurnih rubova.
+
+Nakon spremanja testirati desktop, 390 px i 320 px viewport te naplatu i aktivaciju odbijanja. Vizualni preview u WordPressu je ilustracija; HTML demo konfigurator koristi stvarnu jezgru i pruža pouzdaniju usporedbu.

@@ -56,3 +56,9 @@ Statički pretraživač ne može dokazati da je svaki event handler ili callback
 
 - U WordPressu uklonjen je ovisni inline `wp_add_inline_script` konfiguracijski tok. Jedini izvor podataka o postavkama ostaje serverski sanitizirana konfiguracija; `wp-config.js` je mali, zasebno učitan čitač metapodataka.
 - Namjerno duplicirani runtime JS/CSS ostaju sinhronizirani kroz sve CMS pakete; nikakve funkcije nisu uklonjene samo zbog heurističkog dojma da se ne pozivaju.
+
+## Provjera regresije layout kontrola — v0.11.6
+
+- Sve nove opcije imaju jedinstvenu putanju: konfigurator/WordPress → sanitizacija → zajednička JS jezgra → CSS varijable; WordPress admin-preview namjerno je pojednostavljena ilustracija.
+- Mirrors JS i CSS u sedam integracijskih paketa ostaju byte-for-byte jednaki jezgri; te kopije se **ne uklanjaju** jer su potrebne za lokalno izvođenje.
+- Dodatna nadzorna provjera u CI-u mora potvrditi da je svaka kontrola stvarno korištena i da ne uvodi neiskorištene grane ili neaktivne postavke.

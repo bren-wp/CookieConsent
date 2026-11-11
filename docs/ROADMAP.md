@@ -94,3 +94,10 @@ Projekt razlikuje **implementirano**, **automatizirano provjereno**, **ovisno o 
 - [x] CDN loader propagira nonce/crossorigin/referrerpolicy s vlastitog script elementa.
 - [x] Testovi za strogi CSP u browseru, realan WordPress prikaz i WordPress.org kandidata.
 - [ ] Potvrditi CSP s cache/minifier dodacima, stvarnim gatewayima i reprezentativnim WordPress temama; pokrivenost izvan Brendigo koda nije automatska.
+
+### Dizajn i personalizacija — v0.11.6
+
+- [x] Devet numeričkih kontrola za responsive širinu, razmake, zaobljenost, tipografiju i gumbe uz postojeće boje, položaje, stilove i RTL.
+- [x] WordPress uređivanje i vizualni pregled; HTML konfigurator s desktop i mobilnim prikazima te JSON izvoznim i uvoznim postavkama.
+- [x] Sanitizacija svih parametara, testovi vidljivih odluka i granica bannera na desktopu, 390 px i 320 px.
+- [ ] Puna ručna WCAG provjera povećanja 400 %, čitača ekrana i tema/plugins na stvarnim web-stranicama ostaje otvorena.

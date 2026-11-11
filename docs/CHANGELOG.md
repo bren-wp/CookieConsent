@@ -1,5 +1,13 @@
 # Povijest promjena — CookieConsent by Brendigo
 
+## 0.11.6 — responsivna prilagodba veličina
+
+- Devet strogo validiranih numeričkih dizajnerskih opcija: desktop i mobilna širina, unutarnji razmak, zaobljenost bannera, razmak od ruba, veličina naslova/opisa, visina gumba i zaobljenost gumba.
+- WordPress administratorski kontrolni elementi i ažurirani vizualni pregled; nijedna vrijednost ne može izvršiti proizvoljni CSS ili sakriti korisnikove odluke.
+- Javni konfigurator: odmah primjenjuje dimenzije u stvarnoj jezgri, prikaz za desktop/390 px/320 px i izvoz/uvoz konfiguracije s numeričkim postavkama.
+- Mobile-safe CSS sa zaštitnim rubom i responsive fallbackom, neovisno o širini na desktopu; svi CMS paketi nose istovjetne JS/CSS datoteke.
+- Automatizirani testovi numeričkih granica, opt-ina/odbijanja, geometrije, mobilnih širina, PHP sanitizacije i JSON round-tripa.
+
 ## 0.11.5 — CSP kompatibilnost i WordPress bootstrap
 
 - WordPress javna konfiguracija više se ne umeće pomoću izvršnog `wp_add_inline_script`, nego kao escapirani inertni `meta` JSON čitan lokalnim `wp-config.js` bootstrapom. Skripta se učitava prije jezgre, a konfiguracijski sadržaj ne može samostalno izvršavati JavaScript.
