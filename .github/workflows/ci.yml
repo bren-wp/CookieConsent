@@ -170,6 +170,15 @@ jobs:
             echo "WordPress Plugin Check found blocking errors"
             exit 1
           fi
+      - name: Inspect local WordPress HTTP log on integration failure
+        if: failure() && matrix.wordpress == 'latest'
+        run: |
+          echo "WordPress local HTTP server log (last 80 lines):"
+          if [ -f "$RUNNER_TEMP/wp-http.log" ]; then
+            tail -80 "$RUNNER_TEMP/wp-http.log"
+          else
+            echo "No server log was produced"
+          fi
       - name: Upload official Plugin Check report
         if: always() && matrix.wordpress == 'latest'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

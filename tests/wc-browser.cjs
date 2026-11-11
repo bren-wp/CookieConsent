@@ -6,6 +6,19 @@
 const fs=require('node:fs');
 const assert=require('node:assert/strict');
 const {chromium}=require('playwright');
+// Retry only transient localhost socket failures. A persistently broken WP
+// installation or any assertion mismatch still fails the full CI job.
+async function gotoWithTransientRetry(page,url) {
+  for(let attempt=0;attempt<3;attempt++){
+    try { return await page.goto(url,{waitUntil:'domcontentloaded',timeout:20000}); }
+    catch(error) {
+      if(attempt===2 || !/net::ERR_(?:EMPTY_RESPONSE|CONNECTION_RESET|CONNECTION_REFUSED)/.test(String(error.message)))
+        throw error;
+      console.warn('Transient local WordPress connection; retrying navigation ('+(attempt+2)+'/3)');
+      await new Promise(resolve=>setTimeout(resolve,(attempt+1)*600));
+    }
+  }
+}
 (async()=>{
  const fixture=JSON.parse(fs.readFileSync(process.env.BCC_WC_FIXTURE,'utf8'));
  const origin='http://127.0.0.1:8080';
@@ -15,15 +28,15 @@ const {chromium}=require('playwright');
    const page=await context.newPage();
    const errors=[];
    page.on('pageerror',error=>errors.push(error.message));
-   await page.goto(origin+'/?add-to-cart='+fixture.productId,{waitUntil:'domcontentloaded'});
-   await page.goto(origin+'/?page_id='+fixture.cartId,{waitUntil:'domcontentloaded'});
+   await gotoWithTransientRetry(page,origin+'/?add-to-cart='+fixture.productId);
+   await gotoWithTransientRetry(page,origin+'/?page_id='+fixture.cartId);
    await page.locator('.woocommerce-cart-form').waitFor({timeout:30000});
    assert.match((await page.locator('.woocommerce-cart-form').innerText()).toLowerCase(),
      /automated checkout sample/);
    assert.ok(await page.locator('.bcc-root').count(),'cookie consent banner must exist on cart');
    const reject=page.locator('.bcc-banner-actions').getByRole('button',{name:/Odbij sve|Reject all/});
    if(await reject.count()) await reject.click();
-   await page.goto(origin+'/?page_id='+fixture.checkoutId,{waitUntil:'domcontentloaded'});
+   await gotoWithTransientRetry(page,origin+'/?page_id='+fixture.checkoutId);
    await page.locator('form.checkout').waitFor({timeout:30000});
    assert.ok(await page.locator('.bcc-root').count(),'cookie consent on checkout');
    await page.locator('#billing_first_name').fill('Test');
