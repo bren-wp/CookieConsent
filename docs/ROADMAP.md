@@ -1,6 +1,6 @@
 # Razvojni plan — CookieConsent by Brendigo
 
-**Aktualno testno izdanje: v0.11.5** · Revizija 11. 11. 2026. · [Dokumentacija](README.md) · [Povijest](CHANGELOG.md)
+**Aktualno testno izdanje: v0.11.6** · Revizija 11. 11. 2026. · [Dokumentacija](README.md) · [Povijest](CHANGELOG.md)
 
 Projekt razlikuje **implementirano**, **automatizirano provjereno**, **ovisno o produkcijskoj instalaciji** i **vanjsku certifikaciju**. Svi preostali zadaci ostaju vidljivi. Zeleni CI ne zamjenjuje neovisnu sigurnosnu, pravnu ili pristupačnu validaciju.
 
@@ -88,7 +88,7 @@ Projekt razlikuje **implementirano**, **automatizirano provjereno**, **ovisno o 
 - [Arhiviranje verzija politike](POLICY-REVISION-ARCHIVE.hr.md)
 - Opt-in DNS/TLS monitoring: `.github/workflows/monitor.yml` (varijabla `BCC_PRODUCTION_DEPLOYED=true` aktivira dnevne provjere tek nakon stvarne objave).
 
-### Izdanje v0.11.5 — dodatno CSP učvršćivanje
+### Izdanje v0.11.6 — dodatno CSP učvršćivanje
 
 - [x] WordPress frontend konfiguracija prebačena s `wp_add_inline_script` na inertnu, escapiranu `meta` JSON oznaku i lokalni `wp-config.js`, učitan prije jezgre.
 - [x] CDN loader propagira nonce/crossorigin/referrerpolicy s vlastitog script elementa.
