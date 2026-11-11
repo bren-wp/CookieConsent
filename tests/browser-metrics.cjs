@@ -57,13 +57,30 @@ const server=http.createServer((req,res)=>{
          horizontalOverflow:document.documentElement.scrollWidth>innerWidth
        };
      });
+     // CSS zoom is only an automated approximation, not a manual browser
+     // zoom, VoiceOver, TalkBack or physical-device accessibility review.
+     const zoomChecks=await page.evaluate(()=>{
+       const output=[];
+       for(const factor of [2,4]){
+         document.documentElement.style.zoom=String(factor);
+         const banner=document.querySelector('.bcc-banner');
+         const bounds=banner && banner.getBoundingClientRect();
+         output.push({factor,scrollWidth:document.documentElement.scrollWidth,
+           viewportWidth:innerWidth,visibleButtons:banner ? Array.from(
+             banner.querySelectorAll('button')).filter(node=>node.getClientRects().length>0).length : 0,
+           bannerWidthPx:bounds?Math.round(bounds.width):null});
+       }
+       document.documentElement.style.zoom='';
+       return output;
+     });
      const raw=await cdp.send('Performance.getMetrics');
      const byName=Object.fromEntries(raw.metrics.map(entry=>[entry.name,entry.value]));
      assert.equal(errors.length,0,errors.join(';'));
      results.push({
        profile:profile.name,viewport:{width:profile.width,height:profile.height},
        simulatedCpuSlowdown:profile.cpuSlowdown,latencyMs:profile.latencyMs,
-       ...timing,scriptDurationMs:Math.round((byName.ScriptDuration||0)*1000),
+       ...timing,zoomChecks,
+       scriptDurationMs:Math.round((byName.ScriptDuration||0)*1000),
        taskDurationMs:Math.round((byName.TaskDuration||0)*1000),
        jsHeapBytes:Math.round(byName.JSHeapUsedSize||0)
      });

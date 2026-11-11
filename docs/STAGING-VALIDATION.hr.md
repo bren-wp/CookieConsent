@@ -29,3 +29,7 @@
 Svaki bug zapisati s ID, severity, pogođenom stranicom, koracima, očekivanim/stvarnim rezultatom, snimkom, verzijom teme/dodatka, network request ID i ishodom regresijskog testa. Prije stabilnog 1.0 zatvoriti sve kritične nalaze ili eksplicitno dokumentirati podržane granice.
 
 **CI nije zamjena za ovaj potpisani staging prihvat.**
+
+### Povećanje i pristupačnost
+
+Skripta za sintetičke performanse zapisuje i aproksimaciju `CSS zoom` na faktorima 2× i 4× (širinu bannera, broj vidljivih gumba i horizontalno prelijevanje). **CSS zoom nije isto što i preglednički zoom**. Ručno i dalje provjeriti WCAG reflow pri 320 CSS piksela, povećanje teksta, VoiceOver/TalkBack/NVDA/Jaws, RTL redoslijed i fokus, te otvaranje dijaloga nakon 400 %.
