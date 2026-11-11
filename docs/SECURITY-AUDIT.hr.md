@@ -78,3 +78,10 @@ Ovo je nadopuna internog pregleda iz prethodne verzije, ne vanjski penetracijski
 - **SEC-11 (ispravljeno za WordPress bootstrap):** WordPress opcije prethodno su se serializirale u izvršni inline JS `window.BCC_SITE_CONFIG` preko `wp_add_inline_script`. Pod strogim `script-src` CSP-om to može biti odbijeno. Novi `wp_head` meta JSON s `JSON_HEX_*` i `esc_attr` uparuje se s lokalnim `wp-config.js`, s učitavanjem prije osnovne skripte i automatskim testom bez `unsafe-inline`.
 - **SEC-12 (dodatna obrana):** CDN loader propagira nonce, crossorigin i referrerpolicy oznake iz vlastite script oznake; nipošto ne generira nonce ili ne mijenja politika servera.
 - **Preostale granice:** za cjelokupni WordPress CSP potrebna su pravila svih tema i pluginova. CSS-in-JS/inline stilovi mogu zahtijevati posebnu `style-src` politiku; `nonce` se ne može automatski koristiti za proizvoljne 3rd-party skripte. Neovisni pentest i CSP provjera stvarnih instalacija i dalje su otvoreni.
+
+## Provjera dizajnerskih ulaza — v0.11.6
+
+- Brojčani layout parametri provjeravaju se zasebno po ključu, rasponu i tipu u vanilla JS jezgri i WordPress PHP-u, te prolaze kroz isti validator pri uvozu samostalne JSON konfiguracije.
+- Bez arbitrarnih CSS stringova ili HTML-a u dizajnerskim opcijama; u DOM se postavljaju samo unaprijed imenovane CSS varijable s jedinicama iz programskog koda.
+- Mobilni položaji i širine ograničeni su na viewport. Odbijanje, prihvaćanje i postavke ne mogu se ukloniti kroz konfiguraciju dizajna.
+- Ovo je pregled ulaza, a ne neovisna penetracijska revizija ili pravno jamstvo dostupnosti svih konfiguracija.

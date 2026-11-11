@@ -47,3 +47,16 @@
  .bcc-preview-banner{display:block}
  .bcc-preview-actions{margin-top:12px;max-width:none;justify-content:flex-start}
 }
+
+/* Numeric design preview: only integer values from sanitized WP controls. */
+.bcc-preview[data-width="1"] .bcc-preview-banner{
+  width:min(var(--bcc-demo-width),calc(100% - 30px));max-width:none
+}
+.bcc-preview[data-padding="1"] .bcc-preview-banner{padding:var(--bcc-demo-padding)}
+.bcc-preview[data-radius="1"] .bcc-preview-banner{border-radius:var(--bcc-demo-radius)}
+.bcc-preview[data-heading-size="1"] .bcc-preview-content strong{font-size:var(--bcc-demo-heading-size)}
+.bcc-preview[data-body-size="1"] .bcc-preview-content>span:not(.bcc-preview-eyebrow){font-size:var(--bcc-demo-body-size)}
+.bcc-preview[data-button-height="1"] .bcc-preview-actions span{min-height:var(--bcc-demo-button-height)}
+.bcc-preview[data-button-radius="1"] .bcc-preview-actions span{border-radius:var(--bcc-demo-button-radius)}
+.bcc-preview[data-offset="1"][data-position^="bottom"] .bcc-preview-banner{bottom:var(--bcc-demo-offset)}
+.bcc-preview[data-offset="1"][data-position^="top"] .bcc-preview-banner{top:var(--bcc-demo-offset)}

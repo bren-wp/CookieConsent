@@ -141,3 +141,27 @@ verify(\Brendigo\CookieConsent\render_video_shortcode(['provider'=>'youtube','id
     'invalid video identifiers rejected');
 verify(\Brendigo\CookieConsent\render_video_shortcode(['provider'=>'vimeo','id'=>'12345678',
   'category'=>'necessary']) === '', 'video category must be optional');
+
+$layout = \Brendigo\CookieConsent\sanitize_options([
+  'banner_width'=>'920','mobile_width'=>'88','banner_padding'=>'24',
+  'banner_radius'=>'0','banner_offset'=>'32','heading_size'=>'26',
+  'body_size'=>'16','button_height'=>'48','button_radius'=>'8'
+]);
+verify($layout['banner_width']===920 && $layout['mobile_width']===88,'layout widths saved');
+verify($layout['banner_radius']===0 && $layout['button_radius']===8,'zero radius and button radius');
+verify($layout['banner_offset']===32 && $layout['heading_size']===26,'spacing and type saved');
+verify($layout['body_size']===16 && $layout['button_height']===48,'text and tap target saved');
+$invalid_layout=\Brendigo\CookieConsent\sanitize_options([
+  'banner_width'=>'999999','mobile_width'=>'30','banner_padding'=>'calc(1px)',
+  'banner_radius'=>'-2','banner_offset'=>'8; background: red',
+  'heading_size'=>'9','body_size'=>'50','button_height'=>'41','button_radius'=>'999'
+]);
+verify($invalid_layout['banner_width']===0 && $invalid_layout['mobile_width']===100,
+  'out-of-range widths rejected');
+verify($invalid_layout['banner_padding']===0 && $invalid_layout['banner_offset']===0,
+  'CSS injection rejected');
+verify($invalid_layout['banner_radius']===-1 && $invalid_layout['button_radius']===-1,
+  'invalid corner radii fallback to preset');
+verify($invalid_layout['heading_size']===0 && $invalid_layout['body_size']===0,
+  'font sizes bounded');
+verify($invalid_layout['button_height']===0,'undersized button rejected');

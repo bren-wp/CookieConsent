@@ -14,7 +14,16 @@
       direction:doc.getElementById('bcc-direction'),
       accent:doc.getElementById('bcc-color'),
       surface:doc.getElementById('bcc-surface'),
-      text:doc.getElementById('bcc-text')
+      text:doc.getElementById('bcc-text'),
+      width:doc.getElementById('bcc-width'),
+      mobileWidth:doc.getElementById('bcc-mobile-width'),
+      padding:doc.getElementById('bcc-padding'),
+      radius:doc.getElementById('bcc-radius'),
+      offset:doc.getElementById('bcc-offset'),
+      headingSize:doc.getElementById('bcc-heading-size'),
+      bodySize:doc.getElementById('bcc-body-size'),
+      buttonHeight:doc.getElementById('bcc-button-height'),
+      buttonRadius:doc.getElementById('bcc-button-radius')
     };
     var text={
       hr:['Vaša privatnost, vaš izbor','Ostale tehnologije koristimo samo uz privolu.','Odbij sve','Postavke','Prihvati sve'],
@@ -52,6 +61,23 @@
       preview.style.setProperty('--bcc-demo-button-text',readable('#ffffff',accent));
       preview.style.setProperty('--bcc-demo-surface',surface);
       preview.style.setProperty('--bcc-demo-foreground',readable(body,surface));
+      function setting(key) { return Number(fields[key] && fields[key].value); }
+      function optional(key, auto, cssKey, transform) {
+        var value=setting(key);
+        var enabled=Number.isInteger(value) && value!==auto;
+        preview.dataset[key.replace(/[A-Z]/g,function(c){return '-'+c.toLowerCase();})]=enabled?'1':'0';
+        if(enabled)preview.style.setProperty(cssKey,transform(value));
+        else preview.style.removeProperty(cssKey);
+      }
+      optional('width',0,'--bcc-demo-width',function(v){return Math.round(v*.57)+'px';});
+      optional('padding',0,'--bcc-demo-padding',function(v){return Math.max(6,Math.round(v*.55))+'px';});
+      optional('radius',-1,'--bcc-demo-radius',function(v){return Math.round(v*.55)+'px';});
+      optional('offset',0,'--bcc-demo-offset',function(v){return Math.round(v*.55)+'px';});
+      optional('headingSize',0,'--bcc-demo-heading-size',function(v){return Math.round(v*.75)+'px';});
+      optional('bodySize',0,'--bcc-demo-body-size',function(v){return Math.round(v*.8)+'px';});
+      optional('buttonHeight',0,'--bcc-demo-button-height',function(v){return Math.round(v*.7)+'px';});
+      optional('buttonRadius',-1,'--bcc-demo-button-radius',function(v){return Math.round(v*.55)+'px';});
+      preview.dataset.mobileWidth=fields.mobileWidth.value;
       var values=(text[language]||text.en).slice();
       var overrides={};
       try {

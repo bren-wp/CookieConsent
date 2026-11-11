@@ -15,8 +15,8 @@ Otvorite http://localhost:8000/. Paket uključuje web stranice, lokalne demo dat
 ## Postavljanje domene
 
 1. Osigurati DNS i HTTPS/TLS za `cookie.brendigo.com`.
-2. Prenijeti sadržaj web ZIP-a u **document root**, uključujući `v0.11.5/`.
-3. Provjeriti `/index.html`, `/installation.html`, `/en.html`, `/legal.html`, `/demo/index.html`, `/v0.11.5/loader.js`.
+2. Prenijeti sadržaj web ZIP-a u **document root**, uključujući `v0.11.6/`.
+3. Provjeriti `/index.html`, `/installation.html`, `/en.html`, `/legal.html`, `/demo/index.html`, `/v0.11.6/loader.js`.
 4. Postaviti odgovarajuće HTTP MIME tipove, CSP, cache i log policy. Ne mijenjati već objavljene verzionirane resurse.
 5. **Prije javne objave** dodati točnu politiku privatnosti s identitetom voditelja obrade, kontaktom, server logovima i rokovima čuvanja; `legal.html` sadrži upozorenje, ali nije potpuna politika privatnosti.
 6. Testirati release download poveznice na stvarnom izdanju.

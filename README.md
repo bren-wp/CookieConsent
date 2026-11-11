@@ -8,14 +8,14 @@
 Samostalni sustav za informiranje posjetitelja i upravljanje privolama na HTML/PHP stranicama te u WordPressu, Joomli, Drupalu, Shopifyju, Magentu, OpenCartu i PrestaShopu.
 
 [![GitHub CI](https://github.com/bren-wp/CookieConsent/actions/workflows/ci.yml/badge.svg)](https://github.com/bren-wp/CookieConsent/actions/workflows/ci.yml)
-![Version](https://img.shields.io/badge/version-0.11.5-4357e8)
+![Version](https://img.shields.io/badge/version-0.11.6-4357e8)
 ![License](https://img.shields.io/badge/license-MIT-26387a)
 ![Runtime](https://img.shields.io/badge/runtime_dependencies-0-brightgreen)
 ![Brand](https://img.shields.io/badge/by-Brendigo-4357e8)
 
 **[Službena web-stranica](https://cookie.brendigo.com)** · **[Najnovija izdanja](https://github.com/bren-wp/CookieConsent/releases)** · **[Interaktivni konfigurator](demo/configurator.html)** · **[Dokumentacija](docs/README.md)** · **[Razvojni plan](docs/ROADMAP.md)** · **[Brendigo](https://brendigo.com)**
 
-> **Status: v0.11.5 — testno izdanje.** Sustav omogućuje implementaciju upravljanja privolama, ali ne jamči usklađenost pojedine web-stranice i nema status certificiranog CMP-a. Nije automatski blokator svih vanjskih servisa.
+> **Status: v0.11.6 — testno izdanje.** Sustav omogućuje implementaciju upravljanja privolama, ali ne jamči usklađenost pojedine web-stranice i nema status certificiranog CMP-a. Nije automatski blokator svih vanjskih servisa.
 
 ## Što dobivate
 
@@ -23,7 +23,7 @@ Samostalni sustav za informiranje posjetitelja i upravljanje privolama na HTML/P
 |---|---|
 | Privola | Nužno, funkcionalno, analitika, marketing; odluke Prihvati sve / Odbij sve / Postavke |
 | Granularnost | Pojedinačne usluge s vlastitim identifikatorima; kategorije, svrha, rok i poveznica pružatelja |
-| Dizajn | 9 položaja bannera, 3 izgleda, svijetla/tamna/vlastita tema, boje, raspored gumba i položaj modala |
+| Dizajn | 9 položaja bannera, 3 izgleda, mobilna i desktop širina, razmaci, rubovi, zaobljenost, tipografija i gumbi uz boje i teme |
 | Lokalizacija | HR, EN, DE, IT, ES, FR i AR uz RTL; tekstovi prilagodljivi po jeziku |
 | Pristupačnost | Tipkovnica, kontrola fokusa, semantičke oznake, smanjene animacije, automatizirane A/AA provjere |
 | Integracije | Ručno označene skripte/iframeovi, lifecycle API, registracija pružatelja, GPC |
@@ -117,7 +117,7 @@ Projekt priprema verzionirani paket za predviđenu adresu:
     revision: "1"
   };
 </script>
-<script defer src="https://cookie.brendigo.com/v0.11.5/loader.js"></script>
+<script defer src="https://cookie.brendigo.com/v0.11.6/loader.js"></script>
 ~~~
 
 **Ta adresa nije automatski aktivirana objavom GitHub paketa.** Prije primjene moraju biti postavljeni DNS, HTTPS/TLS i stvarno posluživanje datoteka. Zadana WordPress opcija ostaje lokalno učitavanje. [CDN vodič](docs/CDN.hr.md).
@@ -143,7 +143,7 @@ window.BCC_SITE_CONFIG = {
 
 Ovo je opis i kontrola usluge **samo ako je ta usluga uistinu povezana sa sustavom blokiranja**. Katalog sam ne presreće svaki zahtjev.
 
-## Video integracije i produkcijske provjere (v0.11.5)
+## Video integracije i produkcijske provjere (v0.11.6)
 
 - **YouTube i Vimeo:** lokalni `video-embeds.js` dopušta samo provjerene video ID-ove, ne stvara iframe prije pozitivne privole, a pri povlačenju uklanja postojeći iframe. WordPress shortcode: `[brendigo_consent_video provider="youtube" id="dQw4w9WgXcQ" category="marketing"]`. [Primjer i sigurnosna ograničenja](docs/INTEGRATIONS.hr.md).
 - **Pasivni mrežni inventar:** `scanLocalResources()` navodi ograničene ResourceTiming URL-ove bez query parametara i vrijednosti pohrane. Ne vidi HttpOnly, tuđe cookies ili server-to-server događaje.
@@ -151,6 +151,12 @@ Ovo je opis i kontrola usluge **samo ako je ta usluga uistinu povezana sa sustav
 - **Performanse:** CI objavljuje sintetička desktop/mobilna Chromium CPU i mrežna mjerenja te 2×/4× CSS zoom aproksimacije. To nisu fizički uređaji ni ručni screen-reader testovi.
 - **Hosting:** `npm run verify:deployment -- https://cookie.brendigo.com` i `npm run verify:hosting -- https://cookie.brendigo.com` odvojeno provjeravaju sadržaj, DNS, TLS, cache i sigurnosna zaglavlja *nakon stvarnog deploya*. Opt-in dnevni monitor nalazi se u `.github/workflows/monitor.yml`, aktivira se tek s varijablom `BCC_PRODUCTION_DEPLOYED=true`.
 - **Dokazivost i pravo:** [staging matrica](docs/STAGING-VALIDATION.hr.md), [nacrt politike privatnosti](docs/PRIVACY-WEBSITE-DRAFT.hr.md), [arhiva revizija](docs/POLICY-REVISION-ARCHIVE.hr.md) i [opcionalni ledger](docs/CONSENT-LEDGER-DESIGN.hr.md). Nacrt nije objavljena pravna politika niti zamjenjuje vanjsku provjeru.
+
+## Napredna prilagodba dizajna — v0.11.6
+
+U javnom konfiguratoru i WordPress administraciji dostupne su postavke širine bannera na desktopu (do 1440 px) i mobitelu (82–100 %), unutarnjeg razmaka, udaljenosti od ruba, zaobljenosti bannera/gumba, veličine naslova i opisa te minimalne visine gumba. Devet položaja, tri stila, boje, teme, RTL i tekstovi ostaju podržani. Zadane vrijednosti zadržavaju prethodni izgled ako ne postavite prilagođenu vrijednost.
+
+Izgled možete pogledati na desktopu, telefonu širine 390 px ili manjem telefonu širine 320 px u [konfiguratoru](demo/configurator.html); prilagodbe se izvoze kao validirani JSON i nisu izvršni kod. Banner i svi gumbi ostaju unutar granica mobilnog prikaza; prihvaćanje i odbijanje nisu skriveni niti se mijenja status privole samom promjenom dizajna. [Rasponi i primjeri](docs/CONFIGURATION.hr.md).
 
 ## JavaScript API
 

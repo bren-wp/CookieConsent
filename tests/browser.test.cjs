@@ -137,6 +137,46 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
           }
         }finally{await context.close();}
       });
+      await t.test('responsive layout controls preserve choice access on mobile and desktop',async()=>{
+        for(const viewport of [{width:1440,height:900},{width:390,height:844},
+          {width:320,height:620}]){
+          const context=await browser.newContext({viewport});
+          try{
+            const page=await context.newPage();
+            await page.goto(origin+'/demo/index.html?'+new URLSearchParams({
+              preview:'1',position:'bottom-right',bannerWidth:'960',
+              mobileWidth:'88',bannerPadding:'24',bannerRadius:'0',
+              bannerOffset:'32',headingSize:'26',bodySize:'16',
+              buttonHeight:'48',buttonRadius:'12'
+            }));
+            await page.locator('.bcc-banner').waitFor({state:'visible'});
+            const data=await page.evaluate(()=>{
+              const b=document.querySelector('.bcc-banner');
+              const root=document.querySelector('.bcc-root');
+              const buttons=Array.from(b.querySelectorAll('button'));
+              return {width:b.getBoundingClientRect().width,
+                left:b.getBoundingClientRect().left,
+                right:b.getBoundingClientRect().right,
+                radius:getComputedStyle(b).borderTopLeftRadius,
+                font:getComputedStyle(b.querySelector('h2')).fontSize,
+                minHeight:getComputedStyle(buttons[0]).minHeight,
+                visible:buttons.filter(x=>x.getClientRects().length).length,
+                overflow:document.documentElement.scrollWidth>window.innerWidth,
+                custom:root.classList.contains('bcc-has-width')};
+            });
+            assert.ok(data.custom);
+            assert.equal(data.radius,'0px');
+            assert.equal(data.font,'26px');
+            assert.equal(data.minHeight,'48px');
+            assert.equal(data.visible,3);
+            assert.equal(data.overflow,false,'horizontal overflow '+viewport.width);
+            assert.ok(data.left>=-1 && data.right<=viewport.width+1,
+              'banner contained within viewport '+viewport.width);
+            await page.locator('.bcc-banner-actions').getByRole('button',{name:'Odbij sve'}).click();
+            assert.equal(await page.evaluate(()=>BrendigoCookieConsent.hasConsent('marketing')),false);
+          }finally{await context.close();}
+        }
+      });
       await t.test('automated WCAG A/AA checks for banner and preference dialog',async()=>{
         const context=await browser.newContext({viewport:{width:390,height:844}});
         try{
@@ -166,6 +206,10 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
           const page=await context.newPage();
           await page.goto(origin+'/demo/configurator.html');
           await page.locator('#theme').selectOption('dark');
+          await page.locator('#bannerWidth').fill('930');
+          await page.locator('#bannerRadius').fill('10');
+          await page.locator('#mobileWidth').fill('88');
+          await page.locator('#buttonHeight').fill('50');
           await page.locator('#prefs').selectOption('right');
           await page.locator('#language').selectOption('en');
           await page.locator('#flip').check();
@@ -194,6 +238,9 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
           },null,{timeout:15000});
           const exported=await page.locator('#snippet').inputValue();
           assert.ok(exported.includes('"theme": "dark"'));
+          assert.ok(exported.includes('"bannerWidth": 930'));
+          assert.ok(exported.includes('"mobileWidth": 88'));
+          assert.ok(exported.includes('"buttonHeight": 50'));
           assert.ok(exported.includes('"preferencesPosition": "right"'));
           const dl=page.waitForEvent('download');
           await page.getByRole('button',{name:'Preuzmi JSON konfiguraciju'}).click();
@@ -522,7 +569,7 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
           await page.goto(origin+'/demo/wp-csp.html');
           await page.locator('.bcc-banner').waitFor({state:'visible'});
           assert.equal(await page.evaluate(()=>BCC_SITE_CONFIG.language),'en');
-          assert.equal(await page.evaluate(()=>BrendigoCookieConsent.version),'0.11.5');
+          assert.equal(await page.evaluate(()=>BrendigoCookieConsent.version),'0.11.6');
           assert.equal(await page.locator('.bcc-banner-actions').getByRole('button',{name:'Reject all'}).count(),1);
           assert.equal(await page.evaluate(()=>BrendigoCookieConsent.hasConsent('analytics')),false);
           await page.locator('.bcc-banner-actions').getByRole('button',{name:'Reject all'}).click();

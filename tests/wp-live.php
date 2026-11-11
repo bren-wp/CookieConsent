@@ -28,6 +28,8 @@ $settings = \Brendigo\CookieConsent\sanitize_options([
     'policy_url'=>'https://example.org/cookies'
 ]);
 bcc_live_verify($settings['theme']==='dark','WP sanitizer');
+bcc_live_verify(isset($settings['mobile_width']) && $settings['mobile_width']===100,
+  'responsive default settings available');
 update_option(\Brendigo\CookieConsent\OPTION,$settings);
 $catalog=do_shortcode('[brendigo_cookie_catalog language="en"]');
 bcc_live_verify(strpos($catalog,'Statistics')!==false,'catalog uses stored services');

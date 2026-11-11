@@ -1,6 +1,6 @@
 # Konfiguracija — CookieConsent by Brendigo
 
-**Izdanje:** 0.8.1 · [Dokumentacijski indeks](README.md) · [API](API.hr.md)
+**Izdanje:** 0.11.6 · [Dokumentacijski indeks](README.md) · [API](API.hr.md)
 
 Konfiguracija se postavlja u `window.BCC_SITE_CONFIG` prije učitavanja `brendigo-cookieconsent.js`. Parametri se učitavaju jednom pri inicijalizaciji. U WordPressu dostupni su kroz **Postavke → CookieConsent**, osim tamo gdje je izričito navedeno da je potrebna prilagođena integracija.
 
@@ -19,6 +19,15 @@ Konfiguracija se postavlja u `window.BCC_SITE_CONFIG` prije učitavanja `brendig
     accentColor: "#4357e8",
     surfaceColor: "#ffffff",
     textColor: "#17223e",
+    bannerWidth: 960,        // desktop px; 0 = automatic
+    mobileWidth: 90,         // 82-100% of viewport
+    bannerPadding: 24,       // 0 = preset
+    bannerRadius: 14,        // -1 = preset, 0 = square
+    bannerOffset: 24,        // desktop distance from edge; 0 = preset
+    headingSize: 24,         // 0 = preset
+    bodySize: 16,            // 0 = preset
+    buttonHeight: 48,        // 0 = preset
+    buttonRadius: 12,        // -1 = preset
     consentDays: 180
   };
 </script>
@@ -41,6 +50,16 @@ Konfiguracija se postavlja u `window.BCC_SITE_CONFIG` prije učitavanja `brendig
 | `flipButtons` | `false` | promjena redoslijeda glavnih odluka |
 | `equalWeightButtons` | `true` | vizualna istaknutost prihvaćanja i odbijanja |
 | `disableAnimations` | `false` | smanjen broj animacija u prikazu |
+| `bannerWidth` | `0` (auto) | 320–1440 px, ili 0 za zadani položaj |
+| `mobileWidth` | `100` | 82–100 % širine zaslona; maksimalna širina ograničena na viewport minus rubovi |
+| `bannerPadding` | `0` (auto) | 12–48 px, ili 0 za zadani stil |
+| `bannerRadius` | `-1` (auto) | 0–40 px; 0 znači oštri rubovi |
+| `bannerOffset` | `0` (auto) | 8–80 px na desktopu; mobitel zadržava sigurne rubove |
+| `headingSize` | `0` (auto) | 16–32 px |
+| `bodySize` | `0` (auto) | 12–20 px |
+| `buttonHeight` | `0` (auto) | 44–64 px, osiguran minimalni interaktivni cilj kada je ručno postavljen |
+| `buttonRadius` | `-1` (auto) | 0–32 px za gumbe |
+
 
 Promjena izgleda ne smije sakriti mogućnost odbijanja niti prikriti pristup postavkama. `theme: "dark"` ili `"light"` koriste odgovarajuće površinske boje, pa vrijednosti za `custom` temu neće nužno biti vidljive.
 
@@ -121,3 +140,11 @@ Ne interpolirajte neprovjerene URL-ove u `data-bcc-src`. Za vanjske resurse prih
 ## Validirani samostalni JSON import
 
 Konfigurator podržava preuzimanje i ponovno učitavanje JSON datoteka sa shemom `brendigo-cookieconsent-standalone-v1`. Parser prihvaća samo dokumentirane ključeve, ograničava duljine i dopuštene vrijednosti, ne izvršava kod, ne prihvaća korisničke odluke i ne šalje podatke na server. Uvoz u WordPress administrator ima **zasebnu** shemu.
+
+## Odgovarajući mobilni i desktop prikaz — v0.11.6
+
+Sva brojčana polja prihvaćaju samo cijele brojeve unutar navedenih raspona. Nedopuštena CSS vrijednost, float ili ekstremna širina vraćaju zadanu vrijednost; tekstualni CSS, `url()`, `calc()` i JavaScript nisu prihvaćeni. **Obična promjena izgleda nikada ne postavlja privolu.**
+
+Na desktopu `bannerWidth` može prilagoditi i bočne položaje, kao i sredinu/traku. Mobilni CSS ograničava širinu na prostor zaslona i centrira banner, bez obzira na izabranu stranu, kako nijedan gumb ne ostane izvan zaslona. Mobilni rub ostaje 12 px čak i ako desktop `bannerOffset` ima drugu vrijednost. Unutarnji sadržaj se pomiče unutar bannera kad je visina zaslona mala.
+
+Radi pristupačnosti korisniku se ne smije oduzeti mogućnost odbijanja. Provjerite prikaz na 320 px, 390 px, 200–400 % zoom, RTL i ekranskim čitačima, osobito uz duge prijevode. Automatski browser test ne zamjenjuje tu ručnu provjeru.
