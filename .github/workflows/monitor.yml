@@ -1,0 +1,31 @@
+name: Production CDN monitoring (opt-in)
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 4 * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  monitor:
+    # Enable scheduled checks only after the site is genuinely deployed.
+    # Set repository variable BCC_PRODUCTION_DEPLOYED=true in GitHub Settings.
+    if: github.event_name == 'workflow_dispatch' || vars.BCC_PRODUCTION_DEPLOYED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Verify live website and immutable CDN manifests
+        run: |
+          mkdir -p dist/hosting
+          node tools/verify-deployment.mjs https://cookie.brendigo.com 2>&1 | tee dist/hosting/deployment.log
+      - name: Verify DNS, TLS, headers and cache policy
+        run: node tools/verify-hosting.mjs https://cookie.brendigo.com
+      - name: Upload hosting diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: cookieconsent-hosting-diagnostics
+          path: dist/hosting/
+          if-no-files-found: ignore

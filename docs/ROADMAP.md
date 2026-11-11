@@ -63,12 +63,12 @@ Projekt razlikuje **implementirano**, **automatizirano provjereno**, **ovisno o 
 ## C. Infrastruktura, pravne obveze i javna distribucija — ovisi o vanjskom pristupu
 
 - [ ] Potvrditi stvarno postavljen DNS, HTTPS/TLS, hosting, cache pravila, politiku logova i monitoring za `cookie.brendigo.com`. Uveden je lokalni read-only alat `npm run verify:hosting -- https://cookie.brendigo.com` (TLS, DNS, MIME, sigurnosna zaglavlja); objava i javni prihvat i dalje nisu dokazani.
-- [ ] Dovršiti produkcijsku politiku privatnosti web-stranice proizvoda s pravim operatorom, kontaktom i retencijom logova.
+- [ ] Dovršiti produkcijsku politiku privatnosti s točnim operatorom, kontaktom i retencijom logova. Pripremljen je **nacrt**, ali nije dopušteno objaviti ga prije popunjavanja i pravne provjere.
 - [ ] Obaviti stvarni pravni pregled ciljne web-stranice prema HR/EU i ostalim primjenjivim jurisdikcijama.
 - [ ] Provjeriti je li za oglašivački use-case potreban certificirani CMP/IAB TCF; nema automatske certifikacije samom instalacijom.
 - [ ] Poslati zaseban WordPress.org kandidat na direktorij s potvrđenim `Contributors` računom i proći službeni ljudski review.
-- [ ] Ako je za konkretan projekt potrebna serverska evidencija privola, projektirati odvojeni zakonit ledger s minimizacijom, rokom čuvanja, obvezama pristupa i sigurnosti.
-- [ ] Dokumentirati arhiviranje prijašnjih verzija politike i procjenu ponovnog traženja privole na stvarnoj stranici.
+- [x] Dokumentiran je opcionalni, neimplementirani ledger s minimizacijom, rokom pohrane, HMAC integritetom i pravima ispitanika; backend se neće aktivirati bez potvrđene potrebe i pravnog opsega.
+- [x] Dokumentiran postupak arhiviranja politike i odlučivanja o novom opt-inu; stvarne ranije verzije politike i operaterova potvrda još nisu dostupni.
 
 ## Kriteriji za stabilnu verziju 1.0
 
@@ -79,3 +79,11 @@ Projekt razlikuje **implementirano**, **automatizirano provjereno**, **ovisno o 
 5. Operativni monitoring, sigurnosna ažuriranja i plan rollbacka za javnu CDN infrastrukturu.
 
 **Status:** glavne funkcije i šest dodatnih izvorišnih CMS integracija isporučeni su u repozitoriju. Vanjski deployment, neovisna certifikacija i sve stvarne integracije nisu označeni dovršenima bez dokaza.
+
+### Dodatna produkcijska dokumentacija
+
+- [Staging matrica](STAGING-VALIDATION.hr.md)
+- [Predložak politike privatnosti](PRIVACY-WEBSITE-DRAFT.hr.md)
+- [Opcionalni ledger](CONSENT-LEDGER-DESIGN.hr.md)
+- [Arhiviranje verzija politike](POLICY-REVISION-ARCHIVE.hr.md)
+- Opt-in DNS/TLS monitoring: `.github/workflows/monitor.yml` (varijabla `BCC_PRODUCTION_DEPLOYED=true` aktivira dnevne provjere tek nakon stvarne objave).

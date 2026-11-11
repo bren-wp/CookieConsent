@@ -28,3 +28,5 @@ Zeleni GitHub CI znači da su prošli **konkretni automatizirani scenariji**. Ne
 **Nijedan preglednik, CMS ili pravni sustav ne dopušta jamstvo apsolutne bezgrešnosti samo temeljem statičkih provjera.**
 
 **Dodatno za v0.11.3:** Shopify CSP-safe bootstrap, restored/reset consent regresije, CDN redirect + size-limit zaštita i reproducibilni clean-build testovi. Stvarne CMS instalacije nisu potvrđene samo ovim testovima.
+
+**Od v0.11.4:** planirani realni WooCommerce BACS checkout u Playwrightu, CSP nonce regresija, video revocation testovi, ograničeni mrežni inventar i sintetički CPU/transfer profili. Za svako izdanje CI log i instalacijski test treba provjeriti prije označavanja rezultata prolaznim.

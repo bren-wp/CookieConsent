@@ -56,3 +56,5 @@
 - [ ] Provjeriti privolu, checkout i povlačenje na stvarnoj reprezentativnoj trgovini te ažurirati staging zapisnik.
 - [ ] Iz GitHub Actions preuzeti sintetička Chromium mjerenja. Ne predstavljati ih kao real-device/RUM ili manualnu screen-reader provjeru.
 - [ ] Potvrditi odabranog operatera/CDN, trajanje i obujam logova, pristupe i način brisanja.
+
+Vidi i [Staging matricu](STAGING-VALIDATION.hr.md), [Arhiviranje pravila](POLICY-REVISION-ARCHIVE.hr.md) i [Nacrt politike privatnosti](PRIVACY-WEBSITE-DRAFT.hr.md) prije stvarnog javnog hostinga.
