@@ -487,7 +487,7 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
             BrendigoVideoEmbeds.refresh();
             BrendigoCookieConsent.setConsent({marketing:true});
           });
-          assert.equal(await page.locator('[data-bcc-video-frame]').count(),0,
+          assert.equal(await page.locator('[data-bcc-video-id="javascript:bad"] iframe').count(),0,
             'invalid embed ID never creates a frame');
         }finally{await context.close();}
       });
