@@ -28,6 +28,10 @@ function defaults(): array {
         'accent_color' => '#4357e8',
         'surface_color' => '#ffffff',
         'text_color' => '#17223e',
+        'banner_width' => 0, 'mobile_width' => 100, 'banner_padding' => 0,
+        'banner_radius' => -1, 'banner_offset' => 0,
+        'heading_size' => 0, 'body_size' => 0,
+        'button_height' => 0, 'button_radius' => -1,
         'position' => 'bottom-center',
         'banner_style' => 'standard',
         'theme' => 'custom',
@@ -53,6 +57,17 @@ function options(): array {
     return array_merge(defaults(), is_array($saved) ? array_intersect_key($saved, defaults()) : []);
 }
 
+/**
+ * Numeric design constraints: reject CSS injection, booleans, floats and
+ * out-of-range values instead of passing user-controlled strings to JS/CSS.
+ */
+function sanitize_layout_number($value, int $min, int $max, int $auto): int {
+    if (!is_scalar($value) || is_bool($value) ||
+        !preg_match('/^-?[0-9]{1,4}$/', (string) $value)) return $auto;
+    $number = (int) $value;
+    return ($number === $auto || ($number >= $min && $number <= $max)) ? $number : $auto;
+}
+
 function sanitize_options($input): array {
     $input = is_array($input) ? $input : [];
     $language = isset($input['language']) ? sanitize_text_field($input['language']) : 'auto';
@@ -73,6 +88,15 @@ function sanitize_options($input): array {
         'accent_color' => $accent ?: '#4357e8',
         'surface_color' => $surface ?: '#ffffff',
         'text_color' => $text_color ?: '#17223e',
+        'banner_width' => sanitize_layout_number($input['banner_width'] ?? 0, 320, 1440, 0),
+        'mobile_width' => sanitize_layout_number($input['mobile_width'] ?? 100, 82, 100, 100),
+        'banner_padding' => sanitize_layout_number($input['banner_padding'] ?? 0, 12, 48, 0),
+        'banner_radius' => sanitize_layout_number($input['banner_radius'] ?? -1, 0, 40, -1),
+        'banner_offset' => sanitize_layout_number($input['banner_offset'] ?? 0, 8, 80, 0),
+        'heading_size' => sanitize_layout_number($input['heading_size'] ?? 0, 16, 32, 0),
+        'body_size' => sanitize_layout_number($input['body_size'] ?? 0, 12, 20, 0),
+        'button_height' => sanitize_layout_number($input['button_height'] ?? 0, 44, 64, 0),
+        'button_radius' => sanitize_layout_number($input['button_radius'] ?? -1, 0, 32, -1),
         'position' => in_array($position, $positions, true) ? $position : 'bottom-center',
         'banner_style' => in_array($style, ['standard', 'compact', 'minimal'], true) ? $style : 'standard',
         'theme' => in_array($theme, ['custom', 'light', 'dark'], true) ? $theme : 'custom',
@@ -346,6 +370,43 @@ function render_settings(): void {
                             <option value="<?php echo esc_attr($position); ?>" <?php selected($o['position'], $position); ?>><?php echo esc_html(ucwords(str_replace('-', ' ', $position))); ?></option>
                         <?php endforeach; ?>
                     </select></td>
+                </tr>
+                <tr><th scope="row" colspan="2"><h2><?php esc_html_e('Size, spacing and typography', 'brendigo-cookieconsent'); ?></h2><p class="description"><?php esc_html_e('Responsive controls cannot hide reject or customize buttons. Values outside safe bounds are ignored.', 'brendigo-cookieconsent'); ?></p></th></tr>
+                <tr>
+                    <th scope="row"><label for="bcc-width"><?php esc_html_e('Širina bannera (px)', 'brendigo-cookieconsent'); ?></label></th>
+                    <td><input id="bcc-width" type="number" min="320" max="1440" step="1" name="<?php echo esc_attr(OPTION); ?>[banner_width]" value="<?php echo esc_attr($o['banner_width']); ?>"><p class="description"><?php esc_html_e('0 = automatska širina prema položaju.', 'brendigo-cookieconsent'); ?></p></td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="bcc-mobile-width"><?php esc_html_e('Mobilna širina (%)', 'brendigo-cookieconsent'); ?></label></th>
+                    <td><input id="bcc-mobile-width" type="number" min="82" max="100" step="1" name="<?php echo esc_attr(OPTION); ?>[mobile_width]" value="<?php echo esc_attr($o['mobile_width']); ?>"><p class="description"><?php esc_html_e('Postotak širine zaslona; mobilni rubovi ostaju zaštićeni.', 'brendigo-cookieconsent'); ?></p></td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="bcc-padding"><?php esc_html_e('Unutarnji razmak (px)', 'brendigo-cookieconsent'); ?></label></th>
+                    <td><input id="bcc-padding" type="number" min="12" max="48" step="1" name="<?php echo esc_attr(OPTION); ?>[banner_padding]" value="<?php echo esc_attr($o['banner_padding']); ?>"><p class="description"><?php esc_html_e('0 = zadani stil.', 'brendigo-cookieconsent'); ?></p></td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="bcc-radius"><?php esc_html_e('Zaobljenost bannera (px)', 'brendigo-cookieconsent'); ?></label></th>
+                    <td><input id="bcc-radius" type="number" min="-1" max="40" step="1" name="<?php echo esc_attr(OPTION); ?>[banner_radius]" value="<?php echo esc_attr($o['banner_radius']); ?>"><p class="description"><?php esc_html_e('-1 = zadani stil; 0 = oštri kutovi.', 'brendigo-cookieconsent'); ?></p></td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="bcc-offset"><?php esc_html_e('Razmak od ruba (px)', 'brendigo-cookieconsent'); ?></label></th>
+                    <td><input id="bcc-offset" type="number" min="8" max="80" step="1" name="<?php echo esc_attr(OPTION); ?>[banner_offset]" value="<?php echo esc_attr($o['banner_offset']); ?>"><p class="description"><?php esc_html_e('0 = zadani položaj; na mobitelu zadržava se sigurnih 12 px.', 'brendigo-cookieconsent'); ?></p></td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="bcc-heading-size"><?php esc_html_e('Veličina naslova (px)', 'brendigo-cookieconsent'); ?></label></th>
+                    <td><input id="bcc-heading-size" type="number" min="16" max="32" step="1" name="<?php echo esc_attr(OPTION); ?>[heading_size]" value="<?php echo esc_attr($o['heading_size']); ?>"><p class="description"><?php esc_html_e('0 = zadani stil.', 'brendigo-cookieconsent'); ?></p></td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="bcc-body-size"><?php esc_html_e('Veličina opisa (px)', 'brendigo-cookieconsent'); ?></label></th>
+                    <td><input id="bcc-body-size" type="number" min="12" max="20" step="1" name="<?php echo esc_attr(OPTION); ?>[body_size]" value="<?php echo esc_attr($o['body_size']); ?>"><p class="description"><?php esc_html_e('0 = zadani stil; preporučeno 14–18 px.', 'brendigo-cookieconsent'); ?></p></td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="bcc-button-height"><?php esc_html_e('Minimalna visina gumba (px)', 'brendigo-cookieconsent'); ?></label></th>
+                    <td><input id="bcc-button-height" type="number" min="44" max="64" step="1" name="<?php echo esc_attr(OPTION); ?>[button_height]" value="<?php echo esc_attr($o['button_height']); ?>"><p class="description"><?php esc_html_e('0 = zadani stil; preporučeno 44 px ili više.', 'brendigo-cookieconsent'); ?></p></td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="bcc-button-radius"><?php esc_html_e('Zaobljenost gumba (px)', 'brendigo-cookieconsent'); ?></label></th>
+                    <td><input id="bcc-button-radius" type="number" min="-1" max="32" step="1" name="<?php echo esc_attr(OPTION); ?>[button_radius]" value="<?php echo esc_attr($o['button_radius']); ?>"><p class="description"><?php esc_html_e('-1 = zadani stil; 0 = oštri kutovi.', 'brendigo-cookieconsent'); ?></p></td>
                 </tr>
                 <tr>
                     <th scope="row"><label for="bcc-style"><?php esc_html_e('Banner style', 'brendigo-cookieconsent'); ?></label></th>
@@ -648,6 +709,15 @@ function frontend_config_meta(): void {
         'accentColor' => $o['accent_color'],
         'surfaceColor' => $o['surface_color'],
         'textColor' => $o['text_color'],
+        'bannerWidth' => (int) $o['banner_width'],
+        'mobileWidth' => (int) $o['mobile_width'],
+        'bannerPadding' => (int) $o['banner_padding'],
+        'bannerRadius' => (int) $o['banner_radius'],
+        'bannerOffset' => (int) $o['banner_offset'],
+        'headingSize' => (int) $o['heading_size'],
+        'bodySize' => (int) $o['body_size'],
+        'buttonHeight' => (int) $o['button_height'],
+        'buttonRadius' => (int) $o['button_radius'],
         'position' => $o['position'],
         'bannerStyle' => $o['banner_style'],
         'theme' => $o['theme'],
