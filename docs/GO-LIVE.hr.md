@@ -48,3 +48,11 @@
 - [ ] Ako je aktivan CDN: potvrđeni operator, IP logovi, TLS, retencija i monitoring.
 
 **Ne označavati stavke samo na temelju CI rezultata.** [Sigurnost](SECURITY.md) · [Pravne smjernice](COMPLIANCE.hr.md).
+
+## Operativni prihvat — nova automatizacija
+
+- [ ] Pokrenuti `npm run verify:deployment -- https://cookie.brendigo.com` nakon stvarnog uploada (status, MIME, SHA-256).
+- [ ] Pokrenuti `npm run verify:hosting -- https://cookie.brendigo.com` i sačuvati `dist/hosting/latest-report.json` (DNS, TLS, HTTP sigurnosna zaglavlja, cache).
+- [ ] Provjeriti privolu, checkout i povlačenje na stvarnoj reprezentativnoj trgovini te ažurirati staging zapisnik.
+- [ ] Iz GitHub Actions preuzeti sintetička Chromium mjerenja. Ne predstavljati ih kao real-device/RUM ili manualnu screen-reader provjeru.
+- [ ] Potvrditi odabranog operatera/CDN, trajanje i obujam logova, pristupe i način brisanja.

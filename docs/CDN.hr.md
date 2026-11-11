@@ -60,3 +60,10 @@ Adapter nije certificirani CMP, ne implementira IAB TCF i ne blokira automatski 
 ## Automatizirani HTTP/HTTPS prihvat nakon deploya
 
 Iz kloniranog repozitorija pokrenite `npm run verify:deployment -- https://cookie.brendigo.com`. Skripta provjerava stvarne HTTP statusne kodove, MIME, javnu dostupnost, deklarirani CDN manifest i SHA-256 sadržaja. Za javne domene obvezan je HTTPS. [Potpune upute](DEPLOY.hr.md).
+
+## DNS/TLS i HTTP provjera iz produkcijskog okruženja
+
+Nakon objave pokrenite `npm run verify:hosting -- https://cookie.brendigo.com`.
+Alat je read-only i provjerava DNS, TLS certifikat, status/MIME i upozorava na nedostatak HSTS, CSP, Referrer-Policy, nosniff i immutable cache. Sprema dokaz u `dist/hosting/latest-report.json`. Ne otvara portove i ne uređuje DNS. Upozorenja je potrebno procijeniti u stvarnom hosting kontekstu; trenutni GitHub CI sam ne potvrđuje javni host.
+
+Za pravilno cacheiranje `/v*/` koristite nepromjenjive verzionirane resurse. `/index.html` i pravni sadržaji trebaju kraći cache i mogućnost invalidacije. Prije uključivanja CDN načina osigurajte lokalni fallback.

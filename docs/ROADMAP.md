@@ -56,13 +56,13 @@ Projekt razlikuje **implementirano**, **automatizirano provjereno**, **ovisno o 
 - [x] YouTube/Vimeo iframe adapter s kontrolom učitavanja i opoziva, WordPress shortcodeom te browser testom; ostali pružatelji i dalje zahtijevaju zasebne adaptere i analizu.
 - [x] Pasivni browser-visible skener nadopunjen je ograničenim ResourceTiming metapodacima, redakcijom URL query/fragmenta te izričitim popisom nedostupnih HttpOnly, cross-origin i server-side podataka.
 - [ ] Provjeriti mobile/desktop raspored, zoom 200–400 %, RTL i ručne čitače ekrana.
-- [ ] Dodati stvarne metrike prvog učitavanja (CPU, mreža) na više uređaja; postoje testovi veličine statičnih paketa.
-- [ ] Provjeriti sigurnost s neovisnim penetration testom i reviewom dependency/CI supply-chain.
+- [x] CI dodaje sintetička Chromium mjerenja prvog učitavanja (desktop i dva simulirana mobilna profila, CPU slowdown, ResourceTiming i transfer size); **stvarna mjerenja na fizičkim uređajima i RUM ostaju otvoreni**.
+- [x] Pinani GitHub Actions SHA-ovi i uveden statički supply-chain gate; **neovisni pentest, provenance i checksum testnih preuzimanja ostaju otvoreni**.
 - [ ] Potvrditi stvarno hosting okruženje shared hostinga i sukobe s cache/minifier dodacima.
 
 ## C. Infrastruktura, pravne obveze i javna distribucija — ovisi o vanjskom pristupu
 
-- [ ] Postaviti i potvrditi DNS, HTTPS/TLS, hosting, cache pravila, politiku logova i monitoring za `cookie.brendigo.com`.
+- [ ] Potvrditi stvarno postavljen DNS, HTTPS/TLS, hosting, cache pravila, politiku logova i monitoring za `cookie.brendigo.com`. Uveden je lokalni read-only alat `npm run verify:hosting -- https://cookie.brendigo.com` (TLS, DNS, MIME, sigurnosna zaglavlja); objava i javni prihvat i dalje nisu dokazani.
 - [ ] Dovršiti produkcijsku politiku privatnosti web-stranice proizvoda s pravim operatorom, kontaktom i retencijom logova.
 - [ ] Obaviti stvarni pravni pregled ciljne web-stranice prema HR/EU i ostalim primjenjivim jurisdikcijama.
 - [ ] Provjeriti je li za oglašivački use-case potreban certificirani CMP/IAB TCF; nema automatske certifikacije samom instalacijom.

@@ -54,6 +54,16 @@ jobs:
         env:
           BCC_BROWSER: ${{ matrix.browser }}
         run: npm run test:browser
+      - name: Synthetic desktop/mobile browser CPU and network metrics
+        if: matrix.browser == 'chromium'
+        run: npm run test:metrics
+      - name: Upload synthetic browser metrics
+        if: matrix.browser == 'chromium'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: cookieconsent-synthetic-browser-metrics
+          path: dist/metrics/browser.json
+          if-no-files-found: error
 
   php-compat:
     name: PHP ${{ matrix.php }} compatibility (isolated WP settings)

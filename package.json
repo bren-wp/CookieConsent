@@ -13,7 +13,9 @@
     "audit:source": "node --test tests/source-audit.test.cjs",
     "validate:platforms": "python3 tools/validate-integrations.py",
     "verify:deployment": "node tools/verify-deployment.mjs",
-    "audit:supply-chain": "node tools/audit-supply-chain.mjs"
+    "audit:supply-chain": "node tools/audit-supply-chain.mjs",
+    "test:metrics": "node tests/browser-metrics.cjs",
+    "verify:hosting": "node tools/verify-hosting.mjs"
   },
   "engines": {
     "node": ">=18"
