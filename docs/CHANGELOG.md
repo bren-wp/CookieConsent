@@ -1,5 +1,12 @@
 # Povijest promjena — CookieConsent by Brendigo
 
+## 0.11.5 — CSP kompatibilnost i WordPress bootstrap
+
+- WordPress javna konfiguracija više se ne umeće pomoću izvršnog `wp_add_inline_script`, nego kao escapirani inertni `meta` JSON čitan lokalnim `wp-config.js` bootstrapom. Skripta se učitava prije jezgre, a konfiguracijski sadržaj ne može samostalno izvršavati JavaScript.
+- CDN loader na svoje JS/CSS resurse prenosi nonce, `crossorigin` i `referrerpolicy` atribut host skripte; strog CSP ne slabi se dodavanjem `unsafe-inline`.
+- Regresije: pravi WordPress i WordPress.org paket, browser CSP bez inline JS, validacija redoslijeda skripti i test konfiguracije otpornosti na neispravan JSON.
+- Dokumentirana ograničenja: samo BCC bootstrap poštuje ovaj model. Ostale teme i dodaci, zahtjevi za CSP `style-src-attr`, treći servisi i produkcijski hosting i dalje se provjeravaju odvojeno.
+
 ## 0.11.4 — produkcijski QA kandidatsko testno izdanje
 
 - Browser-visible skener: ograničeni ResourceTiming metapodaci, redakcija URL parametara, eksplicitna ograničenja (HttpOnly, cross-origin i server-to-server).
