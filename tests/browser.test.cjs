@@ -612,7 +612,7 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
           await page.goto(origin+'/demo/wp-csp.html');
           await page.locator('.bcc-banner').waitFor({state:'visible'});
           assert.equal(await page.evaluate(()=>BCC_SITE_CONFIG.language),'en');
-          assert.equal(await page.evaluate(()=>BrendigoCookieConsent.version),'0.11.6');
+          assert.equal(await page.evaluate(()=>BrendigoCookieConsent.version),'0.11.7');
           assert.equal(await page.locator('.bcc-banner-actions').getByRole('button',{name:'Reject all'}).count(),1);
           assert.equal(await page.evaluate(()=>BrendigoCookieConsent.hasConsent('analytics')),false);
           await page.locator('.bcc-banner-actions').getByRole('button',{name:'Reject all'}).click();

@@ -17,7 +17,7 @@ jobs:
           npm run check
           npm test
           npm run build:cdn
-          test -s dist/cdn/v0.11.6/manifest.json
+          test -s dist/cdn/v0.11.7/manifest.json
           php -l wordpress/brendigo-cookieconsent/brendigo-cookieconsent.php
           cmp packages/core/brendigo-cookieconsent.js wordpress/brendigo-cookieconsent/assets/brendigo-cookieconsent.js
           cmp packages/core/brendigo-cookieconsent.css wordpress/brendigo-cookieconsent/assets/brendigo-cookieconsent.css
