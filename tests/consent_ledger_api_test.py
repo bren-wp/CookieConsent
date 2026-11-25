@@ -54,6 +54,15 @@ class ApiTest(unittest.TestCase):
         self.assertEqual(self.call({**self.data, "categories": choice}, HTTP_SEC_GPC="1")[0], "400 Bad Request")
         self.assertEqual(self.ledger.history(bytes.fromhex(self.token)), [])
 
+    def test_api_key_rotation_overlap_and_retirement(self):
+        previous = secrets.token_hex(32)
+        self.app = make_app(self.ledger, api_key=self.key, previous_api_key=previous)
+        self.assertEqual(self.call(HTTP_AUTHORIZATION="Bearer " + previous)[0], "200 OK")
+        self.assertEqual(self.call()[0], "200 OK")
+        self.app = make_app(self.ledger, api_key=self.key)
+        self.assertEqual(self.call(HTTP_AUTHORIZATION="Bearer " + previous)[0], "401 Unauthorized")
+        self.assertEqual(self.call()[0], "200 OK")
+
 
 if __name__ == "__main__":
     unittest.main()

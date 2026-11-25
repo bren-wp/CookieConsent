@@ -22,10 +22,18 @@ def unique_object(pairs):
     return result
 
 
-def make_app(ledger, *, api_key):
+def make_app(ledger, *, api_key, previous_api_key=None):
+    # Explicit two-key overlap permits a bounded deployment rotation. The
+    # operator must remove the previous credential after callers migrate.
     if not isinstance(api_key, str) or not TOKEN.fullmatch(api_key):
         raise ValueError("A random 32-byte hexadecimal API key is required")
-    expected = ("Bearer " + api_key).encode("ascii")
+    if previous_api_key is not None and (
+        not isinstance(previous_api_key, str) or not TOKEN.fullmatch(previous_api_key)
+        or hmac.compare_digest(api_key, previous_api_key)
+    ):
+        raise ValueError("Invalid previous API key")
+    expected = tuple(("Bearer " + key).encode("ascii")
+                     for key in (api_key, previous_api_key) if key is not None)
 
     def app(environ, start_response):
         def response(status, body):
@@ -44,7 +52,14 @@ def make_app(ledger, *, api_key):
         if environ.get("HTTP_ORIGIN"):
             return response("403 Forbidden", {"error": "server_only"})
         supplied = environ.get("HTTP_AUTHORIZATION", "")
-        if not isinstance(supplied, str) or len(supplied) != len(expected) or not hmac.compare_digest(supplied.encode("utf-8"), expected):
+        try:
+            supplied_bytes = supplied.encode("ascii") if isinstance(supplied, str) else b""
+        except UnicodeError:
+            supplied_bytes = b""
+        valid = False
+        for candidate in expected:
+            valid |= hmac.compare_digest(supplied_bytes, candidate)
+        if not valid:
             return response("401 Unauthorized", {"error": "unauthorized"})
         if environ.get("CONTENT_TYPE", "").split(";", 1)[0].strip().lower() != "application/json":
             return response("415 Unsupported Media Type", {"error": "content_type"})

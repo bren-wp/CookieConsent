@@ -80,6 +80,13 @@ class LedgerTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.ledger.checkpoint(anchor_key=self.options["key"])
 
+    def test_erasure_rejects_tampered_subject_row(self):
+        self.record()
+        with sqlite3.connect(self.path) as db:
+            db.execute("UPDATE events SET tag='invalid'")
+        with self.assertRaises(ValueError):
+            self.ledger.erase_subject(self.token)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -119,6 +119,8 @@ class ConsentLedger:
                              (subject, request_id)).fetchone()
             if row:
                 old = self._verified(row)
+                if old["expires_at"] <= now.isoformat():
+                    raise ValueError("Expired request replay")
                 if old["decision"] != decision:
                     raise ValueError("Conflicting request replay")
                 return old["event_id"]
@@ -156,8 +158,12 @@ class ConsentLedger:
 
     def erase_subject(self, token):
         """Authorized rights workflow only; operator determines legal retention."""
+        subject = self._subject(token)
         with closing(self._connect()) as db, db:
-            return db.execute("DELETE FROM events WHERE subject=?", (self._subject(token),)).rowcount
+            db.execute("BEGIN IMMEDIATE")
+            for row in db.execute("SELECT * FROM events WHERE subject=?", (subject,)):
+                self._verified(row)
+            return db.execute("DELETE FROM events WHERE subject=?", (subject,)).rowcount
 
     def checkpoint(self, *, anchor_key):
         """Export an authenticated snapshot digest for independent custody.
