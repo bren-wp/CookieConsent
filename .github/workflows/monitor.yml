@@ -21,9 +21,20 @@ jobs:
         run: |
           set -o pipefail
           mkdir -p dist/hosting
-          node tools/verify-deployment.mjs https://cookie.brendigo.com 2>&1 | tee dist/hosting/deployment.log
-      - name: Verify DNS, TLS, headers and cache policy
-        run: node tools/verify-hosting.mjs https://cookie.brendigo.com
+          node tools/verify-deployment.mjs --website https://cookie.brendigo.com 2>&1 | tee dist/hosting/website.log
+      - name: Verify CDN integrity
+        if: always()
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p dist/hosting
+          node tools/verify-deployment.mjs --cdn https://api.brendigo.com/cookieconsent/ 2>&1 | tee dist/hosting/cdn.log
+      - name: Verify website DNS, TLS and headers
+        if: always()
+        run: node tools/verify-hosting.mjs --website https://cookie.brendigo.com
+      - name: Verify CDN DNS, TLS and cache policy
+        if: always()
+        run: node tools/verify-hosting.mjs --cdn https://api.brendigo.com/cookieconsent/
       - name: Upload hosting diagnostics
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

@@ -42,6 +42,15 @@ test('deployment verifier validates reachable files and checksum manifest on loc
    child.once('close',code=>code===0?resolve(text):reject(Error(text)));
   });
   assert.match(output,/PASS: website and CDN/);
+  for(const mode of ['--website','--cdn']){
+   const checked=await new Promise((resolve,reject)=>{
+    const child=spawn(process.execPath,['tools/verify-deployment.mjs',mode,url],{cwd:root});
+    let out='';child.stdout.on('data',chunk=>out+=chunk);child.stderr.on('data',chunk=>out+=chunk);
+    child.once('error',reject);child.once('close',code=>code===0?resolve(out):reject(Error(out)));
+   });
+   assert.match(checked,mode==='--website'?/PASS: website pages/:/PASS: CDN v/);
+   assert.doesNotMatch(checked,mode==='--website'?/PASS: CDN v/:/PASS: website pages/);
+  }
   // A compromised server can replace both its asset and the remote manifest.
   // The trusted checkout must still reject the altered content.
   files['loader.js']=Buffer.from('/* altered loader */');
