@@ -2,6 +2,10 @@
 
 ## 0.11.8 — Unreleased
 
+- Isolate consent transactions and wait for asynchronous provider teardown before restarting.
+- Add optional server-side Ed25519 receipt attestation primitive and tamper tests.
+- Verify all eleven ZIP distributions before merge and publish checksum reports.
+
 - Add cancellable provider generations, stale unregister protection, revoke-before-grant ordering and protected first-party cookie cleanup.
 - Pin WordPress CDN script and stylesheet tags to bundled release bytes.
 
