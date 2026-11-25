@@ -187,6 +187,15 @@
   var serviceConsent = Object.create(null);
   var providers = Object.create(null);
   var providerStates = Object.create(null);
+  var transitionActive = false;
+  // Public mutations are synchronous and non-reentrant. A callback cannot
+  // overwrite a decision halfway through persistence, notification or gating.
+  function withTransition(operation) {
+    if (transitionActive) throw new Error('CookieConsent transition in progress');
+    transitionActive = true;
+    try { return operation(); }
+    finally { transitionActive = false; }
+  }
   function normalizeServices(items) {
     if (!Array.isArray(items)) return [];
     var seen = Object.create(null);
@@ -250,16 +259,31 @@
   function stopProvider(record, state) {
     if (!state || state.phase !== 'running') return;
     // Invalidate before invoking external code, including abort listeners.
-    state.phase = 'stopped';
+    state.phase = 'stopping';
     var controller = state.controller;
     state.controller = null;
     if (controller) controller.abort();
+    function complete(ok) {
+      if (state.phase !== 'stopping') return;
+      state.phase = !ok ? 'blocked' : state.failedGrant && providerAllowed(record) ? 'failed' : 'stopped';
+      state.failedGrant = false;
+      if (state.retired && state.phase === 'stopped' && providerStates[state.id] === state) delete providerStates[state.id];
+      // No automatic restart after failed teardown; an adapter must be fixed.
+      if (state.phase === 'stopped' && !transitionActive && providers[state.id] === record && providerAllowed(record))
+        withTransition(syncProviders);
+    }
     try {
       if (typeof record.onRevoke === 'function') {
         var result = record.onRevoke(getConsent());
-        if (result && typeof result.then === 'function') Promise.resolve(result).catch(reportProviderError);
+        if (result && typeof result.then === 'function') {
+          Promise.resolve(result).then(function () { complete(true); }, function (err) {
+            reportProviderError(err); complete(false);
+          });
+          return;
+        }
       }
-    } catch (err) { reportProviderError(err); }
+      complete(true);
+    } catch (err) { reportProviderError(err); complete(false); }
   }
   function startProvider(id, record, state) {
     state.phase = 'running';
@@ -277,10 +301,9 @@
     function failed(err) {
       reportProviderError(err);
       if (!context.isCurrent()) return;
-      stopProvider(record, state);
-      // A failed grant is not retried repeatedly while permission is unchanged.
-      if (providers[id] === record && state.token === token && state.phase === 'stopped')
-        state.phase = providerAllowed(record) ? 'failed' : 'stopped';
+      state.failedGrant = true;
+      if (transitionActive) stopProvider(record, state);
+      else withTransition(function () { stopProvider(record, state); });
     }
     try {
       if (typeof record.onGrant === 'function') {
@@ -312,7 +335,7 @@
         !/^[a-zA-Z0-9._-]{1,64}$/.test(definition.id) ||
         !CATEGORIES.includes(definition.category) ||
         definition.category === 'necessary' ||
-        providers[definition.id] ||
+        providers[definition.id] || providerStates[definition.id] ||
         (definition.serviceId && !((config && config.services || []).some(function (s) {
           return s.id === definition.serviceId && s.toggleable && s.category === definition.category;
         })))) {
@@ -321,16 +344,20 @@
     var id = definition.id;
     var record = { category: definition.category, serviceId: definition.serviceId || '',
       onGrant: definition.onGrant, onRevoke: definition.onRevoke };
-    var state = { phase: 'stopped', controller: null, token: null };
+    var state = { id: id, phase: 'stopped', controller: null, token: null, failedGrant: false };
     providers[id] = record;
     providerStates[id] = state;
-    if (nodes.root) syncProviders();
+    if (nodes.root && !transitionActive) withTransition(syncProviders);
     return function unregister() {
       // An old unregister handle must never remove a replacement provider.
       if (providers[id] !== record) return;
       delete providers[id];
-      delete providerStates[id];
-      stopProvider(record, state);
+      state.retired = true;
+      if (state.phase === 'running') {
+        if (transitionActive) stopProvider(record, state);
+        else withTransition(function () { stopProvider(record, state); });
+      }
+      if (state.phase === 'stopped' || state.phase === 'failed') delete providerStates[id];
     };
   }
 
@@ -673,7 +700,10 @@
    * tabs reread the site's own cookie instead.
    */
   function reconcileTabConsent() {
-    if (!config) return;
+    if (!config || transitionActive) return;
+    return withTransition(reconcileTabConsentInternal);
+  }
+  function reconcileTabConsentInternal() {
     var previous = getConsent();
     var previousServices = getServiceConsent();
     var next = readSaved();
@@ -750,6 +780,9 @@
   }
   function saveChoice(choice, services) {
     if (!config) throw new Error('Initialize CookieConsent before setting consent.');
+    return withTransition(function () { return commitChoice(choice, services); });
+  }
+  function commitChoice(choice, services) {
     var previous = getConsent();
     var oldServices = getServiceConsent();
     var firstChoice = !previous;
@@ -799,6 +832,9 @@
   }
   function reset() {
     if (!config) return;
+    return withTransition(resetInternal);
+  }
+  function resetInternal() {
     var old = getConsent();
     var oldServices = getServiceConsent();
     consent = null;
@@ -955,7 +991,10 @@
     panel.querySelector('button').focus();
   }
   function mount() {
-    if (nodes.root) return;
+    if (nodes.root || transitionActive) return;
+    return withTransition(mountInternal);
+  }
+  function mountInternal() {
     var t = translations();
     var holder = element('div', 'bcc-root bcc-position-' + config.position + ' bcc-style-' + config.bannerStyle +
       ' bcc-theme-' + config.theme + (config.equalWeightButtons ? ' bcc-equal-buttons' : '') +
@@ -1274,7 +1313,8 @@
     getServiceConsent: getServiceConsent, hasServiceConsent: hasServiceConsent,
     reset: reset, openPreferences: openPreferences,
     registerProvider: registerProvider,
-    refresh: applyGatedResources, auditLocal: auditLocal, scanLocalResources: scanLocalResources,
+    refresh: function () { if (config) return withTransition(applyGatedResources); },
+    auditLocal: auditLocal, scanLocalResources: scanLocalResources,
     getCatalog: getCatalog, renderCatalog: renderCatalog,
     utils: {
       normalizeConsent: normalizeConsent, encodeRecord: encodeRecord, parseRecord: parseRecord,

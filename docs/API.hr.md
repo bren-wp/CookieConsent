@@ -116,3 +116,7 @@ Uz `BroadcastChannel`, jezgra koristi i standardni `storage` događaj za isti or
 ### Životni ciklus pružatelja i otkazivanje
 
 Od v0.11.8 `onGrant(consent, context)` prima dodatni kontekst: `context.signal` (AbortSignal ako je podržan) i `context.isCurrent()`. Adapter mora provjeriti `isCurrent()` prije asinkronih nastavaka i povezati mrežne zahtjeve s `signal` gdje je moguće. Opoziv prvo invalidira generaciju i otkazuje signal, zatim poziva `onRevoke`. Stara unregister funkcija ne može ukloniti novu registraciju istog ID-a. Neuspjeli grant se čisti i ne ponavlja do promjene dopuštenja. Opoziv se obrađuje prije novih grantova. Asinkroni adapter mora sam zaustaviti vlastite timere, zahtjeve i odgođene operacije; abort ne poništava već poslane podatke.
+
+### Izolacija odluke i asinkroni opoziv
+
+Od v0.11.8 `setConsent`, `setDetailedConsent`, `reset` i `refresh` ne dopuštaju reentrantni poziv tijekom aktivne transakcije; callback koji želi pokrenuti novu odluku mora to učiniti izvan trenutačnog sinkronog poziva. Promjena privole ne može se prepisati usred emisije događaja. Asinkroni `onRevoke` zadržava pružatelja u stanju zaustavljanja do dovršetka; greška blokira ponovnu aktivaciju. Otkazivanje `onGrant` ostaje kooperativno i adapter mora poštovati signal i generaciju. Ova izolacija vrijedi unutar jedne instance preglednika; nije distribuirana transakcija između kartica ili poslužitelja.

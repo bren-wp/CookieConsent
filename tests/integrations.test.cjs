@@ -236,3 +236,42 @@ test('provider revocation happens before configured cookie cleanup',()=>{
  assert.deepEqual(events,['revoke','cleanup']);
  assert.ok(!writes.some(value=>value.startsWith('wordpress_logged_in_test=')));
 });
+
+function transactionFixture(options={}) {
+ const doc={readyState:'loading',documentElement:{lang:'en'},cookie:'',addEventListener(){},querySelectorAll(){return []}};
+ const w={document:doc,navigator:{},location:{protocol:'https:',href:'https://example.org/'},URL,AbortController,console:{error(){}}};
+ vm.runInNewContext(fs.readFileSync(path.join(root,'packages/core/brendigo-cookieconsent.js'),'utf8'),{window:w,globalThis:w});
+ const cc=w.BrendigoCookieConsent;cc.init(options);return cc;
+}
+test('consent callbacks cannot reenter a partially committed transaction',()=>{
+ let cc, attempts=0;
+ cc=transactionFixture({onChange(){
+   attempts++;
+   assert.throws(()=>cc.reset(),/transition in progress/);
+   assert.throws(()=>cc.setConsent({marketing:true}),/transition in progress/);
+   assert.throws(()=>cc.refresh(),/transition in progress/);
+ }});
+ cc.setConsent({analytics:true});
+ assert.equal(attempts,1);assert.equal(cc.hasConsent('analytics'),true);
+ assert.equal(cc.hasConsent('marketing'),false);
+ cc.reset();assert.equal(cc.getConsent(),null);
+});
+test('asynchronous provider teardown prevents restart until it completes',async()=>{
+ const cc=transactionFixture(),contexts=[];
+ let finish;
+ cc.registerProvider({id:'stats',category:'analytics',onGrant(_,ctx){contexts.push(ctx);},
+   onRevoke(){return new Promise(resolve=>{finish=resolve;});}});
+ cc.setConsent({analytics:true});cc.setConsent({analytics:false});
+ assert.equal(contexts[0].signal.aborted,true);
+ cc.setConsent({analytics:true});assert.equal(contexts.length,1);
+ finish();await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(contexts.length,2);assert.equal(contexts[1].isCurrent(),true);
+});
+test('failed asynchronous teardown blocks future activation',async()=>{
+ const cc=transactionFixture();let grants=0;
+ cc.registerProvider({id:'stats',category:'analytics',onGrant(){grants++;},
+   onRevoke(){return Promise.reject(Error('teardown failed'));}});
+ cc.setConsent({analytics:true});cc.setConsent({analytics:false});cc.setConsent({analytics:true});
+ await new Promise(resolve=>setImmediate(resolve));
+ cc.setConsent({analytics:false});cc.setConsent({analytics:true});assert.equal(grants,1);
+});
