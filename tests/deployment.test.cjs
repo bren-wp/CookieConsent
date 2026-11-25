@@ -42,6 +42,23 @@ test('deployment verifier validates reachable files and checksum manifest on loc
    child.once('close',code=>code===0?resolve(text):reject(Error(text)));
   });
   assert.match(output,/PASS: website and CDN/);
+  // A compromised server can replace both its asset and the remote manifest.
+  // The trusted checkout must still reject the altered content.
+  files['loader.js']=Buffer.from('/* altered loader */');
+  manifest.files['loader.js']={
+    size:files['loader.js'].length,
+    sha256:createHash('sha256').update(files['loader.js']).digest('hex')
+  };
+  const tampered=await new Promise((resolve,reject)=>{
+   const child=spawn(process.execPath,['tools/verify-deployment.mjs',url],{cwd:root});
+   let output='';
+   child.stdout.on('data',chunk=>output+=chunk.toString());
+   child.stderr.on('data',chunk=>output+=chunk.toString());
+   child.once('error',reject);
+   child.once('close',code=>resolve({code,output}));
+  });
+  assert.notEqual(tampered.code,0);
+  assert.match(tampered.output,/loader\.js differs from trusted checkout/);
   // The checked website is local. This test never claims public DNS is live.
  }finally{await new Promise(resolve=>server.close(resolve));}
 });
