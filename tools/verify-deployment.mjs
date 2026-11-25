@@ -69,8 +69,15 @@ const prefix='/v'+version+'/';
 const manifest=JSON.parse((await get(prefix+'manifest.json',json)).toString('utf8'));
 if(manifest.version!==version || manifest.schema!==1 || !manifest.files ||
     typeof manifest.files!=='object')throw new Error('CDN manifest version/schema mismatch');
-for(const name of ['loader.js','brendigo-cookieconsent.js',
-  'brendigo-cookieconsent.css','google-consent-basic.js','video-embeds.js','LICENSE']){
+const trustedSources={
+  'loader.js':'cdn/loader.js',
+  'brendigo-cookieconsent.js':'packages/core/brendigo-cookieconsent.js',
+  'brendigo-cookieconsent.css':'packages/core/brendigo-cookieconsent.css',
+  'google-consent-basic.js':'packages/integrations/google-consent-basic.js',
+  'video-embeds.js':'packages/integrations/video-embeds.js',
+  'LICENSE':'LICENSE'
+};
+for(const [name,source] of Object.entries(trustedSources)){
   const listed=manifest.files[name];
   if(!listed || !/^[a-f0-9]{64}$/.test(listed.sha256))throw new Error('Missing checksum '+name);
   const expect=name.endsWith('.js')?script:name.endsWith('.css')?css:null;
@@ -78,5 +85,9 @@ for(const name of ['loader.js','brendigo-cookieconsent.js',
   if(bytes.length!==listed.size)throw new Error(name+' size differs from manifest');
   const sha=createHash('sha256').update(bytes).digest('hex');
   if(sha!==listed.sha256)throw new Error(name+' checksum differs from manifest');
+  const trusted=readFileSync(path.join(root,source));
+  const trustedSha=createHash('sha256').update(trusted).digest('hex');
+  if(sha!==trustedSha || bytes.length!==trusted.length)
+    throw new Error(name+' differs from trusted checkout');
 }
 console.log('PASS: website and CDN v'+version+' are reachable with expected MIME and SHA-256.');
