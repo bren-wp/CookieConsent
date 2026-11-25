@@ -1,5 +1,12 @@
 # Povijest promjena — CookieConsent by Brendigo
 
+## 0.11.8 — Unreleased
+
+- Split website and CDN deployment verification.
+- Prepare remote assets on api.brendigo.com/cookieconsent/.
+- Verify CDN bytes against the trusted checkout; add SHA-384 integrity metadata and tampering regression tests.
+- Preserve monitoring failures and separate diagnostics.
+
 ## 0.11.7 — dizajnerski predlošci, provjera kontrasta i prikaz na uređajima
 
 - Četiri predloška izgleda (Uravnoteženi, Plutajući, Minimalni, Tamni premium) za javni vizualni konfigurator i WordPress administraciju; mijenjaju samo dizajnerske parametre.

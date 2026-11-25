@@ -4,7 +4,7 @@ Tags: cookie, consent, privacy, preference-manager, gdpr
 Requires at least: 6.2
 Requires PHP: 7.4
 Tested up to: 7.1
-Stable tag: 0.11.7
+Stable tag: 0.11.8
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
@@ -59,6 +59,10 @@ No central consent API is included. A user-owned first-party cookie stores their
 https://cookie.brendigo.com
 
 == Changelog ==
+
+= 0.11.8 =
+* Separate API CDN distribution and trusted asset verification.
+
 
 = 0.11.7 =
 * Hardening of OpenCart storefront paths and CSP configuration.

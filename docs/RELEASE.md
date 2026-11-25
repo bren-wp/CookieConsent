@@ -63,4 +63,4 @@ Službena distribucija prikazuje `by Brendigo` bez konfiguracijskog prekidača. 
 
 ## Provjera objavljenog weba i CDN-a
 
-Nakon postavljanja HTML i CDN datoteka na stvarni server pokrenite `npm run verify:deployment -- https://cookie.brendigo.com`. Skripta **ne objavljuje** datoteke i ne mijenja DNS. [Deployment](DEPLOY.hr.md).
+Nakon postavljanja HTML i CDN datoteka na stvarni server pokrenite `npm run verify:deployment -- --website https://cookie.brendigo.com`. Skripta **ne objavljuje** datoteke i ne mijenja DNS. [Deployment](DEPLOY.hr.md).
