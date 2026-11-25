@@ -21,6 +21,7 @@ jobs:
           npm run audit:supply-chain
           npm test
           python3 tests/consent_ledger_test.py
+          python3 tests/consent_ledger_api_test.py
           npm run build:cdn
           npm run build:wporg
           test -s dist/cdn/v0.11.8/manifest.json

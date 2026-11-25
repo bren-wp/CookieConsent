@@ -31,6 +31,7 @@ jobs:
           npm run check
           npm test
           python3 tests/consent_ledger_test.py
+          python3 tests/consent_ledger_api_test.py
           php -l wordpress/brendigo-cookieconsent/brendigo-cookieconsent.php
           cmp packages/core/brendigo-cookieconsent.js wordpress/brendigo-cookieconsent/assets/brendigo-cookieconsent.js
           cmp packages/core/brendigo-cookieconsent.css wordpress/brendigo-cookieconsent/assets/brendigo-cookieconsent.css
