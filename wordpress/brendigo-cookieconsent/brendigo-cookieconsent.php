@@ -455,7 +455,7 @@ function render_settings(): void {
                     <th scope="row"><label for="bcc-assets"><?php esc_html_e('Asset delivery', 'brendigo-cookieconsent'); ?></label></th>
                     <td><select id="bcc-assets" name="<?php echo esc_attr(OPTION); ?>[asset_source]">
                         <option value="local" <?php selected($o['asset_source'], 'local'); ?>><?php esc_html_e('Local files (recommended)', 'brendigo-cookieconsent'); ?></option>
-                        <option value="cdn" <?php selected($o['asset_source'], 'cdn'); ?>><?php esc_html_e('cookie.brendigo.com CDN (after deployment)', 'brendigo-cookieconsent'); ?></option>
+                        <option value="cdn" <?php selected($o['asset_source'], 'cdn'); ?>><?php esc_html_e('api.brendigo.com CDN (after deployment)', 'brendigo-cookieconsent'); ?></option>
                     </select><p class="description"><?php esc_html_e('CDN mode requires the assets to be deployed and reachable. A third-party request may disclose visitor IP data to the CDN operator.', 'brendigo-cookieconsent'); ?></p></td>
                 </tr>
                 <tr>
@@ -694,7 +694,7 @@ add_shortcode('brendigo_consent_video', __NAMESPACE__ . '\\render_video_shortcod
 function frontend_assets(): void {
     $o = options();
     $base = $o['asset_source'] === 'cdn'
-        ? 'https://cookie.brendigo.com/v' . VERSION . '/'
+        ? 'https://api.brendigo.com/cookieconsent/v' . VERSION . '/'
         : plugin_dir_url(__FILE__) . 'assets/';
     wp_enqueue_style('brendigo-cookieconsent', $base . 'brendigo-cookieconsent.css', [], VERSION);
     if (!empty($o['google_basic'])) {

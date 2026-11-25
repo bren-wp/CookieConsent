@@ -15,8 +15,8 @@ test('official website has required static pages and no remote runtime dependenc
   assert.ok(s.includes('CookieConsent'));
   assert.ok(!/<script[^>]+src=["']https?:\/\//i.test(s),'external runtime script in '+file);
  }
- assert.ok(src('website/index.html').includes('https://cookie.brendigo.com/v'+version+'/loader.js'));
- assert.ok(src('website/installation.html').includes('https://cookie.brendigo.com/v'+version+'/loader.js'));
+ assert.ok(src('website/index.html').includes('https://api.brendigo.com/cookieconsent/v'+version+'/loader.js'));
+ assert.ok(src('website/installation.html').includes('https://api.brendigo.com/cookieconsent/v'+version+'/loader.js'));
  assert.match(src('website/robots.txt'),/sitemap\.xml/);
  assert.match(src('website/sitemap.xml'),/https:\/\/cookie\.brendigo\.com/);
 });

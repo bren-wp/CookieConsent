@@ -24,7 +24,7 @@ const entries = [
   ['packages/integrations/video-embeds.js', 'video-embeds.js'],
   ['LICENSE', 'LICENSE']
 ];
-const manifest = { schema: 1, version, origin: 'https://cookie.brendigo.com', files: {} };
+const manifest = { schema: 1, version, origin: 'https://api.brendigo.com', basePath: '/cookieconsent/', files: {} };
 for (const [source, name] of entries) {
   const bytes = fs.readFileSync(path.join(root,source));
   fs.writeFileSync(path.join(target,name), bytes);
