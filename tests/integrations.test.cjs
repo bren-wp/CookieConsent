@@ -193,3 +193,32 @@ test('WordPress external config reader uses inert JSON without evaluating input'
   assert.doesNotThrow(()=>vm.runInNewContext(source,{window:malformed}));
   assert.equal(malformed.BCC_SITE_CONFIG,undefined);
 });
+
+test('provider grant generations are cancelled on revoke and stale unregister is harmless',()=>{
+ const doc={readyState:'loading',documentElement:{lang:'en'},cookie:'',addEventListener(){},querySelectorAll(){return []}};
+ const w={document:doc,navigator:{},location:{protocol:'https:',href:'https://example.org/'},URL,AbortController,console};
+ vm.runInNewContext(fs.readFileSync(path.join(root,'packages/core/brendigo-cookieconsent.js'),'utf8'),{window:w,globalThis:w});
+ const cc=w.BrendigoCookieConsent;cc.init({revision:'lifecycle'});
+ const contexts=[],events=[];
+ const old=cc.registerProvider({id:'stats',category:'analytics',onGrant(_,context){contexts.push(context);},onRevoke(){events.push('stop');}});
+ cc.setConsent({analytics:true});assert.equal(contexts[0].isCurrent(),true);
+ cc.setConsent({analytics:false});assert.equal(contexts[0].signal.aborted,true);assert.equal(contexts[0].isCurrent(),false);
+ cc.setConsent({analytics:true});assert.equal(contexts[1].isCurrent(),true);
+ old();assert.equal(contexts[1].signal.aborted,true);
+ const replacement=cc.registerProvider({id:'stats',category:'analytics',onGrant(_,context){contexts.push(context);}});
+ old();cc.setConsent({analytics:true});assert.equal(contexts[2].isCurrent(),true);
+ replacement();assert.equal(contexts[2].isCurrent(),false);
+ assert.deepEqual(events,['stop','stop']);
+});
+test('failed provider grant is cleaned up and not retried until permission changes',()=>{
+ const doc={readyState:'loading',documentElement:{lang:'en'},cookie:'',addEventListener(){},querySelectorAll(){return []}};
+ const w={document:doc,navigator:{},location:{protocol:'https:',href:'https://example.org/'},URL,AbortController,console:{error(){}}};
+ vm.runInNewContext(fs.readFileSync(path.join(root,'packages/core/brendigo-cookieconsent.js'),'utf8'),{window:w,globalThis:w});
+ const cc=w.BrendigoCookieConsent;cc.init({revision:'failed'});
+ let grants=0,stops=0;
+ cc.registerProvider({id:'failed',category:'analytics',onGrant(){grants++;throw Error('failure');},onRevoke(){stops++;}});
+ cc.setConsent({analytics:true});cc.setConsent({analytics:true});
+ assert.equal(grants,1);assert.equal(stops,1);
+ cc.setConsent({analytics:false});cc.setConsent({analytics:true});
+ assert.equal(grants,2);assert.equal(stops,2);
+});

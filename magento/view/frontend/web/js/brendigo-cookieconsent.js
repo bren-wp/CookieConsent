@@ -239,25 +239,68 @@
       return url.href;
     } catch (_) { return null; }
   }
-  function invokeProvider(record, method) {
-    if (typeof record[method] !== 'function') return;
-    try { record[method](getConsent()); }
-    catch (err) {
-      if (root.console && typeof root.console.error === 'function') root.console.error('[CookieConsent by Brendigo] Provider callback error', err);
+  function reportProviderError(err) {
+    if (root.console && typeof root.console.error === 'function')
+      root.console.error('[CookieConsent by Brendigo] Provider callback error', err);
+  }
+  function providerAllowed(record) {
+    return hasConsent(record.category) &&
+      (!record.serviceId || hasServiceConsent(record.serviceId));
+  }
+  function stopProvider(record, state) {
+    if (!state || state.phase !== 'running') return;
+    // Invalidate before invoking external code, including abort listeners.
+    state.phase = 'stopped';
+    var controller = state.controller;
+    state.controller = null;
+    if (controller) controller.abort();
+    try {
+      if (typeof record.onRevoke === 'function') {
+        var result = record.onRevoke(getConsent());
+        if (result && typeof result.then === 'function') Promise.resolve(result).catch(reportProviderError);
+      }
+    } catch (err) { reportProviderError(err); }
+  }
+  function startProvider(id, record, state) {
+    state.phase = 'running';
+    var controller = typeof root.AbortController === 'function' ? new root.AbortController() : null;
+    state.controller = controller;
+    var token = {};
+    state.token = token;
+    var context = {
+      signal: controller ? controller.signal : null,
+      isCurrent: function () {
+        return providers[id] === record && providerStates[id] === state &&
+          state.token === token && state.phase === 'running' && providerAllowed(record);
+      }
+    };
+    function failed(err) {
+      reportProviderError(err);
+      if (!context.isCurrent()) return;
+      stopProvider(record, state);
+      // A failed grant is not retried repeatedly while permission is unchanged.
+      if (providers[id] === record && state.token === token && state.phase === 'stopped')
+        state.phase = providerAllowed(record) ? 'failed' : 'stopped';
     }
+    try {
+      if (typeof record.onGrant === 'function') {
+        var result = record.onGrant(getConsent(), context);
+        if (result && typeof result.then === 'function') Promise.resolve(result).catch(failed);
+      }
+    } catch (err) { failed(err); }
   }
   function syncProviders() {
+    // Revocations precede new grants, including mixed service decisions.
     Object.keys(providers).forEach(function (id) {
-      var record = providers[id];
-      var shouldRun = record.serviceId ? hasServiceConsent(record.serviceId) : hasConsent(record.category);
-      var wasRunning = providerStates[id] === true;
-      if (shouldRun && !wasRunning) {
-        providerStates[id] = true;
-        invokeProvider(record, 'onGrant');
-      } else if (!shouldRun && wasRunning) {
-        providerStates[id] = false;
-        invokeProvider(record, 'onRevoke');
-      }
+      var record = providers[id], state = providerStates[id];
+      if (!record || !state || providerAllowed(record)) return;
+      if (state.phase === 'failed') state.phase = 'stopped';
+      else stopProvider(record, state);
+    });
+    Object.keys(providers).forEach(function (id) {
+      var record = providers[id], state = providerStates[id];
+      if (record && state && state.phase === 'stopped' && providerAllowed(record))
+        startProvider(id, record, state);
     });
   }
   function registerProvider(definition) {
@@ -273,15 +316,18 @@
       throw new TypeError('Invalid or duplicate CookieConsent provider');
     }
     var id = definition.id;
-    providers[id] = { category: definition.category, serviceId: definition.serviceId || '',
+    var record = { category: definition.category, serviceId: definition.serviceId || '',
       onGrant: definition.onGrant, onRevoke: definition.onRevoke };
-    providerStates[id] = false;
+    var state = { phase: 'stopped', controller: null, token: null };
+    providers[id] = record;
+    providerStates[id] = state;
     if (nodes.root) syncProviders();
     return function unregister() {
-      if (!providers[id]) return;
-      if (providerStates[id]) invokeProvider(providers[id], 'onRevoke');
+      // An old unregister handle must never remove a replacement provider.
+      if (providers[id] !== record) return;
       delete providers[id];
       delete providerStates[id];
+      stopProvider(record, state);
     };
   }
 
@@ -387,8 +433,9 @@
     if (!Array.isArray(items)) return [];
     return items.slice(0, 100).filter(function (item) {
       return item && ['preferences', 'analytics', 'marketing'].indexOf(item.category) !== -1 &&
-        ((typeof item.name === 'string' && /^[a-zA-Z0-9_.-]{1,120}$/.test(item.name)) ||
-         (typeof item.prefix === 'string' && /^[a-zA-Z0-9_.-]{1,120}$/.test(item.prefix)));
+        ((typeof item.name === 'string' && /^[a-zA-Z0-9_.-]{1,120}$/.test(item.name) && !item.prefix) ||
+         (typeof item.prefix === 'string' && /^[a-zA-Z0-9_.-]{1,120}$/.test(item.prefix) && !item.name)) &&
+        (!item.serviceId || (typeof item.serviceId === 'string' && /^[a-zA-Z0-9._-]{1,64}$/.test(item.serviceId)));
     }).map(function (item) {
       var serviceId = typeof item.serviceId === 'string' && /^[a-zA-Z0-9._-]{1,64}$/.test(item.serviceId)
         ? item.serviceId : '';
@@ -400,6 +447,10 @@
         serviceId: serviceId, path: path
       };
     });
+  }
+  function protectedCookieName(name, consentName) {
+    return name === consentName ||
+      /^(?:__Host-|__Secure-|wordpress_|wp-settings-|wp_woocommerce_session_|woocommerce_|wc_|PHPSESSID$|JSESSIONID$|session(?:id)?$|csrf(?:token)?$|xsrf-token$)/i.test(name);
   }
   function clearConfiguredCookies(previous, current, oldServices, nextServices) {
     if (!config || !config.cookieCleanupRules.length || !root.document) return;
@@ -419,7 +470,7 @@
         if (previous && !previous[rule.category]) return;
       }
       visible.forEach(function (name) {
-        if (name === config.cookieName) return;
+        if (protectedCookieName(name, config.cookieName)) return;
         if (!(rule.name && rule.name === name) && !(rule.prefix && name.indexOf(rule.prefix) === 0)) return;
         var secure = root.location && root.location.protocol === 'https:' ? '; Secure' : '';
         root.document.cookie = name + '=; Max-Age=0; Path=' + rule.path + '; SameSite=Lax' + secure;
@@ -1214,7 +1265,7 @@
       sanitizeDirection: sanitizeDirection, sanitizeColor: sanitizeColor,
       contrastRatio: contrastRatio, accessibleText: accessibleText,
       normalizeServices: normalizeServices,
-      normalizeCleanupRules: normalizeCleanupRules, parseServiceRecord: parseServiceRecord,
+      normalizeCleanupRules: normalizeCleanupRules, protectedCookieName: protectedCookieName, parseServiceRecord: parseServiceRecord,
       sanitizeLayoutNumber: sanitizeLayoutNumber,
       parseConfigurationJSON: parseConfigurationJSON
     }

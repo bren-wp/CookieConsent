@@ -106,7 +106,10 @@ test('cleanup requires explicit safe cookie names or literal prefixes', () => {
     {category:'analytics',name:'_gid',path:'/'},
     {category:'necessary',name:'session'},
     {category:'marketing',prefix:'.*'},
-    {category:'marketing',name:'foo;Path=/'}
+    {category:'marketing',name:'foo;Path=/'},
+    {category:'marketing',name:'valid',prefix:'bad;'},
+    {category:'marketing',name:'valid',prefix:'valid'},
+    {category:'marketing',name:'valid',serviceId:'invalid id'}
   ]);
   assert.equal(rules.length,2);
   assert.equal(rules[0].serviceId,'google-analytics');
@@ -244,4 +247,10 @@ test('standalone JSON import keeps numeric design settings and validates them',(
  assert.equal(invalid.bannerWidth,0);
  assert.equal(invalid.mobileWidth,100);
  assert.equal(invalid.buttonHeight,0);
+});
+
+test('cleanup never removes protected WordPress, WooCommerce or session cookies',()=>{
+ for(const name of ['bcc_consent','wordpress_logged_in_abc','wp_woocommerce_session_abc','woocommerce_cart_hash','woocommerce_items_in_cart','PHPSESSID','csrfToken','__Host-session','wp-settings-1'])
+   assert.equal(consent.utils.protectedCookieName(name,'bcc_consent'),true,name);
+ assert.equal(consent.utils.protectedCookieName('_ga','bcc_consent'),false);
 });

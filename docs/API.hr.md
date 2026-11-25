@@ -112,3 +112,7 @@ To je korisnikova **lokalna, nekriptografska** kopija, a ne serverski ili pravno
 Uz `BroadcastChannel`, jezgra koristi i standardni `storage` događaj za isti origin. U `localStorage` se zapisuje samo tehnički signal `bcc-consent-update:<cookieName>` s revizijom politike, vremenom i lokalnim brojačem **bez sadržaja privole ili identifikatora korisnika**. Prijemna kartica ponovno čita vlastiti first-party cookie. Ako su obje mogućnosti blokirane, promjena postaje vidljiva pri ponovnom učitavanju.
 
 **Ponašanje povratka na karticu:** dostupno je ponovno usklađivanje lokalne odluke pri `focus`, `pageshow` i povratku vidljivosti, uz `BroadcastChannel`/`StorageEvent` kada ih preglednik podržava. Dodatno brisanje opcionalnih third-party resursa mora implementirati vlasnik integracije.
+
+### Životni ciklus pružatelja i otkazivanje
+
+Od v0.11.8 `onGrant(consent, context)` prima dodatni kontekst: `context.signal` (AbortSignal ako je podržan) i `context.isCurrent()`. Adapter mora provjeriti `isCurrent()` prije asinkronih nastavaka i povezati mrežne zahtjeve s `signal` gdje je moguće. Opoziv prvo invalidira generaciju i otkazuje signal, zatim poziva `onRevoke`. Stara unregister funkcija ne može ukloniti novu registraciju istog ID-a. Neuspjeli grant se čisti i ne ponavlja do promjene dopuštenja. Opoziv se obrađuje prije novih grantova. Asinkroni adapter mora sam zaustaviti vlastite timere, zahtjeve i odgođene operacije; abort ne poništava već poslane podatke.
