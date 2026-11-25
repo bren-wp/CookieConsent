@@ -316,3 +316,23 @@ test('blocked cookie and storage access does not interrupt in-page revocation',(
  cc.setConsent({analytics:true});cc.reset();assert.equal(revoked,1);assert.equal(cc.getConsent(),null);
  assert.equal(cc.auditLocal().localStorage.length,0);
 });
+
+test('stored category approval cannot silently authorize an undeclared-in-record service',()=>{
+ const raw=encodeURIComponent(JSON.stringify({version:1,revision:'policy',date:new Date().toISOString(),categories:{analytics:true},services:{old:true}}));
+ const doc={readyState:'loading',documentElement:{lang:'en'},cookie:'bcc_consent='+raw,addEventListener(){},querySelectorAll(){return []}};
+ const w={document:doc,navigator:{},location:{protocol:'https:',href:'https://example.org/'},URL,console};
+ vm.runInNewContext(fs.readFileSync(path.join(root,'packages/core/brendigo-cookieconsent.js'),'utf8'),{window:w,globalThis:w});
+ const cc=w.BrendigoCookieConsent;cc.init({revision:'policy',services:[{id:'old',category:'analytics',name:'Old',toggleable:true},{id:'new',category:'analytics',name:'New',toggleable:true}]});
+ assert.equal(cc.hasServiceConsent('old'),true);assert.equal(cc.hasServiceConsent('new'),false);
+ cc.setConsent({analytics:true});assert.equal(cc.hasServiceConsent('new'),true);
+});
+test('resource category must match declared granular service',()=>{
+ const activated=[];
+ function source(category,service){return {getAttribute(k){return {'data-bcc-category':category,'data-bcc-service':service}[k]||null;},setAttribute(){},hasAttribute(){return false;},textContent:'',parentNode:{insertBefore(){activated.push(service+':'+category);}}};}
+ const sources=[source('preferences','stats'),source('analytics','stats'),source('necessary','missing')];
+ const doc={readyState:'loading',documentElement:{lang:'en'},cookie:'',addEventListener(){},querySelectorAll(sel){return sel.startsWith('script')?sources:[];},createElement(){return {setAttribute(){}};}};
+ const w={document:doc,navigator:{},location:{protocol:'https:',href:'https://example.org/'},URL,console};
+ vm.runInNewContext(fs.readFileSync(path.join(root,'packages/core/brendigo-cookieconsent.js'),'utf8'),{window:w,globalThis:w});
+ const cc=w.BrendigoCookieConsent;cc.init({services:[{id:'stats',category:'analytics',name:'Stats',toggleable:true}]});
+ cc.setConsent({analytics:true,preferences:true});assert.deepEqual(activated,['stats:analytics']);
+});

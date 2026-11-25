@@ -48,7 +48,7 @@ Konfiguracija se postavlja u `window.BCC_SITE_CONFIG` prije učitavanja `brendig
 | `surfaceColor` | `#ffffff` | šesterocifrena HEX boja; koristi se za `custom` temu |
 | `textColor` | `#17223e` | šesterocifrena HEX boja; automatski se poboljšava kontrast |
 | `flipButtons` | `false` | promjena redoslijeda glavnih odluka |
-| `equalWeightButtons` | `true` | vizualna istaknutost prihvaćanja i odbijanja |
+| `equalWeightButtons` | `true` | ravnopravna istaknutost prihvaćanja i odbijanja; vrijednost `false` više ne mijenja prikaz |
 | `disableAnimations` | `false` | smanjen broj animacija u prikazu |
 | `bannerWidth` | `0` (auto) | 320–1440 px, ili 0 za zadani položaj |
 | `mobileWidth` | `100` | 82–100 % širine zaslona; maksimalna širina ograničena na viewport minus rubovi |

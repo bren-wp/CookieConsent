@@ -102,7 +102,7 @@ function sanitize_options($input): array {
         'theme' => in_array($theme, ['custom', 'light', 'dark'], true) ? $theme : 'custom',
         'preferences_position' => in_array($preferences_position, ['center', 'left', 'right'], true) ? $preferences_position : 'center',
         'flip_buttons' => empty($input['flip_buttons']) ? 0 : 1,
-        'equal_weight_buttons' => empty($input['equal_weight_buttons']) ? 0 : 1,
+        'equal_weight_buttons' => 1,
         'disable_animations' => empty($input['disable_animations']) ? 0 : 1,
         'asset_source' => in_array($asset_source, ['local','cdn'], true) ? $asset_source : 'local',
         'policy_url' => $policy,
@@ -447,7 +447,7 @@ function render_settings(): void {
                     <th scope="row"><?php esc_html_e('Banner button layout', 'brendigo-cookieconsent'); ?></th>
                     <td>
                         <label><input id="bcc-flip" type="checkbox" name="<?php echo esc_attr(OPTION); ?>[flip_buttons]" value="1" <?php checked($o['flip_buttons'], 1); ?>> <?php esc_html_e('Reverse the accept and reject button order', 'brendigo-cookieconsent'); ?></label>
-                        <p><label><input id="bcc-equal" type="checkbox" name="<?php echo esc_attr(OPTION); ?>[equal_weight_buttons]" value="1" <?php checked($o['equal_weight_buttons'], 1); ?>> <?php esc_html_e('Give accept and reject equally prominent widths (recommended)', 'brendigo-cookieconsent'); ?></label></p>
+                        <p><?php esc_html_e('Accept and reject always have equally prominent widths.', 'brendigo-cookieconsent'); ?></p>
                         <p><label><input id="bcc-no-motion" type="checkbox" name="<?php echo esc_attr(OPTION); ?>[disable_animations]" value="1" <?php checked($o['disable_animations'], 1); ?>> <?php esc_html_e('Disable all banner animations', 'brendigo-cookieconsent'); ?></label></p>
                     </td>
                 </tr>
@@ -743,7 +743,7 @@ function frontend_config_meta(): void {
         'theme' => $o['theme'],
         'preferencesPosition' => $o['preferences_position'],
         'flipButtons' => (bool) $o['flip_buttons'],
-        'equalWeightButtons' => (bool) $o['equal_weight_buttons'],
+        'equalWeightButtons' => true,
         'disableAnimations' => (bool) $o['disable_animations'],
         'services' => array_merge(woocommerce_services(), parse_services($o['services_catalog'])),
         'cookieCleanupRules' => parse_cleanup_rules($o['cookie_cleanup_rules']),

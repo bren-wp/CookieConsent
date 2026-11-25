@@ -123,7 +123,7 @@
         </select>
       </div>
       <div class="field"><label><input id="flip" type="checkbox"> Obrni redoslijed prihvaćanja i odbijanja</label></div>
-      <div class="field"><label><input id="equal" type="checkbox" checked> Jednaka istaknutost prihvaćanja i odbijanja</label></div>
+      <div class="field"><label><input id="equal" type="checkbox" checked disabled> Jednaka istaknutost prihvaćanja i odbijanja</label></div>
       <div class="field"><label><input id="reducedMotion" type="checkbox"> Isključi animacije</label></div>
       <p class="help">Za zakonski konzervativan prikaz obje odluke trebaju ostati jednako dostupne. Ovaj konfigurator ne skriva odbijanje.</p>
       <div class="color-grid">
@@ -212,7 +212,7 @@
         var o={};
         keys.forEach(function(key){o[key]=controls[key].value;});
         o.flip=document.getElementById('flip').checked;
-        o.equal=document.getElementById('equal').checked;
+        o.equal=true;
         o.reducedMotion=document.getElementById('reducedMotion').checked;
         var invalid=[];
         numericKeys.forEach(function(key){

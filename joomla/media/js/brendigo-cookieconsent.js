@@ -220,13 +220,13 @@
       };
     });
   }
-  function normalizeServiceChoices(categories, choices) {
+  function normalizeServiceChoices(categories, choices, restored) {
     var output = Object.create(null);
     var provided = choices && typeof choices === 'object' ? choices : {};
     (config && config.services || []).forEach(function (service) {
       if (!service.toggleable) return;
       var chosen = Object.prototype.hasOwnProperty.call(provided, service.id)
-        ? provided[service.id] === true : !!(categories && categories[service.category]);
+        ? provided[service.id] === true : !restored && !!(categories && categories[service.category]);
       output[service.id] = !!(categories && categories[service.category] && chosen);
     });
     return output;
@@ -589,12 +589,19 @@
   function hasConsent(category) {
     return CATEGORIES.indexOf(category) !== -1 && (category === 'necessary' || !!(consent && consent[category]));
   }
+  function resourceAllowed(category, serviceId) {
+    if (!hasConsent(category)) return false;
+    if (!serviceId) return true;
+    return !!config && config.services.some(function (service) {
+      return service.id === serviceId && service.toggleable &&
+        service.category === category && hasServiceConsent(serviceId);
+    });
+  }
   function revokeDeniedFrames() {
     var frames = root.document.querySelectorAll('iframe[data-bcc-category][data-bcc-src]');
     Array.prototype.forEach.call(frames, function (frame) {
       var serviceId = frame.getAttribute('data-bcc-service');
-      if ((!hasConsent(frame.getAttribute('data-bcc-category')) ||
-          (serviceId && !hasServiceConsent(serviceId))) && frame.hasAttribute('src'))
+      if (!resourceAllowed(frame.getAttribute('data-bcc-category'), serviceId) && frame.hasAttribute('src'))
         frame.removeAttribute('src');
     });
   }
@@ -603,9 +610,8 @@
     var scripts = doc.querySelectorAll('script[type="text/plain"][data-bcc-category]:not([data-bcc-activated])');
     Array.prototype.forEach.call(scripts, function (source) {
       var category = source.getAttribute('data-bcc-category');
-      if (!hasConsent(category)) return;
       var serviceId = source.getAttribute('data-bcc-service');
-      if (serviceId && !hasServiceConsent(serviceId)) return;
+      if (!resourceAllowed(category, serviceId)) return;
       var script = doc.createElement('script');
       ['nonce', 'integrity', 'crossorigin', 'referrerpolicy'].forEach(function (attribute) {
         var value = source.getAttribute('data-bcc-' + attribute);
@@ -626,9 +632,7 @@
     });
     var frames = doc.querySelectorAll('iframe[data-bcc-category][data-bcc-src]');
     Array.prototype.forEach.call(frames, function (frame) {
-      var permitted = hasConsent(frame.getAttribute('data-bcc-category'));
-      var serviceId = frame.getAttribute('data-bcc-service');
-      if (serviceId && !hasServiceConsent(serviceId)) permitted = false;
+      var permitted = resourceAllowed(frame.getAttribute('data-bcc-category'), frame.getAttribute('data-bcc-service'));
       var src = safeHttpUrl(frame.getAttribute('data-bcc-src'));
       if (permitted && src && frame.getAttribute('src') !== src) frame.setAttribute('src', src);
       if ((!permitted || !src) && frame.hasAttribute('src')) frame.removeAttribute('src');
@@ -700,7 +704,7 @@
     var previousServices = getServiceConsent();
     var snapshot = readSavedSnapshot();
     var next = snapshot ? snapshot.categories : null;
-    var nextServices = normalizeServiceChoices(next, snapshot && snapshot.services);
+    var nextServices = normalizeServiceChoices(next, snapshot && snapshot.services, true);
     var before = JSON.stringify([previous, previousServices]);
     var after = JSON.stringify([next, nextServices]);
     if (before === after) {
@@ -1265,7 +1269,7 @@
       theme: sanitizeTheme(options.theme),
       preferencesPosition: sanitizePreferencesPosition(options.preferencesPosition),
       flipButtons: options.flipButtons === true,
-      equalWeightButtons: options.equalWeightButtons !== false,
+      equalWeightButtons: true, // Privacy invariant: legacy false values cannot weaken parity.
       disableAnimations: options.disableAnimations === true,
       direction: sanitizeDirection(options.direction),
       accentColor: sanitizeColor(options.accentColor, '#4357e8'),
@@ -1293,7 +1297,7 @@
     };
     var snapshot = readSavedSnapshot();
     consent = snapshot ? snapshot.categories : null;
-    serviceConsent = normalizeServiceChoices(consent, snapshot && snapshot.services);
+    serviceConsent = normalizeServiceChoices(consent, snapshot && snapshot.services, true);
     lastDecisionAt = snapshot ? snapshot.date : null;
     // Subscribe before mounting the banner: other tabs can make a decision
     // while this tab is still building its UI.

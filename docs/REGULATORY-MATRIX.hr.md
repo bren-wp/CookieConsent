@@ -1,6 +1,6 @@
 # Regulatorna matrica — CookieConsent by Brendigo
 
-**Ažurirano: 10. studenoga 2026.**
+**Ažurirano: 25. studenoga 2026.**
 
 Ovaj dokument pripada isključivo Brendigo implementaciji i ne uključuje provjeru konkretne web-stranice. Ovaj dokument opisuje tehničku podršku i potrebne korake vlasnika web-stranice; nije pravno mišljenje, certificirana CMP usluga ili automatska jamstvena izjava o usklađenosti.
 
@@ -51,3 +51,12 @@ Nakon opoziva, jezgra javlja `brendigo:consentrevoked`, poziva registrirani `onR
 Za izdavače koji koriste Google AdSense/Ad Manager/AdMob za personalizirane oglase prema korisnicima EGP-a, UK-a ili Švicarske mogu se primjenjivati Googleovi zahtjevi za **Google-certified CMP** integriran s IAB TCF. Novi TC stringovi nakon 1. ožujka 2026. moraju primjenjivati **TCF v2.3**. CookieConsent by Brendigo ne implementira TCF string, GVL, CMP ID ni Google certifikaciju; Consent Mode v2 Basic adapter sam nije zamjena. Za takve web-stranice prije objave mora se odabrati certificirani CMP ili zasebno razviti, registrirati i validirati cjelovita TCF implementacija.
 
 Izvori: [Google CMP zahtjevi](https://support.google.com/adsense/answer/13554116), [Google IAB TCF 2.3](https://support.google.com/admanager/answer/9805023), [IAB Europe](https://iabeurope.eu/transparency-consent-framework/).
+
+## Konzervativni kriteriji prihvata v0.11.8
+
+- Ravnopravnost primarnih odluka više nije opcionalna postavka; stari konfiguracijski parametar ne može isključiti jednake širine.
+- Označeni servis mora pripadati deklariranoj kategoriji i imati dopuštenje. Neodgovarajuća ili nepoznata oznaka ostaje inertna.
+- Novi granularni servis bez izričitog spremljenog odabira ne nasljeđuje staru kategorijsku privolu pri obnovi zapisa. Bitne promjene svrhe ili pružatelja i dalje zahtijevaju novu reviziju politike.
+- Hrvatska: [AZOP — obrada osobnih podataka putem kolačića](https://azop.hr/obrada-osobnih-podataka-kolacici/) i [AZOP — kolačići i GDPR](https://azop.hr/kolacici-gdpr/), [ZEK (NN 76/2022, s naknadnim izmjenama)](https://narodne-novine.nn.hr/clanci/sluzbeni/full/2022_07_76_1116.html), [GDPR](https://eur-lex.europa.eu/eli/reg/2016/679/), [EDPB 05/2020](https://www.edpb.europa.eu/documents/guideline/guidelines-052020-on-consent-under-regulation-2016679_en). Francuska: [CNIL — zavaravajući dizajn](https://www.cnil.fr/en/dark-patterns-cookie-banners-cnil-issues-formal-notice-website-publishers). SAD: [CPPA — aktualni propisi i rulemaking](https://cppa.ca.gov/regulations/index.html).
+
+Ciljani dodatni profili: TDDDG (Njemačka), francuska nacionalna pravila, Italija, Španjolska, švicarski FADP, američki državni zakoni, PIPEDA/Québec, LGPD, POPIA, australski Privacy Act, APPI, PIPA, PDPA i indijski DPDP. Ovaj popis je backlog za zasebnu pravnu i tehničku verifikaciju, ne tvrdnja o potpunoj usklađenosti. Strogi opt-in nije zamjena za prava ispitanika, lokalne opt-out obveze, informiranje ili certifikaciju.
