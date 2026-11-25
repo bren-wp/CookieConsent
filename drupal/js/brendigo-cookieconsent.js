@@ -289,7 +289,7 @@
       }
     } catch (err) { failed(err); }
   }
-  function syncProviders() {
+  function stopDeniedProviders() {
     // Revocations precede new grants, including mixed service decisions.
     Object.keys(providers).forEach(function (id) {
       var record = providers[id], state = providerStates[id];
@@ -297,6 +297,9 @@
       if (state.phase === 'failed') state.phase = 'stopped';
       else stopProvider(record, state);
     });
+  }
+  function syncProviders() {
+    stopDeniedProviders();
     Object.keys(providers).forEach(function (id) {
       var record = providers[id], state = providerStates[id];
       if (record && state && state.phase === 'stopped' && providerAllowed(record))
@@ -568,6 +571,15 @@
   function hasConsent(category) {
     return CATEGORIES.indexOf(category) !== -1 && (category === 'necessary' || !!(consent && consent[category]));
   }
+  function revokeDeniedFrames() {
+    var frames = root.document.querySelectorAll('iframe[data-bcc-category][data-bcc-src]');
+    Array.prototype.forEach.call(frames, function (frame) {
+      var serviceId = frame.getAttribute('data-bcc-service');
+      if ((!hasConsent(frame.getAttribute('data-bcc-category')) ||
+          (serviceId && !hasServiceConsent(serviceId))) && frame.hasAttribute('src'))
+        frame.removeAttribute('src');
+    });
+  }
   function applyGatedResources() {
     var doc = root.document;
     var scripts = doc.querySelectorAll('script[type="text/plain"][data-bcc-category]:not([data-bcc-activated])');
@@ -672,6 +684,8 @@
     consent = next;
     serviceConsent = nextServices;
     lastDecisionAt = next ? readDecisionDate() : null;
+    stopDeniedProviders();
+    revokeDeniedFrames();
     clearConfiguredCookies(previous, consent, previousServices, serviceConsent);
     emit('change');
     if ((previous && CATEGORIES.some(function (category) {
@@ -743,6 +757,8 @@
     serviceConsent = normalizeServiceChoices(consent, services);
     lastDecisionAt = new Date().toISOString();
     persist();
+    stopDeniedProviders();
+    revokeDeniedFrames();
     clearConfiguredCookies(previous, consent, oldServices, serviceConsent);
     // Adapters receive the complete decision before any gated script starts.
     emit('change');
@@ -789,6 +805,8 @@
     serviceConsent = Object.create(null);
     lastDecisionAt = null;
     root.document.cookie = config.cookieName + '=; Path=/; Max-Age=0; SameSite=Lax';
+    stopDeniedProviders();
+    revokeDeniedFrames();
     clearConfiguredCookies(old, null, oldServices, serviceConsent);
     emit('change');
     if ((old && CATEGORIES.some(function (category) { return category !== 'necessary' && old[category]; })) ||

@@ -61,8 +61,8 @@ bcc_live_verify(strpos((string)$script->src,'cookie.brendigo.com')===false,'loca
 // Check generated CDN tags against the installed trusted local files.
 $cdn_settings = $settings;
 $cdn_settings['asset_source'] = 'cdn';
-update_option(\\Brendigo\\CookieConsent\\OPTION, $cdn_settings);
-$cdn_version = \\Brendigo\\CookieConsent\\VERSION;
+update_option(\Brendigo\CookieConsent\OPTION, $cdn_settings);
+$cdn_version = \Brendigo\CookieConsent\VERSION;
 $cdn_base = 'https://api.brendigo.com/cookieconsent/v' . $cdn_version . '/';
 foreach (['brendigo-cookieconsent.js', 'brendigo-cookieconsent.css', 'google-consent-basic.js', 'video-embeds.js'] as $file) {
     $style = substr($file, -4) === '.css';
@@ -71,16 +71,16 @@ foreach (['brendigo-cookieconsent.js', 'brendigo-cookieconsent.css', 'google-con
     $url = $cdn_base . $file . '?ver=' . $cdn_version;
     $tag = $style ? '<link rel="stylesheet" href="' . esc_url($url) . '">' :
         '<script src="' . esc_url($url) . '"></script>';
-    $result = $style ? \\Brendigo\\CookieConsent\\pin_cdn_style($tag, $handle, $url) :
-        \\Brendigo\\CookieConsent\\pin_cdn_script($tag, $handle, $url);
+    $result = $style ? \Brendigo\CookieConsent\pin_cdn_style($tag, $handle, $url) :
+        \Brendigo\CookieConsent\pin_cdn_script($tag, $handle, $url);
     $pin = 'sha384-' . base64_encode(hash_file('sha384',
         WP_PLUGIN_DIR . '/brendigo-cookieconsent/assets/' . $file, true));
     bcc_live_verify(strpos($result, $pin) !== false, 'SRI matches local release bytes: ' . $file);
     bcc_live_verify(strpos($result, 'crossorigin="anonymous"') !== false, 'anonymous CORS');
 }
-bcc_live_verify(\\Brendigo\\CookieConsent\\pin_cdn_script('<script src="https://other.example/x.js"></script>',
+bcc_live_verify(\Brendigo\CookieConsent\pin_cdn_script('<script src="https://other.example/x.js"></script>',
     'brendigo-cookieconsent', 'https://other.example/x.js') === '', 'untrusted CDN URL rejected');
-update_option(\\Brendigo\\CookieConsent\\OPTION, $settings);
+update_option(\Brendigo\CookieConsent\OPTION, $settings);
 if (class_exists('WooCommerce')) {
     bcc_live_verify(\Brendigo\CookieConsent\protected_woocommerce_script('wc-checkout'),
         'WooCommerce checkout not blocked');

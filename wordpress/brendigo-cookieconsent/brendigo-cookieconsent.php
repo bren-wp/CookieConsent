@@ -777,7 +777,7 @@ function pin_cdn_asset(string $tag, string $handle, string $url, string $element
         options()['asset_source'] !== 'cdn') return $tag;
     $expected = 'https://api.brendigo.com/cookieconsent/v' . VERSION . '/' . $files[$handle];
     if (explode('?', $url, 2)[0] !== $expected || !class_exists('WP_HTML_Tag_Processor')) return '';
-    $processor = new \\WP_HTML_Tag_Processor($tag);
+    $processor = new \WP_HTML_Tag_Processor($tag);
     if (!$processor->next_tag($element)) return '';
     $attribute = $element === 'link' ? 'href' : 'src';
     $actual = $processor->get_attribute($attribute);

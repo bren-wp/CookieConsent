@@ -222,3 +222,17 @@ test('failed provider grant is cleaned up and not retried until permission chang
  cc.setConsent({analytics:false});cc.setConsent({analytics:true});
  assert.equal(grants,2);assert.equal(stops,2);
 });
+
+test('provider revocation happens before configured cookie cleanup',()=>{
+ const writes=[],events=[];
+ const doc={readyState:'loading',documentElement:{lang:'en'},addEventListener(){},querySelectorAll(){return []}};
+ Object.defineProperty(doc,'cookie',{get(){return '_ga=abc; wordpress_logged_in_test=keep';},set(value){writes.push(value);if(value.startsWith('_ga='))events.push('cleanup');}});
+ const w={document:doc,navigator:{},location:{protocol:'https:',href:'https://example.org/'},URL,AbortController,console};
+ vm.runInNewContext(fs.readFileSync(path.join(root,'packages/core/brendigo-cookieconsent.js'),'utf8'),{window:w,globalThis:w});
+ const cc=w.BrendigoCookieConsent;
+ cc.init({revision:'ordering',cookieCleanupRules:[{category:'analytics',name:'_ga'},{category:'analytics',prefix:'wordpress_'}]});
+ cc.registerProvider({id:'stats',category:'analytics',onGrant(){},onRevoke(){events.push('revoke');}});
+ cc.setConsent({analytics:true});cc.setConsent({analytics:false});
+ assert.deepEqual(events,['revoke','cleanup']);
+ assert.ok(!writes.some(value=>value.startsWith('wordpress_logged_in_test=')));
+});
