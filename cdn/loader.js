@@ -14,12 +14,18 @@
   var cssPin = '__BCC_CSS_SRI__';
   var jsPin = '__BCC_JS_SRI__';
   var valid = /^sha384-[A-Za-z0-9+/]{64}$/;
-  if (!valid.test(cssPin) || !valid.test(jsPin)) return;
   var version = 'v0.11.8';
   var cdn = 'https://api.brendigo.com/cookieconsent/' + version + '/';
   var here = new URL(win.location.href);
   var src = new URL(source.src, here);
   if (src.origin !== here.origin && src.href !== cdn + 'loader.js') return;
+  // WordPress uses the identical template locally and supplies trusted pins
+  // in its server-rendered tag. A built CDN loader never uses override pins.
+  if ((!valid.test(cssPin) || !valid.test(jsPin)) && src.origin === here.origin) {
+    cssPin = source.getAttribute('data-bcc-css-integrity') || '';
+    jsPin = source.getAttribute('data-bcc-js-integrity') || '';
+  }
+  if (!valid.test(cssPin) || !valid.test(jsPin)) return;
   var base = new URL('.', src).href;
   // A locally hosted bootstrap survives a total CDN outage.
   var remote = source.getAttribute('data-bcc-cdn') === 'true';

@@ -66,5 +66,6 @@ const video=fs.readFileSync(path.join(root,'packages/integrations/video-embeds.j
 const wpVideo=fs.readFileSync(path.join(root,'wordpress/brendigo-cookieconsent/assets/video-embeds.js'));
 if(!video.equals(wpVideo))errors.push('Video adapter and WordPress copy differ');
 if(!fs.readFileSync(path.join(root,'tools/build-cdn.mjs'),'utf8').includes("'video-embeds.js'"))errors.push('CDN video adapter missing');
+if(!fs.readFileSync(path.join(root,'cdn/loader.js')).equals(fs.readFileSync(path.join(root,'wordpress/brendigo-cookieconsent/assets/wp-cdn-loader.js'))))errors.push('WordPress and CDN loader templates differ');
 if(errors.length){errors.forEach(x=>process.stderr.write('FAIL '+x+'\\n'));process.exit(1);}
 process.stdout.write('Version consistency OK: v'+version+'\n');

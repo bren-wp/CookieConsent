@@ -58,28 +58,22 @@ bcc_live_verify(wp_script_is('brendigo-cookieconsent-video','enqueued'),'video a
 $script=wp_scripts()->registered['brendigo-cookieconsent'];
 bcc_live_verify(strpos((string)$script->src,'brendigo-cookieconsent.js')!==false,'JS URL');
 bcc_live_verify(strpos((string)$script->src,'cookie.brendigo.com')===false,'local default');
-// Check generated CDN tags against the installed trusted local files.
+// Test the real WordPress-generated bootstrap tag and trusted local pins.
 $cdn_settings = $settings;
 $cdn_settings['asset_source'] = 'cdn';
 update_option(\Brendigo\CookieConsent\OPTION, $cdn_settings);
-$cdn_version = \Brendigo\CookieConsent\VERSION;
-$cdn_base = 'https://api.brendigo.com/cookieconsent/v' . $cdn_version . '/';
-foreach (['brendigo-cookieconsent.js', 'brendigo-cookieconsent.css', 'google-consent-basic.js', 'video-embeds.js'] as $file) {
-    $style = substr($file, -4) === '.css';
-    $handle = $file === 'google-consent-basic.js' ? 'brendigo-cookieconsent-google-basic' :
-        ($file === 'video-embeds.js' ? 'brendigo-cookieconsent-video' : 'brendigo-cookieconsent');
-    $url = $cdn_base . $file . '?ver=' . $cdn_version;
-    $tag = $style ? '<link rel="stylesheet" href="' . esc_url($url) . '">' :
-        '<script src="' . esc_url($url) . '"></script>';
-    $result = $style ? \Brendigo\CookieConsent\pin_cdn_style($tag, $handle, $url) :
-        \Brendigo\CookieConsent\pin_cdn_script($tag, $handle, $url);
+$bootstrap = plugin_dir_url(WP_PLUGIN_DIR . '/brendigo-cookieconsent/brendigo-cookieconsent.php') . 'assets/wp-cdn-loader.js';
+$url = $bootstrap . '?ver=' . \Brendigo\CookieConsent\VERSION;
+$tag = '<script src="' . esc_url($url) . '"></script>';
+$result = \Brendigo\CookieConsent\configure_cdn_bootstrap($tag, 'brendigo-cookieconsent', $url);
+foreach (['css','js'] as $extension) {
     $pin = 'sha384-' . base64_encode(hash_file('sha384',
-        WP_PLUGIN_DIR . '/brendigo-cookieconsent/assets/' . $file, true));
-    bcc_live_verify(strpos($result, $pin) !== false, 'SRI matches local release bytes: ' . $file);
-    bcc_live_verify(strpos($result, 'crossorigin="anonymous"') !== false, 'anonymous CORS');
+        WP_PLUGIN_DIR . '/brendigo-cookieconsent/assets/brendigo-cookieconsent.' . $extension, true));
+    bcc_live_verify(strpos($result, 'data-bcc-' . $extension . '-integrity="' . $pin . '"') !== false, 'trusted local pin');
 }
-bcc_live_verify(\Brendigo\CookieConsent\pin_cdn_script('<script src="https://other.example/x.js"></script>',
-    'brendigo-cookieconsent', 'https://other.example/x.js') === '', 'untrusted CDN URL rejected');
+bcc_live_verify(strpos($result, 'data-bcc-cdn="true"') !== false, 'CDN mode enabled');
+bcc_live_verify(\Brendigo\CookieConsent\configure_cdn_bootstrap('<script src="https://other.example/x.js"></script>',
+    'brendigo-cookieconsent', 'https://other.example/x.js') === '', 'untrusted bootstrap URL rejected');
 update_option(\Brendigo\CookieConsent\OPTION, $settings);
 if (class_exists('WooCommerce')) {
     bcc_live_verify(\Brendigo\CookieConsent\protected_woocommerce_script('wc-checkout'),

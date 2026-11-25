@@ -693,10 +693,13 @@ add_shortcode('brendigo_consent_video', __NAMESPACE__ . '\\render_video_shortcod
 
 function frontend_assets(): void {
     $o = options();
-    $base = $o['asset_source'] === 'cdn'
-        ? 'https://api.brendigo.com/cookieconsent/v' . VERSION . '/'
-        : plugin_dir_url(__FILE__) . 'assets/';
-    wp_enqueue_style('brendigo-cookieconsent', $base . 'brendigo-cookieconsent.css', [], VERSION);
+    $base = plugin_dir_url(__FILE__) . 'assets/';
+    // CDN mode uses a same-origin bootstrap with trusted SRI and fallback.
+    // Keep the early Google default-denied adapter and video adapter local.
+    $cdn_mode = $o['asset_source'] === 'cdn';
+    if (!$cdn_mode) {
+        wp_enqueue_style('brendigo-cookieconsent', $base . 'brendigo-cookieconsent.css', [], VERSION);
+    }
     if (!empty($o['google_basic'])) {
         // Enqueue this early in <head>. Actual Google tags must remain gated separately.
         wp_enqueue_script('brendigo-cookieconsent-google-basic', $base . 'google-consent-basic.js', [], VERSION, false);
@@ -705,7 +708,7 @@ function frontend_assets(): void {
     // Load configuration in <head>; the core is enqueued in the footer after it.
     wp_enqueue_script('brendigo-cookieconsent-wp-config',
         plugin_dir_url(__FILE__) . 'assets/wp-config.js', [], VERSION, false);
-    wp_enqueue_script('brendigo-cookieconsent', $base . 'brendigo-cookieconsent.js',
+    wp_enqueue_script('brendigo-cookieconsent', $base . ($cdn_mode ? 'wp-cdn-loader.js' : 'brendigo-cookieconsent.js'),
         ['brendigo-cookieconsent-wp-config'], VERSION, true);
     wp_enqueue_script('brendigo-cookieconsent-video', $base . 'video-embeds.js',
         ['brendigo-cookieconsent'], VERSION, true);
@@ -763,42 +766,31 @@ add_action('wp_head', __NAMESPACE__ . '\\frontend_config_meta', 8);
 
 
 
+// BEGIN CDN BOOTSTRAP (excluded from WordPress.org distribution)
 /**
- * Pin official CDN assets to the corresponding bundled, trusted release bytes.
- * A missing or unreadable local file must not cause an unpinned remote load.
+ * Supply trusted same-version pins to the first-party loader. Never fetch a
+ * remote manifest or emit inline executable code.
  */
-function pin_cdn_asset(string $tag, string $handle, string $url, string $element): string {
-    $files = [
-        'brendigo-cookieconsent' => $element === 'link' ? 'brendigo-cookieconsent.css' : 'brendigo-cookieconsent.js',
-        'brendigo-cookieconsent-google-basic' => 'google-consent-basic.js',
-        'brendigo-cookieconsent-video' => 'video-embeds.js',
-    ];
-    if (!isset($files[$handle]) || ($element === 'link' && $handle !== 'brendigo-cookieconsent') ||
-        options()['asset_source'] !== 'cdn') return $tag;
-    $expected = 'https://api.brendigo.com/cookieconsent/v' . VERSION . '/' . $files[$handle];
-    if (explode('?', $url, 2)[0] !== $expected || !class_exists('WP_HTML_Tag_Processor')) return '';
+function configure_cdn_bootstrap(string $tag, string $handle, string $src): string {
+    if ($handle !== 'brendigo-cookieconsent' || options()['asset_source'] !== 'cdn') return $tag;
+    $expected = plugin_dir_url(__FILE__) . 'assets/wp-cdn-loader.js';
+    if (explode('?', $src, 2)[0] !== $expected || !class_exists('WP_HTML_Tag_Processor')) return '';
     $processor = new \WP_HTML_Tag_Processor($tag);
-    if (!$processor->next_tag($element)) return '';
-    $attribute = $element === 'link' ? 'href' : 'src';
-    $actual = $processor->get_attribute($attribute);
+    if (!$processor->next_tag('script')) return '';
+    $actual = $processor->get_attribute('src');
     if (!is_string($actual) || explode('?', $actual, 2)[0] !== $expected) return '';
-    $file = __DIR__ . '/assets/' . $files[$handle];
-    if (!is_readable($file)) return '';
-    $digest = hash_file('sha384', $file, true);
-    if ($digest === false) return '';
-    $processor->set_attribute('integrity', 'sha384-' . base64_encode($digest));
-    $processor->set_attribute('crossorigin', 'anonymous');
-    $processor->set_attribute('referrerpolicy', 'no-referrer');
+    foreach (['css', 'js'] as $extension) {
+        $file = __DIR__ . '/assets/brendigo-cookieconsent.' . $extension;
+        if (!is_readable($file)) return '';
+        $digest = hash_file('sha384', $file, true);
+        if ($digest === false) return '';
+        $processor->set_attribute('data-bcc-' . $extension . '-integrity', 'sha384-' . base64_encode($digest));
+    }
+    $processor->set_attribute('data-bcc-cdn', 'true');
     return $processor->get_updated_html();
 }
-function pin_cdn_script(string $tag, string $handle, string $src): string {
-    return pin_cdn_asset($tag, $handle, $src, 'script');
-}
-function pin_cdn_style(string $tag, string $handle, string $href): string {
-    return pin_cdn_asset($tag, $handle, $href, 'link');
-}
-add_filter('script_loader_tag', __NAMESPACE__ . '\\pin_cdn_script', PHP_INT_MAX, 3);
-add_filter('style_loader_tag', __NAMESPACE__ . '\\pin_cdn_style', PHP_INT_MAX, 3);
+add_filter('script_loader_tag', __NAMESPACE__ . '\\configure_cdn_bootstrap', PHP_INT_MAX, 3);
+// END CDN BOOTSTRAP
 
 /**
  * Change *selected* WP enqueued script tags into inert scripts.

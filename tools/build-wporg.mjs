@@ -31,9 +31,11 @@ edit(path.join(dest,'brendigo-cookieconsent.php'),original=>{
     "        'google_basic' => empty($input['google_basic']) ? 0 : 1,\n        'show_branding' => empty($input['show_branding']) ? 0 : 1,", 'sanitize credit');
   replace("        'revision' => (string) $o['revision'],",
     "        'revision' => (string) $o['revision'],\n        'showBranding' => !empty($o['show_branding']),", 'front-end credit');
-  const external=/    \$base = \$o\['asset_source'\] === 'cdn'[\s\S]*?: plugin_dir_url\(__FILE__\) \. 'assets\/';/;
-  if(!external.test(php))throw Error('Missing external asset selector');
-  php=php.replace(external,"    $base = plugin_dir_url(__FILE__) . 'assets/';");
+  replace("    $cdn_mode = $o['asset_source'] === 'cdn';", "    $cdn_mode = false;", 'local-only runtime');
+  replace("($cdn_mode ? 'wp-cdn-loader.js' : 'brendigo-cookieconsent.js')", "'brendigo-cookieconsent.js'", 'local-only script');
+  const cdnBlock=/\/\/ BEGIN CDN BOOTSTRAP[\s\S]*?\/\/ END CDN BOOTSTRAP\n/;
+  if(!cdnBlock.test(php))throw Error('Missing CDN bootstrap block');
+  php=php.replace(cdnBlock,'');
   replace("'asset_source' => in_array($asset_source, ['local','cdn'], true) ? $asset_source : 'local',",
     "'asset_source' => 'local',",'disable remote asset setting');
   const assetRow=/\s*<tr>\s*<th scope="row"><label for="bcc-assets">[\s\S]*?<\/tr>/;
@@ -70,4 +72,5 @@ edit(path.join(dest,'readme.txt'),source=>source
    'Public credit is optional and disabled by default in this directory submission candidate.')
  .replace('Yes. Local delivery is the default and has no required external runtime libraries.',
    'Yes. All assets are served locally without external runtime libraries.'));
+fs.rmSync(path.join(dest,'assets/wp-cdn-loader.js'));
 console.log('Prepared WordPress.org submission candidate at dist/wporg/brendigo-cookieconsent');
