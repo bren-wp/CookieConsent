@@ -43,6 +43,46 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
       browser=await selectedBrowser.launch({
         headless:true, args:browserName==='chromium' ? ['--no-sandbox'] : []
       });
+      await t.test('real browser SRI rejects tampered CDN JS and uses pinned local fallback', async()=>{
+        const version=require('../package.json').version;
+        const {renderLoader}=require('../tools/render-cdn-loader.cjs');
+        const asset= name=>fs.readFileSync(path.join(repoRoot,'packages/core',name));
+        const css='brendigo-cookieconsent.css',js='brendigo-cookieconsent.js';
+        const cdn='https://api.brendigo.com/cookieconsent/v'+version+'/';
+        for(const mode of ['valid','tampered','offline']){
+          const context=await browser.newContext();
+          try{
+            const page=await context.newPage();
+            let localJS=0;
+            await page.route(origin+'/bcc-sri/**',async route=>{
+              const name=new URL(route.request().url()).pathname.split('/').pop();
+              if(name==='index.html')return route.fulfill({contentType:'text/html',body:
+                '<!doctype html><html lang="en"><head><script defer src="./loader.js" data-bcc-cdn="true"></script></head><body>'+
+                '<script type="text/plain" data-bcc-category="analytics">window.optionalExecuted=true;</script></body></html>'});
+              if(name==='loader.js')return route.fulfill({contentType:'text/javascript',body:renderLoader(repoRoot)});
+              if(name===css||name===js){
+                if(mode==='offline')return route.abort();
+                if(name===js)localJS++;
+                return route.fulfill({contentType:name===css?'text/css':'text/javascript',body:asset(name)});
+              }
+              return route.abort();
+            });
+            await page.route(cdn+'**',async route=>{
+              if(mode==='offline')return route.abort();
+              const name=new URL(route.request().url()).pathname.split('/').pop();
+              if(name!==css&&name!==js)return route.abort();
+              return route.fulfill({contentType:name===css?'text/css':'text/javascript',
+                headers:{'access-control-allow-origin':'*'},
+                body:mode==='tampered'&&name===js?'window.tamperedExecuted=true;':asset(name)});
+            });
+            await page.goto(origin+'/bcc-sri/index.html');
+            await page.waitForFunction(state=>window.__bccLoaderState===state,mode==='offline'?'unavailable':'ready');
+            assert.equal(await page.evaluate(()=>Boolean(window.tamperedExecuted||window.optionalExecuted)),false);
+            assert.equal(await page.evaluate(()=>Boolean(window.BrendigoCookieConsent)),mode!=='offline');
+            assert.equal(localJS,mode==='tampered'?1:0);
+          }finally{await context.close();}
+        }
+      });
       await t.test('no optional tracker fires before choice; reject all and reopen', async () => {
         const context=await browser.newContext();
         try {

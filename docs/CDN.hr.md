@@ -74,7 +74,7 @@ Ako host ima CSP i postavi valjan `nonce` na `<script src=".../loader.js" nonce=
 
 ## Subresource Integrity (SRI)
 
-Manifest za svaku datoteku sadržava SHA-256 i `integrity` (SHA-384 u SRI formatu). Verifikator uspoređuje oba sa sadržajem pouzdanog lokalnog checkouta. Za browser-side SRI preuzmite vrijednosti iz neovisno verificiranog release paketa i navedite `integrity` i `crossorigin="anonymous"` na izravnim JS/CSS oznakama. CDN mora dopustiti odgovarajući CORS. Ne kopirajte vrijednosti iz neprovjerenog udaljenog manifesta. SRI na samom loaderu ne štiti automatski njegove dinamički dodane resurse; potpuna zaštita loadera zahtijeva zasebno pinanje tih resursa.
+Manifest za svaku datoteku sadržava SHA-256 i `integrity` (SHA-384 u SRI formatu). Verifikator uspoređuje oba sa sadržajem pouzdanog lokalnog checkouta. Za browser-side SRI preuzmite vrijednosti iz neovisno verificiranog release paketa i navedite `integrity` i `crossorigin="anonymous"` na izravnim JS/CSS oznakama. CDN mora dopustiti odgovarajući CORS. Ne kopirajte vrijednosti iz neprovjerenog udaljenog manifesta. SRI na samom loaderu ne štiti automatski njegove dinamički dodane resurse. Od v0.11.8 build zasebno pina oba resursa jezgre u loaderu.
 
 ## Siguran lokalni bootstrap i automatski fallback (v0.11.8)
 

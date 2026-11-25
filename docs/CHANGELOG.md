@@ -2,6 +2,8 @@
 
 ## 0.11.8 — Unreleased
 
+- Generate browser-side SHA-384 pins from trusted core assets; add same-origin fallback and browser SRI regression scenarios.
+
 - Split website and CDN deployment verification.
 - Prepare remote assets on api.brendigo.com/cookieconsent/.
 - Verify CDN bytes against the trusted checkout; add SHA-384 integrity metadata and tampering regression tests.
