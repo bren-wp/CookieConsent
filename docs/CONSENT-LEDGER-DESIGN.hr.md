@@ -1,6 +1,6 @@
 # Arhitektura opcionalne serverske evidencije privola — nacrt
 
-**Status:** dizajn, NIJE aktiviran ni implementiran u javnom CookieConsent runtimeu.
+**Status:** opcionalna SQLite serverska primitiva u `tools/consent_ledger.py`; nije aktivirana ni integrirana u javni runtime. SQL nacrt ispod ostaje prijedlog za buduću višekorisničku produkcijsku implementaciju.
 **Temeljna odluka:** server-side ledger nije potreban za svaku integraciju; prije uvođenja mora biti definiran dokazni zahtjev, voditelj obrade, pravna osnova i rok čuvanja.
 
 ## Tok podataka
@@ -43,3 +43,9 @@ CREATE TABLE consent_ledger_events (
 
 ## Dodatne obveze prije razvoja
 Potvrditi voditelja obrade, nositelja ledger infrastrukture, svrhu, prava, obavijest, DPIA kada je potrebna, podatkovne ugovore i testove integriteta. Ovaj dokument ne predstavlja produkcijski ledger.
+
+## Implementirana lokalna SQLite primitiva
+
+Operator sam kreira privatnu bazu izvan web root-a, generira ključ od najmanje 32 slučajna bajta i slučajne 32-bajtne tokene subjekta. `ConsentLedger` zahtijeva eksplicitni scope, revision, key ID, rok čuvanja i katalog servisnih kategorija. Metode `record`, `history`, `purge_expired` i `erase_subject` ne otvaraju HTTP endpoint. Svaki događaj je transakcijski spremljen i autentificiran HMAC-SHA256; replay istog request ID-a za isti subjekt je idempotentan, konflikt se odbija. Subjekt se sprema kao domenski odvojeni HMAC, ne kao izvorni token. Podržani su decision, withdrawal i gpc_optout. Test: `python3 tests/consent_ledger_test.py`.
+
+Ograničenja: operator mora osigurati autentifikaciju, CSRF/origin, autorizaciju, privatne dozvole datoteka, enkripciju diska/backupa, raspored retencije i životni ciklus ključa. Primitiva ne dokazuje da je browserov iskaz istinit. HMAC pojedinačnih događaja ne otkriva brisanje cijelog zapisa ili rollback baze; neovisno sidro i rotacija ključeva nisu implementirani. Nema automatskog slanja podataka, browser identifikatora, IP/UA evidencije niti produkcijske integracije. Ne distribuirati privatni ključ.
