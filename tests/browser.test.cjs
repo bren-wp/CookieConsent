@@ -13,6 +13,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const http = require('node:http');
 const repoRoot = path.resolve(__dirname, '..');
+const expectedVersion = require('../package.json').version;
 function makeServer() {
   return http.createServer((req, res) => {
     let p;
@@ -33,7 +34,7 @@ function makeServer() {
     fs.createReadStream(resolved).pipe(res);
   });
 }
-test('real Chromium smoke tests: consent, persistence, resources, keyboard and styles',
+test(`real ${browserName} smoke tests: consent, persistence, resources, keyboard and styles`,
   {timeout:180000}, async t => {
     const server = makeServer();
     await new Promise(resolve => server.listen(0,'127.0.0.1',resolve));
@@ -258,7 +259,8 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
           await page.locator('#prefs').selectOption('right');
           await page.locator('#language').selectOption('en');
           await page.locator('#flip').check();
-          await page.locator('#equal').uncheck();
+          assert.equal(await page.locator('#equal').isChecked(),true,'choice parity must be enabled');
+          assert.equal(await page.locator('#equal').isDisabled(),true,'choice parity must not be configurable off');
           await page.locator('#heading').fill('Privacy settings by Brendigo');
           await page.locator('#intro').fill('Only selected services can load.');
           await page.locator('#accept').fill('Allow chosen services');
@@ -283,6 +285,8 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
           },null,{timeout:15000});
           const exported=await page.locator('#snippet').inputValue();
           assert.ok(exported.includes('"theme": "dark"'));
+          assert.ok(exported.includes('"equalWeightButtons": true'));
+          assert.ok((await preview.locator('.bcc-root').getAttribute('class')).includes('bcc-equal-buttons'));
           assert.ok(exported.includes('"bannerWidth": 930'));
           assert.ok(exported.includes('"mobileWidth": 88'));
           assert.ok(exported.includes('"buttonHeight": 50'));
@@ -657,7 +661,7 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
           await page.goto(origin+'/demo/wp-csp.html');
           await page.locator('.bcc-banner').waitFor({state:'visible'});
           assert.equal(await page.evaluate(()=>BCC_SITE_CONFIG.language),'en');
-          assert.equal(await page.evaluate(()=>BrendigoCookieConsent.version),'0.11.7');
+          assert.equal(await page.evaluate(()=>BrendigoCookieConsent.version),expectedVersion);
           assert.equal(await page.locator('.bcc-banner-actions').getByRole('button',{name:'Reject all'}).count(),1);
           assert.equal(await page.evaluate(()=>BrendigoCookieConsent.hasConsent('analytics')),false);
           await page.locator('.bcc-banner-actions').getByRole('button',{name:'Reject all'}).click();
