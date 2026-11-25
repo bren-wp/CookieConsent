@@ -377,7 +377,7 @@
       categories: normalizeConsent(value), services: services || {}
     }));
   }
-  function parseRecord(value, revision, gpc, consentDays) {
+  function decodeSavedRecord(value, revision, gpc, consentDays) {
     try {
       if (typeof value !== 'string' || value.length > 14000) return null;
       var parsed = JSON.parse(decodeURIComponent(value || ''));
@@ -392,16 +392,19 @@
       // restored from backup, or the site's duration was shortened.
       if (!Number.isFinite(timestamp) || timestamp > now + 5 * 60000 ||
           now - timestamp > days * 86400000) return null;
-      return normalizeConsent(parsed.categories, gpc);
+      if (new Date(timestamp).toISOString() !== parsed.date) return null;
+      return { categories: normalizeConsent(parsed.categories, gpc), date: parsed.date,
+        services: parsed.services && typeof parsed.services === 'object' && !Array.isArray(parsed.services)
+          ? parsed.services : null };
     } catch (_) { return null; }
   }
+  function parseRecord(value, revision, gpc, consentDays) {
+    var record = decodeSavedRecord(value, revision, gpc, consentDays);
+    return record ? record.categories : null;
+  }
   function parseServiceRecord(value, revision, gpc, consentDays) {
-    if (!parseRecord(value, revision, gpc, consentDays)) return null;
-    try {
-      var parsed = JSON.parse(decodeURIComponent(value));
-      return parsed && parsed.services && typeof parsed.services === 'object' && !Array.isArray(parsed.services)
-        ? parsed.services : null;
-    } catch (_) { return null; }
+    var record = decodeSavedRecord(value, revision, gpc, consentDays);
+    return record ? record.services : null;
   }
   function getLanguage() {
     var explicit = config.language;
@@ -419,44 +422,32 @@
   function isGpc() {
     return !!(root.navigator && root.navigator.globalPrivacyControl === true);
   }
-  function readSaved() {
-    var name = config.cookieName + '=';
-    var parts = (root.document.cookie || '').split(';');
-    for (var i = 0; i < parts.length; i++) {
-      var part = parts[i].trim();
-      if (part.indexOf(name) === 0) return parseRecord(part.slice(name.length), config.revision, isGpc(), config.consentDays);
-    }
-    return null;
+  function visibleCookies() {
+    try { return root.document.cookie || ''; }
+    catch (_) { return ''; }
   }
-  function readServiceSaved() {
-    var name = config.cookieName + '=';
-    var parts = (root.document.cookie || '').split(';');
-    for (var i = 0; i < parts.length; i++) {
-      var part = parts[i].trim();
-      if (part.indexOf(name) === 0) return parseServiceRecord(part.slice(name.length), config.revision, isGpc(), config.consentDays);
-    }
-    return null;
+  function writeCookie(value) {
+    try { root.document.cookie = value; }
+    catch (_) { /* Storage restrictions must not interrupt in-page revocation. */ }
   }
-  function readDecisionDate() {
+  function readSavedSnapshot() {
     var name = config.cookieName + '=';
-    var parts = (root.document.cookie || '').split(';');
+    var parts = visibleCookies().split(';');
+    var value = null;
     for (var i = 0; i < parts.length; i++) {
       var part = parts[i].trim();
       if (part.indexOf(name) !== 0) continue;
-      var value = part.slice(name.length);
-      if (!parseRecord(value, config.revision, isGpc(), config.consentDays)) return null;
-      try {
-        var raw = JSON.parse(decodeURIComponent(value));
-        return typeof raw.date === 'string' ? raw.date : null;
-      } catch (_) { return null; }
+      // Ambiguous path/domain cookies must never restore optional consent.
+      if (value !== null) return null;
+      value = part.slice(name.length);
     }
-    return null;
+    return decodeSavedRecord(value, config.revision, isGpc(), config.consentDays);
   }
   function persist() {
     var maxAge = Math.max(1, Math.min(365, Number(config.consentDays) || 180)) * 86400;
     var secure = root.location && root.location.protocol === 'https:' ? '; Secure' : '';
-    root.document.cookie = config.cookieName + '=' + encodeRecord(consent, config.revision, lastDecisionAt, serviceConsent) +
-      '; Path=/; Max-Age=' + maxAge + '; SameSite=Lax' + secure;
+    writeCookie(config.cookieName + '=' + encodeRecord(consent, config.revision, lastDecisionAt, serviceConsent) +
+      '; Path=/; Max-Age=' + maxAge + '; SameSite=Lax' + secure);
   }
   // Explicit first-party only cleanup rules: no RegExp input and no cross-origin access.
   function normalizeCleanupRules(items) {
@@ -484,7 +475,7 @@
   }
   function clearConfiguredCookies(previous, current, oldServices, nextServices) {
     if (!config || !config.cookieCleanupRules.length || !root.document) return;
-    var visible = (root.document.cookie || '').split(';').map(function (part) {
+    var visible = visibleCookies().split(';').map(function (part) {
       return part.trim().split('=')[0];
     }).filter(Boolean);
     config.cookieCleanupRules.forEach(function (rule) {
@@ -503,7 +494,7 @@
         if (protectedCookieName(name, config.cookieName)) return;
         if (!(rule.name && rule.name === name) && !(rule.prefix && name.indexOf(rule.prefix) === 0)) return;
         var secure = root.location && root.location.protocol === 'https:' ? '; Secure' : '';
-        root.document.cookie = name + '=; Max-Age=0; Path=' + rule.path + '; SameSite=Lax' + secure;
+        writeCookie(name + '=; Max-Age=0; Path=' + rule.path + '; SameSite=Lax' + secure);
       });
     });
   }
@@ -650,15 +641,16 @@
    */
   function auditLocal() {
     if (!root.document) return { cookies: [], localStorage: [], sessionStorage: [], scripts: [], iframes: [] };
-    function storageKeys(storage) {
+    function storageKeys(name) {
       var keys = [];
       try {
+        var storage = root[name];
         if (!storage) return keys;
         for (var i = 0; i < storage.length; i++) keys.push(storage.key(i));
       } catch (_) { /* Storage access may be blocked by the browser. */ }
       return keys.filter(function (key) { return typeof key === 'string'; }).sort();
     }
-    var cookies = (root.document.cookie || '').split(';').map(function (item) {
+    var cookies = visibleCookies().split(';').map(function (item) {
       return item.trim().split('=')[0];
     }).filter(Boolean).sort();
     function inspect(selector) {
@@ -675,8 +667,8 @@
       return result;
     }
     return {
-      cookies: cookies, localStorage: storageKeys(root.localStorage),
-      sessionStorage: storageKeys(root.sessionStorage),
+      cookies: cookies, localStorage: storageKeys('localStorage'),
+      sessionStorage: storageKeys('sessionStorage'),
       scripts: inspect('script[src],script[data-bcc-category]'),
       iframes: inspect('iframe[src],iframe[data-bcc-category]')
     };
@@ -706,14 +698,18 @@
   function reconcileTabConsentInternal() {
     var previous = getConsent();
     var previousServices = getServiceConsent();
-    var next = readSaved();
-    var nextServices = normalizeServiceChoices(next, readServiceSaved());
+    var snapshot = readSavedSnapshot();
+    var next = snapshot ? snapshot.categories : null;
+    var nextServices = normalizeServiceChoices(next, snapshot && snapshot.services);
     var before = JSON.stringify([previous, previousServices]);
     var after = JSON.stringify([next, nextServices]);
-    if (before === after) return;
+    if (before === after) {
+      lastDecisionAt = snapshot ? snapshot.date : null;
+      return;
+    }
     consent = next;
     serviceConsent = nextServices;
-    lastDecisionAt = next ? readDecisionDate() : null;
+    lastDecisionAt = snapshot ? snapshot.date : null;
     stopDeniedProviders();
     revokeDeniedFrames();
     clearConfiguredCookies(previous, consent, previousServices, serviceConsent);
@@ -840,7 +836,7 @@
     consent = null;
     serviceConsent = Object.create(null);
     lastDecisionAt = null;
-    root.document.cookie = config.cookieName + '=; Path=/; Max-Age=0; SameSite=Lax';
+    writeCookie(config.cookieName + '=; Path=/; Max-Age=0; SameSite=Lax' + (root.location && root.location.protocol === 'https:' ? '; Secure' : ''));
     stopDeniedProviders();
     revokeDeniedFrames();
     clearConfiguredCookies(old, null, oldServices, serviceConsent);
@@ -1295,9 +1291,10 @@
       onFirstConsent: options.onFirstConsent,
       onDecision: options.onDecision
     };
-    consent = readSaved();
-    serviceConsent = normalizeServiceChoices(consent, readServiceSaved());
-    lastDecisionAt = consent ? readDecisionDate() : null;
+    var snapshot = readSavedSnapshot();
+    consent = snapshot ? snapshot.categories : null;
+    serviceConsent = normalizeServiceChoices(consent, snapshot && snapshot.services);
+    lastDecisionAt = snapshot ? snapshot.date : null;
     // Subscribe before mounting the banner: other tabs can make a decision
     // while this tab is still building its UI.
     listenForTabUpdates();

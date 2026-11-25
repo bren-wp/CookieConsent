@@ -67,5 +67,8 @@ const wpVideo=fs.readFileSync(path.join(root,'wordpress/brendigo-cookieconsent/a
 if(!video.equals(wpVideo))errors.push('Video adapter and WordPress copy differ');
 if(!fs.readFileSync(path.join(root,'tools/build-cdn.mjs'),'utf8').includes("'video-embeds.js'"))errors.push('CDN video adapter missing');
 if(!fs.readFileSync(path.join(root,'cdn/loader.js')).equals(fs.readFileSync(path.join(root,'wordpress/brendigo-cookieconsent/assets/wp-cdn-loader.js'))))errors.push('WordPress and CDN loader templates differ');
+for(const filename of ['prestashop/views/js/bootstrap.js','opencart/catalog/view/javascript/bootstrap.js']){
+ if(!fs.readFileSync(path.join(root,'magento/view/frontend/web/js/bootstrap.js')).equals(fs.readFileSync(path.join(root,filename))))errors.push('Shared CMS JSON bootstrap differs: '+filename);
+}
 if(errors.length){errors.forEach(x=>process.stderr.write('FAIL '+x+'\\n'));process.exit(1);}
 process.stdout.write('Version consistency OK: v'+version+'\n');

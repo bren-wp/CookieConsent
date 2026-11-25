@@ -290,3 +290,29 @@ test('WordPress bootstrap accepts trusted local tag pins only on its own origin'
  const remote='https://api.brendigo.com/cookieconsent/v'+require('../package.json').version+'/loader.js';
  assert.equal(loaderFixture(attrs,remote,code).nodes.length,0);
 });
+
+test('one cookie snapshot restores a consistent decision and ambiguous duplicates are denied',()=>{
+ const record=encodeURIComponent(JSON.stringify({version:1,revision:'snapshot',date:new Date().toISOString(),categories:{analytics:true},services:{stats:false}}));
+ let reads=0;
+ const doc={readyState:'loading',documentElement:{lang:'en'},addEventListener(){},querySelectorAll(){return []}};
+ Object.defineProperty(doc,'cookie',{get(){reads++;return 'bcc_consent='+record;}});
+ const w={document:doc,navigator:{},location:{protocol:'https:',href:'https://example.org/'},URL,console};
+ vm.runInNewContext(fs.readFileSync(path.join(root,'packages/core/brendigo-cookieconsent.js'),'utf8'),{window:w,globalThis:w});
+ w.BrendigoCookieConsent.init({revision:'snapshot',services:[{id:'stats',category:'analytics',name:'Stats',toggleable:true}]});
+ assert.equal(reads,1);assert.equal(w.BrendigoCookieConsent.hasConsent('analytics'),true);
+ assert.equal(w.BrendigoCookieConsent.hasServiceConsent('stats'),false);
+ const doc2={...doc,cookie:'bcc_consent='+record+'; bcc_consent='+record};
+ const w2={...w,document:doc2};vm.runInNewContext(fs.readFileSync(path.join(root,'packages/core/brendigo-cookieconsent.js'),'utf8'),{window:w2,globalThis:w2});
+ w2.BrendigoCookieConsent.init({revision:'snapshot'});assert.equal(w2.BrendigoCookieConsent.getConsent(),null);
+});
+test('blocked cookie and storage access does not interrupt in-page revocation',()=>{
+ const doc={readyState:'loading',documentElement:{lang:'en'},addEventListener(){},querySelectorAll(){return []}};
+ Object.defineProperty(doc,'cookie',{get(){throw Error('blocked');},set(){throw Error('blocked');}});
+ const w={document:doc,navigator:{},location:{protocol:'https:',href:'https://example.org/'},URL,AbortController,console};
+ for(const name of ['localStorage','sessionStorage'])Object.defineProperty(w,name,{get(){throw Error('blocked');}});
+ vm.runInNewContext(fs.readFileSync(path.join(root,'packages/core/brendigo-cookieconsent.js'),'utf8'),{window:w,globalThis:w});
+ const cc=w.BrendigoCookieConsent;cc.init({});let revoked=0;
+ cc.registerProvider({id:'stats',category:'analytics',onRevoke(){revoked++;}});
+ cc.setConsent({analytics:true});cc.reset();assert.equal(revoked,1);assert.equal(cc.getConsent(),null);
+ assert.equal(cc.auditLocal().localStorage.length,0);
+});

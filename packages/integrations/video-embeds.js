@@ -14,7 +14,7 @@
     vimeo: /^[0-9]{1,12}$/
   };
   function source(provider, id) {
-    if (!allowed[provider] || !allowed[provider].test(id)) return '';
+    if (!Object.prototype.hasOwnProperty.call(allowed, provider) || !allowed[provider].test(id)) return '';
     if (provider === 'youtube') {
       return 'https://www.youtube-nocookie.com/embed/' + id + '?rel=0';
     }
