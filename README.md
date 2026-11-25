@@ -105,7 +105,7 @@ Sve uključuju lokalnu verziju Brendigo JS/CSS jezgre. Platformske administrativ
 
 **Preduvjeti:** WordPress 6.2+ i PHP 7.4+. Izolirani CI testovi nisu zamjena za testiranje konkretnog hostinga. [Potpune WordPress upute](docs/WORDPRESS.hr.md).
 
-## Vlastiti CDN — cookie.brendigo.com
+## Vlastiti CDN — api.brendigo.com
 
 Projekt priprema verzionirani paket za predviđenu adresu:
 
@@ -117,7 +117,7 @@ Projekt priprema verzionirani paket za predviđenu adresu:
     revision: "1"
   };
 </script>
-<script defer src="https://cookie.brendigo.com/v0.11.7/loader.js"></script>
+<script defer src="https://api.brendigo.com/cookieconsent/v0.11.7/loader.js"></script>
 ~~~
 
 **Ta adresa nije automatski aktivirana objavom GitHub paketa.** Prije primjene moraju biti postavljeni DNS, HTTPS/TLS i stvarno posluživanje datoteka. Zadana WordPress opcija ostaje lokalno učitavanje. [CDN vodič](docs/CDN.hr.md).
@@ -149,7 +149,7 @@ Ovo je opis i kontrola usluge **samo ako je ta usluga uistinu povezana sa sustav
 - **Pasivni mrežni inventar:** `scanLocalResources()` navodi ograničene ResourceTiming URL-ove bez query parametara i vrijednosti pohrane. Ne vidi HttpOnly, tuđe cookies ili server-to-server događaje.
 - **Provjere:** automatizirani strogi CSP nonce test, preglednici Chromium/Firefox/WebKit i stvarni WooCommerce Classic + BACS checkout u WordPress/MySQL testnom okruženju, bez terećenja računa.
 - **Performanse:** CI objavljuje sintetička desktop/mobilna Chromium CPU i mrežna mjerenja te 2×/4× CSS zoom aproksimacije. To nisu fizički uređaji ni ručni screen-reader testovi.
-- **Hosting:** `npm run verify:deployment -- https://cookie.brendigo.com` i `npm run verify:hosting -- https://cookie.brendigo.com` odvojeno provjeravaju sadržaj, DNS, TLS, cache i sigurnosna zaglavlja *nakon stvarnog deploya*. Opt-in dnevni monitor nalazi se u `.github/workflows/monitor.yml`, aktivira se tek s varijablom `BCC_PRODUCTION_DEPLOYED=true`.
+- **Hosting:** `npm run verify:deployment -- --website https://cookie.brendigo.com` i `npm run verify:deployment -- --cdn https://api.brendigo.com/cookieconsent/` i `npm run verify:hosting -- --website https://cookie.brendigo.com` i `npm run verify:hosting -- --cdn https://api.brendigo.com/cookieconsent/` odvojeno provjeravaju sadržaj, DNS, TLS, cache i sigurnosna zaglavlja *nakon stvarnog deploya*. Opt-in dnevni monitor nalazi se u `.github/workflows/monitor.yml`, aktivira se tek s varijablom `BCC_PRODUCTION_DEPLOYED=true`.
 - **Dokazivost i pravo:** [staging matrica](docs/STAGING-VALIDATION.hr.md), [nacrt politike privatnosti](docs/PRIVACY-WEBSITE-DRAFT.hr.md), [arhiva revizija](docs/POLICY-REVISION-ARCHIVE.hr.md) i [opcionalni ledger](docs/CONSENT-LEDGER-DESIGN.hr.md). Nacrt nije objavljena pravna politika niti zamjenjuje vanjsku provjeru.
 
 ## Napredna prilagodba dizajna — v0.11.7
@@ -236,4 +236,4 @@ U službenoj distribuciji stalno se prikazuje **by Brendigo** i ne postoji posta
 
 ## Provjera stvarne javne isporuke
 
-Za postavljeni web i CDN: `npm run verify:deployment -- https://cookie.brendigo.com`. Validator provjerava HTML stranice, točne verzionirane JS/CSS/loader datoteke, MIME i SHA-256 s CDN manifestom. **Ne postavlja DNS niti hosting.** Upute: [DEPLOY.hr.md](docs/DEPLOY.hr.md) · [Matrica testova](docs/QUALITY-GATES.hr.md).
+Za postavljeni web i CDN: `npm run verify:deployment -- --website https://cookie.brendigo.com` i `npm run verify:deployment -- --cdn https://api.brendigo.com/cookieconsent/`. Validator provjerava HTML stranice, točne verzionirane JS/CSS/loader datoteke, MIME i SHA-256 s CDN manifestom. **Ne postavlja DNS niti hosting.** Upute: [DEPLOY.hr.md](docs/DEPLOY.hr.md) · [Matrica testova](docs/QUALITY-GATES.hr.md).

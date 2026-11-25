@@ -59,7 +59,7 @@ ZIP instalirajte kroz **Dodaci → Dodaj novi → Prenesi dodatak**, zatim otvor
 
 ## 5. CDN
 
-Verzionirani paket namijenjen je domeni `cookie.brendigo.com`. Publiciranje zahtijeva stvarni DNS, HTTPS i upload. **Repozitorij ne postavlja hosting samostalno.** Detalji: [CDN](CDN.hr.md).
+Verzionirani paket namijenjen je direktoriju `https://api.brendigo.com/cookieconsent/`. Publiciranje zahtijeva stvarni DNS, HTTPS i upload. **Repozitorij ne postavlja hosting samostalno.** Detalji: [CDN](CDN.hr.md).
 
 ## 6. Provjera nakon instalacije
 

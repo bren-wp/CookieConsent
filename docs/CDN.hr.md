@@ -1,4 +1,4 @@
-# CDN distribucija — cookie.brendigo.com
+# CDN distribucija — api.brendigo.com
 
 **Izdanje: 0.11.7.** Repozitorij generira verzionirani CDN paket, ali **ne postavlja DNS, TLS ili produkcijsko posluživanje**. Prije upotrebe URL mora biti provjeren s stvarnim HTTPS zahtjevom.
 
@@ -25,17 +25,17 @@ Sadržaj verzioniranog direktorija: `loader.js`, `brendigo-cookieconsent.js`, `b
     theme: "custom"
   };
 </script>
-<script defer src="https://cookie.brendigo.com/v0.11.7/loader.js"></script>
+<script defer src="https://api.brendigo.com/cookieconsent/v0.11.7/loader.js"></script>
 ~~~
 
 Loader čita verzionirani URL vlastite datoteke i uključuje CSS i jezgru s istog prefiksa. Ne koristi vanjski analytics. WordPress može odabrati CDN kroz postavke, ali samo nakon postavljanja datoteka.
 
 ## Konfiguracija infrastrukture
 
-1. DNS A/AAAA ili CNAME za `cookie.brendigo.com`.
+1. DNS A/AAAA ili CNAME za `api.brendigo.com`.
 2. Valjani HTTPS/TLS certifikat s automatskom obnovom.
 3. MIME tipovi `text/javascript` i `text/css`.
-4. `Cache-Control: public, max-age=31536000, immutable` za nepromjenjive `/v0.11.7/*` resurse.
+4. `Cache-Control: public, max-age=31536000, immutable` za nepromjenjive `/cookieconsent/v0.11.7/*` resurse.
 5. Ne prepisivati već objavljene verzionirane datoteke; za izmjene izdati novu verziju.
 6. Uskladiti CSP (`script-src` i `style-src`), a ako postoji inline konfiguracija, nonce/hash pravila.
 7. Odrediti `Referrer-Policy`, evidenciju zahtjeva, retenciju logova i podugovaratelje.
@@ -48,9 +48,9 @@ Loader čita verzionirani URL vlastite datoteke i uključuje CSS i jezgru s isto
 ## Google Consent Mode v2 Basic (opcionalno)
 
 ~~~html
-<script src="https://cookie.brendigo.com/v0.11.7/google-consent-basic.js"></script>
+<script src="https://api.brendigo.com/cookieconsent/v0.11.7/google-consent-basic.js"></script>
 <!-- Google oznake moraju ostati blokirane do potrebne privole. -->
-<script defer src="https://cookie.brendigo.com/v0.11.7/loader.js"></script>
+<script defer src="https://api.brendigo.com/cookieconsent/v0.11.7/loader.js"></script>
 ~~~
 
 Adapter nije certificirani CMP, ne implementira IAB TCF i ne blokira automatski sve načine uključivanja Google oznaka. Testirajte redoslijed i mrežne zahtjeve na ciljnoj stranici.
@@ -59,14 +59,14 @@ Adapter nije certificirani CMP, ne implementira IAB TCF i ne blokira automatski 
 
 ## Automatizirani HTTP/HTTPS prihvat nakon deploya
 
-Iz kloniranog repozitorija pokrenite `npm run verify:deployment -- https://cookie.brendigo.com`. Skripta provjerava stvarne HTTP statusne kodove, MIME, javnu dostupnost, deklarirani CDN manifest i SHA-256 sadržaja. Za javne domene obvezan je HTTPS. [Potpune upute](DEPLOY.hr.md).
+Iz kloniranog repozitorija pokrenite `npm run verify:deployment -- --website https://cookie.brendigo.com` i `npm run verify:deployment -- --cdn https://api.brendigo.com/cookieconsent/`. Skripta provjerava stvarne HTTP statusne kodove, MIME, javnu dostupnost, deklarirani CDN manifest i SHA-256 sadržaja. Za javne domene obvezan je HTTPS. [Potpune upute](DEPLOY.hr.md).
 
 ## DNS/TLS i HTTP provjera iz produkcijskog okruženja
 
-Nakon objave pokrenite `npm run verify:hosting -- https://cookie.brendigo.com`.
-Alat je read-only i provjerava DNS, TLS certifikat, status/MIME i upozorava na nedostatak HSTS, CSP, Referrer-Policy, nosniff i immutable cache. Sprema dokaz u `dist/hosting/latest-report.json`. Ne otvara portove i ne uređuje DNS. Upozorenja je potrebno procijeniti u stvarnom hosting kontekstu; trenutni GitHub CI sam ne potvrđuje javni host.
+Nakon objave pokrenite `npm run verify:hosting -- --website https://cookie.brendigo.com` i `npm run verify:hosting -- --cdn https://api.brendigo.com/cookieconsent/`.
+Alat je read-only i provjerava DNS, TLS certifikat, status/MIME i upozorava na nedostatak HSTS, CSP, Referrer-Policy, nosniff i immutable cache. Sprema dokaz u `dist/hosting/latest-website-report.json` i `dist/hosting/latest-cdn-report.json`. Ne otvara portove i ne uređuje DNS. Upozorenja je potrebno procijeniti u stvarnom hosting kontekstu; trenutni GitHub CI sam ne potvrđuje javni host.
 
-Za pravilno cacheiranje `/v*/` koristite nepromjenjive verzionirane resurse. `/index.html` i pravni sadržaji trebaju kraći cache i mogućnost invalidacije. Prije uključivanja CDN načina osigurajte lokalni fallback.
+Za pravilno cacheiranje `/cookieconsent/v*/` koristite nepromjenjive verzionirane resurse. `/index.html` i pravni sadržaji trebaju kraći cache i mogućnost invalidacije. Prije uključivanja CDN načina osigurajte lokalni fallback.
 
 ## Nasljeđivanje noncea (v0.11.7)
 

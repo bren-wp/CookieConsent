@@ -90,7 +90,7 @@ WordPress generira samo lokalni placeholder bez iframea. Priložena skripta `vid
 
 Brendigo WordPress dodatak šalje konfiguraciju kao escapirani `<meta name="brendigo-cookieconsent-config" content="...">` prije JavaScript datoteka u `wp_head` (prioritet 8), a mali lokalni `assets/wp-config.js` čita JSON i postavlja `window.BCC_SITE_CONFIG`. Jezgra ovisi o bootstrapu i učitava se poslije njega; nije potreban inline JS ili `unsafe-inline` za konfiguraciju privola.
 
-**Za produkciju:** dopustite relevantne izvore u `script-src` (`'self'` u lokalnom modu, ili i odobreni `https://cookie.brendigo.com` za opcijski CDN). Kod strožih `script-src 'nonce-...'` pravila host mora dodijeliti nonce relevantnim skriptnim oznakama, osobito uz `strict-dynamic`. `style-src`/`style-src-attr` zahtijevaju posebno testiranje zbog dinamičkih UI stilova i same WordPress teme. Ne pretpostavljajte da ostali dodaci prestaju koristiti inline kod.
+**Za produkciju:** dopustite relevantne izvore u `script-src` (`'self'` u lokalnom modu, ili i odobreni `https://api.brendigo.com` za opcijski CDN). Kod strožih `script-src 'nonce-...'` pravila host mora dodijeliti nonce relevantnim skriptnim oznakama, osobito uz `strict-dynamic`. `style-src`/`style-src-attr` zahtijevaju posebno testiranje zbog dinamičkih UI stilova i same WordPress teme. Ne pretpostavljajte da ostali dodaci prestaju koristiti inline kod.
 
 Provjerite u Developer Tools da HTML sadrži `brendigo-cookieconsent-config` i `wp-config.js` prije jezgre, bez `window.BCC_SITE_CONFIG = ...` inline skripte, a zatim anonimni opt-in, odbijanje i opoziv.
 

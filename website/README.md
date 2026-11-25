@@ -1,6 +1,6 @@
 # Web distribucija — CookieConsent by Brendigo
 
-Ova mapa sadržava statičnu marketinšku web-stranicu spremnu za **pripremu** produkcijskog hostinga `cookie.brendigo.com`. Autor: **Brendigo**, https://brendigo.com. Službena adresa dodatka i skripte: https://cookie.brendigo.com.
+Ova mapa sadržava statičnu marketinšku web-stranicu spremnu za **pripremu** produkcijskog hostinga `cookie.brendigo.com`. Autor: **Brendigo**, https://brendigo.com. Službena adresa dodatka: https://cookie.brendigo.com. Udaljeni resursi: https://api.brendigo.com/cookieconsent/ (nakon potvrđenog deploya).
 
 ## Lokalno testiranje
 
@@ -32,4 +32,4 @@ Na naslovnici je katalog platformskih dodataka: Joomla, Drupal, Shopify Theme Ap
 
 ## Provjera javnog URL-a
 
-Nakon postavljanja na domenu pokrenite iz korijena izvornog repozitorija `npm run verify:deployment -- https://cookie.brendigo.com`. Validator provjerava HTTP status, MIME tipove, verzionirane resurse, CDN manifest i SHA-256, bez promjene hostinga. [Detaljne upute](../docs/DEPLOY.hr.md).
+Nakon postavljanja na domenu pokrenite iz korijena izvornog repozitorija `npm run verify:deployment -- --website https://cookie.brendigo.com` i `npm run verify:deployment -- --cdn https://api.brendigo.com/cookieconsent/`. Validator provjerava HTTP status, MIME tipove, verzionirane resurse, CDN manifest i SHA-256, bez promjene hostinga. [Detaljne upute](../docs/DEPLOY.hr.md).
