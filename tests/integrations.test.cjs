@@ -346,8 +346,23 @@ test('new GPC signal revokes marketing without fabricating a user decision or re
  cc.registerProvider({id:'ads',category:'marketing',onRevoke(){revokes++;}});
  cc.setConsent({marketing:true});const date=cc.getConsentReceipt().decidedAt;
  w.navigator.globalPrivacyControl=true;assert.equal(cc.hasConsent('marketing'),false);
+ assert.equal(cc.getConsent().marketing,false);
+ assert.equal(cc.getConsentReceipt().categories.marketing,false);
  cc.refresh();assert.equal(revokes,1);assert.equal(decisions,1);
  assert.equal(cc.getConsentReceipt().decidedAt,date);
  assert.equal(cc.getPrivacySignals().globalPrivacyControl,true);
  w.navigator.globalPrivacyControl=false;cc.refresh();assert.equal(cc.hasConsent('marketing'),false);
+});
+
+test('operator policy profiles enforce stricter caps and fail safe on unknown profile',()=>{
+ const cc=transactionFixture({policyProfile:'essential-only'});
+ cc.setConsent({analytics:true,marketing:true,preferences:true});
+ assert.equal(cc.hasConsent('necessary'),true);
+ for(const name of ['analytics','marketing','preferences'])assert.equal(cc.getConsent()[name],false);
+ assert.equal(cc.getPrivacySignals().policyProfile,'essential-only');
+ const limited=transactionFixture({policyProfile:'no-marketing'});
+ limited.setConsent({analytics:true,marketing:true});
+ assert.equal(limited.hasConsent('analytics'),true);assert.equal(limited.hasConsent('marketing'),false);
+ const unknown=transactionFixture({policyProfile:'invalid'});
+ assert.equal(unknown.getPrivacySignals().policyProfile,'global-strict');
 });

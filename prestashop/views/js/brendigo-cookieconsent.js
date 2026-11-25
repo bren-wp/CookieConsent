@@ -241,7 +241,7 @@
       }));
   }
   function getServiceConsent() {
-    return Object.assign({}, serviceConsent);
+    return normalizeServiceChoices(getConsent(), serviceConsent, true);
   }
   function safeHttpUrl(raw) {
     if (!raw || !root.URL || !root.location) return null;
@@ -367,6 +367,22 @@
     };
   }
 
+  function normalizePolicyProfile(value) {
+    return ['global-strict','eu-eea','uk','us-privacy','no-marketing','essential-only'].indexOf(value) !== -1
+      ? value : 'global-strict';
+  }
+  function policyAllows(category) {
+    if (category === 'necessary' || !config) return true;
+    if (config.policyProfile === 'essential-only') return false;
+    return !(category === 'marketing' && config.policyProfile === 'no-marketing');
+  }
+  function effectiveChoice(input, gpc) {
+    var result = normalizeConsent(input, gpc);
+    CATEGORIES.forEach(function (category) {
+      if (!policyAllows(category)) result[category] = false;
+    });
+    return result;
+  }
   function normalizeConsent(input, gpc) {
     var values = input && typeof input === 'object' ? input : {};
     return {
@@ -448,9 +464,12 @@
       value = part.slice(name.length);
     }
     var snapshot = decodeSavedRecord(value, config.revision, false, config.consentDays);
-    if (snapshot && isGpc() && snapshot.categories.marketing) {
-      snapshot.categories.marketing = false;
-      snapshot.gpcSuppressed = true;
+    if (snapshot) {
+      var effective = effectiveChoice(snapshot.categories, isGpc());
+      snapshot.policySuppressed = CATEGORIES.some(function (category) {
+        return snapshot.categories[category] && !effective[category];
+      });
+      snapshot.categories = effective;
     }
     return snapshot;
   }
@@ -551,7 +570,7 @@
     }
   }
   function getConsent() {
-    return consent ? Object.assign({}, consent) : null;
+    return consent ? effectiveChoice(consent, isGpc()) : null;
   }
   /**
    * A user-owned copy of the locally persisted choice, NOT an authenticated
@@ -599,7 +618,7 @@
   }
   function hasConsent(category) {
     return CATEGORIES.indexOf(category) !== -1 && (category === 'necessary' ||
-      (!(category === 'marketing' && isGpc()) && !!(consent && consent[category])));
+      (policyAllows(category) && !(category === 'marketing' && isGpc()) && !!(consent && consent[category])));
   }
   function resourceAllowed(category, serviceId) {
     if (!hasConsent(category)) return false;
@@ -738,8 +757,8 @@
     return withTransition(reconcileTabConsentInternal);
   }
   function reconcileTabConsentInternal() {
-    var previous = getConsent();
-    var previousServices = getServiceConsent();
+    var previous = consent ? Object.assign({}, consent) : null;
+    var previousServices = Object.assign({}, serviceConsent);
     var snapshot = readSavedSnapshot();
     var next = snapshot ? snapshot.categories : null;
     var nextServices = normalizeServiceChoices(next, snapshot && snapshot.services, true);
@@ -749,13 +768,13 @@
     var after = JSON.stringify([next, nextServices]);
     if (before === after && !signalChanged) {
       lastDecisionAt = snapshot ? snapshot.date : null;
-      if (snapshot && snapshot.gpcSuppressed) persist();
+      if (snapshot && snapshot.policySuppressed) persist();
       return;
     }
     consent = next;
     serviceConsent = nextServices;
     lastDecisionAt = snapshot ? snapshot.date : null;
-    if (snapshot && snapshot.gpcSuppressed) persist();
+    if (snapshot && snapshot.policySuppressed) persist();
     stopDeniedProviders();
     revokeDeniedMedia();
     clearConfiguredCookies(previous, consent, previousServices, serviceConsent);
@@ -825,11 +844,11 @@
     return withTransition(function () { return commitChoice(choice, services); });
   }
   function commitChoice(choice, services) {
-    var previous = getConsent();
-    var oldServices = getServiceConsent();
+    var previous = consent ? Object.assign({}, consent) : null;
+    var oldServices = Object.assign({}, serviceConsent);
     var firstChoice = !previous;
     lastGpcSignal = isGpc();
-    consent = normalizeConsent(choice, lastGpcSignal);
+    consent = effectiveChoice(choice, lastGpcSignal);
     serviceConsent = normalizeServiceChoices(consent, services);
     lastDecisionAt = new Date().toISOString();
     persist();
@@ -878,8 +897,8 @@
     return withTransition(resetInternal);
   }
   function resetInternal() {
-    var old = getConsent();
-    var oldServices = getServiceConsent();
+    var old = consent ? Object.assign({}, consent) : null;
+    var oldServices = Object.assign({}, serviceConsent);
     consent = null;
     serviceConsent = Object.create(null);
     lastDecisionAt = null;
@@ -899,8 +918,8 @@
   function openPreferences() {
     if (!config || !nodes.root || nodes.overlay) return;
     var t = translations();
-    var draft = normalizeConsent(consent, isGpc());
-    var draftServices = Object.assign({}, serviceConsent);
+    var draft = effectiveChoice(consent, isGpc());
+    var draftServices = getServiceConsent();
     var categoryCheckboxes = {};
     lastFocused = root.document.activeElement;
     var overlay = element('div', 'bcc-overlay bcc-preferences-' + config.preferencesPosition);
@@ -929,7 +948,7 @@
       var checkbox = element('input');
       checkbox.type = 'checkbox';
       checkbox.checked = draft[category];
-      checkbox.disabled = category === 'necessary' || (category === 'marketing' && isGpc());
+      checkbox.disabled = category === 'necessary' || !policyAllows(category) || (category === 'marketing' && isGpc());
       checkbox.setAttribute('aria-label', t[category]);
       categoryCheckboxes[category] = checkbox;
       checkbox.addEventListener('change', function () {
@@ -953,7 +972,7 @@
             serviceSwitch.checked = !!draftServices[service.id];
             serviceSwitch.setAttribute('data-bcc-service-option', service.id);
             serviceSwitch.setAttribute('aria-label', service.name);
-            serviceSwitch.disabled = service.category === 'marketing' && isGpc();
+            serviceSwitch.disabled = !policyAllows(service.category) || (service.category === 'marketing' && isGpc());
             serviceSwitch.addEventListener('change', function () {
               draftServices[service.id] = serviceSwitch.checked;
               var relatedSwitches = row.querySelectorAll('[data-bcc-service-option]');
@@ -1133,6 +1152,7 @@
         !envelope.config || typeof envelope.config !== 'object' ||
         Array.isArray(envelope.config)) return null;
     var input = envelope.config, output = Object.create(null);
+    if (typeof input.policyProfile === 'string') output.policyProfile = normalizePolicyProfile(input.policyProfile);
     var strings = ['language','direction','position','bannerStyle','theme',
       'preferencesPosition','accentColor','surfaceColor','textColor','revision','policyUrl'];
     strings.forEach(function (key) {
@@ -1152,7 +1172,7 @@
     });
     if (output.policyUrl && !/^(https?:\/\/|\/(?!\/))/.test(output.policyUrl)) delete output.policyUrl;
     if (output.revision) output.revision = output.revision.slice(0,40);
-    ['flipButtons','equalWeightButtons','disableAnimations'].forEach(function (key) {
+    ['flipButtons','equalWeightButtons','disableAnimations','observeDynamicResources'].forEach(function (key) {
       if (typeof input[key] === 'boolean') output[key] = input[key];
     });
     Object.keys(LAYOUT_LIMITS).forEach(function (key) {
@@ -1211,7 +1231,17 @@
     ['Amplitude','analytics',['amplitude.com']],
     ['Segment','review',['segment.com','segment.io']],
     ['YouTube','review',['youtube.com','youtube-nocookie.com']],
-    ['Vimeo','review',['vimeo.com']]
+    ['Vimeo','review',['vimeo.com']],
+    ['Matomo Cloud','analytics',['matomo.cloud']],
+    ['Plausible','analytics',['plausible.io']],
+    ['Fathom','analytics',['usefathom.com']],
+    ['PostHog','review',['posthog.com']],
+    ['FullStory','review',['fullstory.com']],
+    ['Sentry','review',['sentry.io']],
+    ['HubSpot','review',['hs-scripts.com','hs-analytics.net','hubspot.com']],
+    ['Pinterest advertising','marketing',['ct.pinterest.com','s.pinimg.com']],
+    ['Snap advertising','marketing',['tr.snapchat.com','sc-static.net']],
+    ['Bing advertising','marketing',['bat.bing.com']]
   ];
   function classifyResource(raw) {
     var hostname;
@@ -1238,7 +1268,8 @@
     } catch (_) { return {status:'unavailable', count:null}; }
   }
   function getPrivacySignals() {
-    return {globalPrivacyControl: isGpc(), marketingAllowed: hasConsent('marketing')};
+    return {globalPrivacyControl: isGpc(), marketingAllowed: hasConsent('marketing'),
+      policyProfile: config ? config.policyProfile : 'global-strict'};
   }
   function refreshResources() {
     if (!config) return;
@@ -1249,7 +1280,7 @@
       // A signal is not a new user decision. Do not create a receipt or
       // update the existing decision timestamp merely because it changed.
       if (currentSignal && consent && consent.marketing) {
-        var previous = getConsent(), oldServices = getServiceConsent();
+        var previous = Object.assign({}, consent), oldServices = Object.assign({}, serviceConsent);
         consent.marketing = false;
         serviceConsent = normalizeServiceChoices(consent, oldServices, true);
         persist();
@@ -1397,6 +1428,7 @@
     options = options || {};
     config = {
       language: options.language || 'auto',
+      policyProfile: normalizePolicyProfile(options.policyProfile),
       policyUrl: typeof options.policyUrl === 'string' ? options.policyUrl : '/cookie-policy',
       position: sanitizePosition(options.position),
       bannerStyle: sanitizeStyle(options.bannerStyle),
@@ -1435,7 +1467,7 @@
     serviceConsent = normalizeServiceChoices(consent, snapshot && snapshot.services, true);
     lastDecisionAt = snapshot ? snapshot.date : null;
     lastGpcSignal = isGpc();
-    if (snapshot && snapshot.gpcSuppressed) persist();
+    if (snapshot && snapshot.policySuppressed) persist();
     // Subscribe before mounting the banner: other tabs can make a decision
     // while this tab is still building its UI.
     listenForTabUpdates();

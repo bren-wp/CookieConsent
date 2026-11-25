@@ -68,3 +68,7 @@ Kontrolirani slikovni pikseli koriste isti konzervativni opt-in kao skripte i if
 ### GPC i klasifikacija hostova
 
 Lokalna klasifikacija daje indikacije za operatera, ne pravnu kategorizaciju ili automatsku dozvolu. GPC se ponovno provjerava pri refreshu, a pozitivni signal potiskuje prethodnu marketinšku odluku. Backend opt-out i obveze prema primjenjivom zakonu ostaju zasebna integracija. [CPPA FAQ](https://cppa.ca.gov/faq) · [GPC implementation](https://globalprivacycontrol.org/implementation) · [Google tag CSP](https://developers.google.com/tag-platform/security/guides/csp).
+
+### Izvršni profili politike
+
+`global-strict`, `eu-eea`, `uk`, `us-privacy` koriste konzervativni opt-in; `no-marketing` i `essential-only` mogu dodatno ograničiti kategorije. Regionalne oznake ne uključuju lokalne zakonske iznimke, određivanje lokacije, automatske pravne obavijesti niti posebne postupke ostvarivanja prava. Operater mora potvrditi sadržaj i pravne obveze prije primjene.

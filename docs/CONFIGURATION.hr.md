@@ -156,3 +156,7 @@ Javni konfigurator (`demo/configurator.html`) i WordPress postavke nude četiri 
 Konfigurator lokalno prikazuje omjer kontrasta za automatski prilagođen tekst i primarne gumbe (WCAG AA 4,5:1 za običan tekst). Dodatno iz stvarnog iframea čita geometriju bannera i broj vidljivih gumba na odabranom viewportu. Riječ je o pomoćnoj automatskoj dijagnostici, a ne potpunoj WCAG potvrdi: ne provjerava sve stanja, hover/fokus, svaki kontrast veze, preglednički zoom 400 % ni funkcionalnost čitača ekrana.
 
 Pri izvozu JSON-a svaki numerički layout parametar sanitizira se istom funkcijom kao u osnovnoj JS jezgri. Datoteka iz uvoza može sadržavati pravne i uslužne postavke, no predlošci mijenjaju samo vizualnu konfiguraciju.
+
+## Konzervativni profili politike (JS konfiguracija)
+
+`policyProfile` prihvaća `global-strict` (zadano), `eu-eea`, `uk`, `us-privacy`, `no-marketing` i `essential-only`. Regionalne oznake koriste isti strogi opt-in i GPC zaštitu; ne predstavljaju automatsko pravno određivanje jurisdikcije. `no-marketing` i `essential-only` dodatno ograničavaju dopuštene kategorije pri odabiru, obnovi zapisa i aktivaciji resursa. Nepoznata vrijednost vraća strogi opt-in. Promjena svrhe, jurisdikcije ili opsega zahtijeva novu reviziju politike. Ovo je JS konfiguracija, ne zaseban WordPress administracijski obrazac.
