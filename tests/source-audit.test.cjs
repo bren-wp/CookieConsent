@@ -105,3 +105,13 @@ test('script syntax gate recursively checks every shipped runtime JS and build h
  }
  assert.match(checker,/--check/);
 });
+
+test('shared CMS JSON bootstrap is byte-identical and does not overwrite site configuration',()=>{
+ const vm=require('node:vm');
+ const names=['magento/view/frontend/web/js/bootstrap.js','prestashop/views/js/bootstrap.js','opencart/catalog/view/javascript/bootstrap.js'];
+ const code=source(names[0]);
+ for(const name of names)assert.equal(source(name),code);
+ const w={document:{getElementById(){return {textContent:'{"language":"en"}'};}}};
+ vm.runInNewContext(code,{window:w});assert.equal(w.BCC_SITE_CONFIG.language,'en');
+ w.BCC_SITE_CONFIG={language:'hr'};vm.runInNewContext(code,{window:w});assert.equal(w.BCC_SITE_CONFIG.language,'hr');
+});

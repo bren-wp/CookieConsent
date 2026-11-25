@@ -94,3 +94,15 @@ Novi lokalni `video-embeds.js` podržava **YouTube (privacy-enhanced `youtube-no
 Prilagodite kategoriju stvarnoj svrsi i ponašanju pružatelja; `preferences` je također podržana za opravdan funkcionalni slučaj. Za granularno uključivanje dodajte `data-bcc-service="video-provider-id"` i prijavite uslugu s `toggleable: true` u konfiguraciji jezgre. Pri dinamičkom dodavanju pozovite `BrendigoVideoEmbeds.refresh()`. Oznaka `data-bcc-video-id` nije proizvoljni URL.
 
 **Ograničenje:** `youtube-nocookie.com` i `dnt=1` ne dokazuju potpunu odsutnost identifikatora nakon odobrenja i interakcije s playerom. Već poslani zahtjevi ne mogu se povući. Provjerite politike pružatelja, pravnu osnovu i stvarno ponašanje u Network tabu.
+
+## Kontrolirani slikovni pikseli
+
+~~~html
+<img alt="" data-bcc-category="marketing" data-bcc-src="https://example.org/pixel.gif">
+~~~
+
+Ne postavljajte `src`, `srcset`, `picture/source` ili CSS URL prije privole. Jezgra aktivira samo označeni `src` nakon odgovarajuće kategorijske i servisne privole, te ga uklanja pri opozivu. Već poslani zahtjevi ne mogu se poništiti. Za dinamičke elemente pozovite `refresh()`. Ne postoji generičko presretanje mrežnih zahtjeva ili kontrola proizvoljnih piksela koje učitava tuđi kod.
+
+## Opcionalni nadzor dinamičkih inertnih elemenata
+
+Konfiguracija `observeDynamicResources: true` uključuje lokalni MutationObserver nakon montiranja bannera. Promjene inertnih oznaka i dodavanje označenih skripti/slika/iframeova grupiraju se u mikro-task provjeru. Standardni aktivni `src` ili `srcset` koji je već pokrenuo zahtjev nije moguće retroaktivno blokirati; označavanje mora biti ispravno prije umetanja. Zadana vrijednost je false radi kompatibilnosti i performansi; ručni `refresh()` ostaje podržan.

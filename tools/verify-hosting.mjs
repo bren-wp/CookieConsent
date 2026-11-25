@@ -10,14 +10,18 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const version=JSON.parse(fs.readFileSync(path.join(root,'package.json'),'utf8')).version;
-const raw=process.argv[2]||'https://cookie.brendigo.com';
-const origin=new URL(raw);
+const args=process.argv.slice(2);
+const mode=args[0]==='--website'?'website':args[0]==='--cdn'?'cdn':null;
+if(!mode || args.length!==2)throw Error('Supply --website URL or --cdn URL');
+const origin=new URL(args[1]);
 if(origin.protocol!=='https:' || origin.username || origin.password ||
-   origin.search || origin.hash || origin.pathname!=='/' || origin.port){
- throw Error('Provide a public HTTPS origin only, without credentials, port, path or query');
+   origin.search || origin.hash || origin.port ||
+   (mode==='website' && origin.pathname!=='/') ||
+   (mode==='cdn' && !/^\/(?:[A-Za-z0-9_-]+\/)*$/.test(origin.pathname))){
+ throw Error('Provide a public HTTPS website origin or CDN directory URL with trailing slash');
 }
 const name=origin.hostname;
-const report={schema:'brendigo-hosting-check-v1',origin:origin.origin,version,
+const report={schema:'brendigo-hosting-check-v1',origin:origin.href,mode,version,
   checkedAt:new Date().toISOString(),checks:{},warnings:[],errors:[]};
 try{
  const addresses=await lookup(name,{all:true});
@@ -41,7 +45,7 @@ if(!report.errors.length){
 async function check(url,asset){
  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),12000);
  try{
-   const res=await fetch(origin.origin+url,{method:'HEAD',redirect:'manual',signal:controller.signal});
+   const res=await fetch(new URL(url.replace(/^\//,''),origin),{method:'HEAD',redirect:'manual',signal:controller.signal});
    if(res.status>=300&&res.status<400)throw Error('unexpected redirect '+res.status);
    if(!res.ok)throw Error('HTTP '+res.status);
    const contentType=res.headers.get('content-type')||'';
@@ -65,14 +69,15 @@ async function check(url,asset){
  }finally{clearTimeout(timer);}
 }
 if(!report.errors.length){
- for(const [url,asset] of [['/',false],['/legal.html',false],
-   ['/v'+version+'/manifest.json',true],['/v'+version+'/loader.js',true],
-   ['/v'+version+'/brendigo-cookieconsent.css',true]]){
+ const prefix='/v'+version+'/';
+ const targets=mode==='website'?[['/',false],['/legal.html',false]]:
+   ['manifest.json','loader.js','brendigo-cookieconsent.js','brendigo-cookieconsent.css','google-consent-basic.js','video-embeds.js'].map(name=>[prefix+name,true]);
+ for(const [url,asset] of targets){
    try{report.checks[url]=await check(url,asset);}
    catch(e){report.errors.push(url+': '+e.message);}
  }
 }
-const output=path.join(root,'dist','hosting','latest-report.json');
+const output=path.join(root,'dist','hosting','latest-'+mode+'-report.json');
 fs.mkdirSync(path.dirname(output),{recursive:true});
 fs.writeFileSync(output,JSON.stringify(report,null,2)+'\n');
 console.log(JSON.stringify(report,null,2));

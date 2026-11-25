@@ -58,6 +58,23 @@ bcc_live_verify(wp_script_is('brendigo-cookieconsent-video','enqueued'),'video a
 $script=wp_scripts()->registered['brendigo-cookieconsent'];
 bcc_live_verify(strpos((string)$script->src,'brendigo-cookieconsent.js')!==false,'JS URL');
 bcc_live_verify(strpos((string)$script->src,'cookie.brendigo.com')===false,'local default');
+// Test the real WordPress-generated bootstrap tag and trusted local pins.
+$cdn_settings = $settings;
+$cdn_settings['asset_source'] = 'cdn';
+update_option(\Brendigo\CookieConsent\OPTION, $cdn_settings);
+$bootstrap = plugin_dir_url(WP_PLUGIN_DIR . '/brendigo-cookieconsent/brendigo-cookieconsent.php') . 'assets/wp-cdn-loader.js';
+$url = $bootstrap . '?ver=' . \Brendigo\CookieConsent\VERSION;
+$tag = '<script src="' . esc_url($url) . '"></script>';
+$result = \Brendigo\CookieConsent\configure_cdn_bootstrap($tag, 'brendigo-cookieconsent', $url);
+foreach (['css','js'] as $extension) {
+    $pin = 'sha384-' . base64_encode(hash_file('sha384',
+        WP_PLUGIN_DIR . '/brendigo-cookieconsent/assets/brendigo-cookieconsent.' . $extension, true));
+    bcc_live_verify(strpos($result, 'data-bcc-' . $extension . '-integrity="' . $pin . '"') !== false, 'trusted local pin');
+}
+bcc_live_verify(strpos($result, 'data-bcc-cdn="true"') !== false, 'CDN mode enabled');
+bcc_live_verify(\Brendigo\CookieConsent\configure_cdn_bootstrap('<script src="https://other.example/x.js"></script>',
+    'brendigo-cookieconsent', 'https://other.example/x.js') === '', 'untrusted bootstrap URL rejected');
+update_option(\Brendigo\CookieConsent\OPTION, $settings);
 if (class_exists('WooCommerce')) {
     bcc_live_verify(\Brendigo\CookieConsent\protected_woocommerce_script('wc-checkout'),
         'WooCommerce checkout not blocked');
@@ -65,3 +82,14 @@ if (class_exists('WooCommerce')) {
         'WooCommerce catalog');
 }
 fwrite(STDOUT,"PASS real WP version ".get_bloginfo('version')."\n");
+
+bcc_live_verify(function_exists('Brendigo\\CookieConsent\\record_ledger_event'),
+    'optional private ledger connector available');
+$disabled_ledger = \Brendigo\CookieConsent\record_ledger_event([]);
+bcc_live_verify(is_wp_error($disabled_ledger) && $disabled_ledger->get_error_code() === 'bcc_ledger_disabled',
+    'ledger is disabled by default and does not send any request');
+
+$ledger_request = new WP_REST_Request('POST', '/brendigo-cookieconsent/v1/ledger-events');
+$ledger_denied = \Brendigo\CookieConsent\ledger_route_permission($ledger_request);
+bcc_live_verify(is_wp_error($ledger_denied) && $ledger_denied->get_error_code() === 'bcc_ledger_disabled',
+    'visitor ledger route disabled by default');

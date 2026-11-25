@@ -112,3 +112,23 @@ To je korisnikova **lokalna, nekriptografska** kopija, a ne serverski ili pravno
 Uz `BroadcastChannel`, jezgra koristi i standardni `storage` događaj za isti origin. U `localStorage` se zapisuje samo tehnički signal `bcc-consent-update:<cookieName>` s revizijom politike, vremenom i lokalnim brojačem **bez sadržaja privole ili identifikatora korisnika**. Prijemna kartica ponovno čita vlastiti first-party cookie. Ako su obje mogućnosti blokirane, promjena postaje vidljiva pri ponovnom učitavanju.
 
 **Ponašanje povratka na karticu:** dostupno je ponovno usklađivanje lokalne odluke pri `focus`, `pageshow` i povratku vidljivosti, uz `BroadcastChannel`/`StorageEvent` kada ih preglednik podržava. Dodatno brisanje opcionalnih third-party resursa mora implementirati vlasnik integracije.
+
+### Životni ciklus pružatelja i otkazivanje
+
+Od v0.11.8 `onGrant(consent, context)` prima dodatni kontekst: `context.signal` (AbortSignal ako je podržan) i `context.isCurrent()`. Adapter mora provjeriti `isCurrent()` prije asinkronih nastavaka i povezati mrežne zahtjeve s `signal` gdje je moguće. Opoziv prvo invalidira generaciju i otkazuje signal, zatim poziva `onRevoke`. Stara unregister funkcija ne može ukloniti novu registraciju istog ID-a. Neuspjeli grant se čisti i ne ponavlja do promjene dopuštenja. Opoziv se obrađuje prije novih grantova. Asinkroni adapter mora sam zaustaviti vlastite timere, zahtjeve i odgođene operacije; abort ne poništava već poslane podatke.
+
+### Izolacija odluke i asinkroni opoziv
+
+Od v0.11.8 `setConsent`, `setDetailedConsent`, `reset` i `refresh` ne dopuštaju reentrantni poziv tijekom aktivne transakcije; callback koji želi pokrenuti novu odluku mora to učiniti izvan trenutačnog sinkronog poziva. Promjena privole ne može se prepisati usred emisije događaja. Asinkroni `onRevoke` zadržava pružatelja u stanju zaustavljanja do dovršetka; greška blokira ponovnu aktivaciju. Otkazivanje `onGrant` ostaje kooperativno i adapter mora poštovati signal i generaciju. Ova izolacija vrijedi unutar jedne instance preglednika; nije distribuirana transakcija između kartica ili poslužitelja.
+
+### Lokalni inventar medijskih resursa
+
+`scanLocalResources()` dodatno prikazuje do 200 DOM medijskih/link resursa uz broj i oznaku skraćivanja. Prikazuju se samo HTTP(S) origini, bez URL putanja, upita, fragmenata ili vjerodajnica. `controlled` opisuje podržano označavanje slike, ne dokaz da je integrator spriječio ranije zahtjeve. Neoznačene stavke služe za ručni pregled, ne automatsku klasifikaciju trackera. Izvještaj ostaje u pregledniku.
+
+### Dodatne lokalne dijagnostičke metode
+
+`getPrivacySignals()` vraća browser GPC signal i učinkovitu marketinšku dozvolu. `refresh()` ponovno provjerava signal; naknadno aktiviranje GPC-a može opozvati marketing bez stvaranja nove korisničke odluke. Uklanjanje signala nije samo po sebi nova privola. Operator mora posebno provesti server-side `Sec-GPC` i opt-out prodaje/dijeljenja podataka.
+
+`discoverIndexedDB()` je izričit asinkroni poziv koji vraća samo status i broj dostupnih baza trenutnog origina. Ne otvara baze, ne čita zapise, ne vraća nazive i ništa ne šalje. Podrška ovisi o pregledniku.
+
+`scanLocalResources()` uključuje lokalne indikacije poznatih hostova; svaka klasifikacija ima `reviewRequired: true`. Hostname nije dokaz namjene, a nepoznat hostname nije dokaz odsutnosti praćenja.

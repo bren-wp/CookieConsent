@@ -1,6 +1,6 @@
 # Pravna kontrolna lista — CookieConsent by Brendigo
 
-**Ažurirano: 10. 11. 2026.** Ovaj dokument nije pravno mišljenje ili potvrda zakonske sukladnosti. Alat daje tehničke kontrole, a vlasnik web-stranice odgovoran je za ispravnu primjenu, transparentnost i nadzor svih usluga.
+**Ažurirano: 25. 11. 2026.** Ovaj dokument nije pravno mišljenje ili potvrda zakonske sukladnosti. Alat daje tehničke kontrole, a vlasnik web-stranice odgovoran je za ispravnu primjenu, transparentnost i nadzor svih usluga.
 
 ## Hrvatska, EU i EGP
 
@@ -36,7 +36,7 @@ Opcionalni adapter postavlja konzervativni početni status signala. Vlasnik stra
 
 ## CDN
 
-`cookie.brendigo.com`, nakon postavljanja, može obrađivati IP i metapodatke zahtjeva putem infrastrukturnih logova. Operator i vlasnik stranice moraju utvrditi pravne osnove, retenciju, ugovorne obveze i transparentnost. Sam GitHub ZIP ne znači da je CDN aktivan.
+`api.brendigo.com` (CDN) i `cookie.brendigo.com` (prezentacijska stranica), nakon postavljanja, mogu obrađivati IP i metapodatke zahtjeva putem infrastrukturnih logova. Operator i vlasnik stranice moraju utvrditi pravne osnove, retenciju, ugovorne obveze i transparentnost. Sam GitHub ZIP ne znači da je CDN aktivan.
 
 ## Službeni izvori za provjeru
 

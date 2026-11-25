@@ -1,6 +1,6 @@
 # Arhitektura opcionalne serverske evidencije privola — nacrt
 
-**Status:** dizajn, NIJE aktiviran ni implementiran u javnom CookieConsent runtimeu.
+**Status:** opcionalna SQLite serverska primitiva u `tools/consent_ledger.py`; nije aktivirana ni integrirana u javni runtime. SQL nacrt ispod ostaje prijedlog za buduću višekorisničku produkcijsku implementaciju.
 **Temeljna odluka:** server-side ledger nije potreban za svaku integraciju; prije uvođenja mora biti definiran dokazni zahtjev, voditelj obrade, pravna osnova i rok čuvanja.
 
 ## Tok podataka
@@ -43,3 +43,25 @@ CREATE TABLE consent_ledger_events (
 
 ## Dodatne obveze prije razvoja
 Potvrditi voditelja obrade, nositelja ledger infrastrukture, svrhu, prava, obavijest, DPIA kada je potrebna, podatkovne ugovore i testove integriteta. Ovaj dokument ne predstavlja produkcijski ledger.
+
+## Implementirana lokalna SQLite primitiva
+
+Operator sam kreira privatnu bazu izvan web root-a, generira ključ od najmanje 32 slučajna bajta i slučajne 32-bajtne tokene subjekta. `ConsentLedger` zahtijeva eksplicitni scope, revision, key ID, rok čuvanja i katalog servisnih kategorija. Metode `record`, `history`, `purge_expired` i `erase_subject` ne otvaraju HTTP endpoint. Svaki događaj je transakcijski spremljen i autentificiran HMAC-SHA256; replay istog request ID-a za isti subjekt je idempotentan, konflikt se odbija. Subjekt se sprema kao domenski odvojeni HMAC, ne kao izvorni token. Podržani su decision, withdrawal i gpc_optout. Test: `python3 tests/consent_ledger_test.py`.
+
+Ograničenja: operator mora osigurati autentifikaciju, CSRF/origin, autorizaciju, privatne dozvole datoteka, enkripciju diska/backupa, raspored retencije i životni ciklus ključa. Primitiva ne dokazuje da je browserov iskaz istinit. HMAC pojedinačnih događaja ne otkriva brisanje cijelog zapisa ili rollback baze; neovisni monotoni registar i rotacija ključeva nisu implementirani. Nema automatskog slanja podataka, browser identifikatora, IP/UA evidencije niti produkcijske integracije. Ne distribuirati privatni ključ.
+
+## Neovisna kontrolna točka
+
+`checkpoint(anchor_key=...)` izračunava autentificirani digest svih redaka u konzistentnoj SQLite read transakciji, uključujući njihov redoslijed. Ključ sidra mora biti različit od ključa evidencije. Najnoviju kontrolnu točku operator mora sačuvati izvan baze u neovisnom pouzdanom spremištu. `verify_checkpoint(expected, anchor_key=...)` provjerava stanje prema toj konkretnoj točki. Legitiman upis, brisanje ili retencija mijenjaju digest; potrebno je izvesti novu točku nakon autoriziranih izmjena. Ovaj mehanizam detektira rollback u odnosu na neovisno sačuvanu točku, ali ne osigurava sam monotoni vanjski registar, atomsko sidrenje između sustava niti automatsku blokadu svih upisa. Nemojte kao pouzdanu točku koristiti zapis vraćen iz iste sigurnosne kopije.
+
+## Privatni serverski API
+
+`tools/consent_ledger_api.py` izlaže WSGI factory `make_app(ledger, api_key=...)` za jedan operatorski scope. Samo autentificirani POST `/v1/events`, ograničenje JSON tijela na 8192 bajta, stroga shema i revizija, odbijanje duplikata JSON ključeva, bez CORS-a ili javnog read endpointa. Ključ je 32 slučajna bajta u hex formatu i ne smije se pojaviti u browseru. Povrat je samo ID događaja ili općenita greška. To nije samostalna javna web usluga; operator mora postaviti privatni HTTPS ingress, zaštitu od zloupotrebe, autentifikaciju i autorizaciju posjetitelja u aplikaciji koja poziva servis, CSRF, sigurnu dodjelu tokena i server-side provjeru GPC. Ne logirati Authorization, tijelo niti subject token. WordPress automatsko prikupljanje nije povezano. Test: `python3 tests/consent_ledger_api_test.py`.
+
+WordPress GitHub distribucija uključuje opcionalni `record_ledger_event(array $event)` server-side konektor. Operater mora definirati `BCC_LEDGER_ENDPOINT` (HTTPS `/v1/events`) i `BCC_LEDGER_API_KEY` izvan javnog koda. Konektor ne registrira javnu rutu, ne generira korisnički identifikator, ne šalje automatski odluke, ne prati posjetitelje i ne utječe na lokalni banner ako ledger nije konfiguriran. Pozivatelj je odgovoran za autentifikaciju, autorizaciju, CSRF, GPC, valjanu svrhu i token. WordPress.org kandidat izostavlja ovaj konektor. Potrebna je zasebna live end-to-end verifikacija s privatnim API-jem.
+
+### Rotacija pristupnog ključa API-ja
+
+Factory `make_app` prihvaća opcionalni `previous_api_key` tijekom kontrolirane migracije pozivatelja. Oba ključa moraju biti različita i slučajna; nakon migracije uklonite prethodni ključ i ponovno pokrenite servis. Nema automatskog isteka preklapanja, pa ga operator mora vremenski ograničiti. Ovo rotira API autentifikaciju, ne HMAC ključ povijesnih zapisa, pseudonimizacijski ključ ili ključ neovisnog sidra. Ti ključevi zahtijevaju zaseban verificiran migracijski postupak. Erasure sada provjerava integritet ciljanih redaka prije brisanja; istekli ponovljeni zahtjev se odbija dok je njegov zapis prisutan. Nakon retencijskog brisanja trajna replay zaštita zahtijevala bi dodatnu strategiju.
+
+Opcionalna WordPress REST ruta omogućuje autentificirani prijem odluke prijavljenog korisnika uz eksplicitni opt-in operatora i pouzdani resolver slučajnog tokena subjekta. Ne uključuje anonimne posjetitelje niti automatsku browser dostavu. Vidi [WordPress](WORDPRESS.hr.md).

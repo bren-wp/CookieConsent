@@ -30,6 +30,8 @@ jobs:
           test "$(git rev-parse HEAD)" = "${{ github.event.workflow_run.head_sha }}"
           npm run check
           npm test
+          python3 tests/consent_ledger_test.py
+          python3 tests/consent_ledger_api_test.py
           php -l wordpress/brendigo-cookieconsent/brendigo-cookieconsent.php
           cmp packages/core/brendigo-cookieconsent.js wordpress/brendigo-cookieconsent/assets/brendigo-cookieconsent.js
           cmp packages/core/brendigo-cookieconsent.css wordpress/brendigo-cookieconsent/assets/brendigo-cookieconsent.css
@@ -69,6 +71,8 @@ jobs:
             dist/brendigo-cookieconsent-magento.zip \
             dist/brendigo.ocmod.zip \
             dist/brendigocookieconsent-prestashop.zip \
+            dist/release-manifest.json \
+            dist/SHA256SUMS \
             --repo "$GITHUB_REPOSITORY" \
             --target "$VERIFIED_SHA" \
             --title "CookieConsent by Brendigo $RELEASE_TAG" \

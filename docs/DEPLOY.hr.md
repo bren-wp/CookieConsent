@@ -1,6 +1,6 @@
 # Postavljanje weba i CDN-a — CookieConsent by Brendigo
 
-**Predviđeni javni origin:** https://cookie.brendigo.com · **Autor:** Brendigo · [Dokumentacija](README.md)
+**Prezentacijski origin:** https://cookie.brendigo.com · **CDN direktorij:** https://api.brendigo.com/cookieconsent/ · **Autor:** Brendigo · [Dokumentacija](README.md)
 
 ## 1. Izrada paketa (lokalno ili CI)
 
@@ -32,7 +32,8 @@ U `dist/` nalazi se samostalni ZIP, WordPress distribucije, šest platformskih i
 Nakon postavljanja, iz kloniranog repozitorija pokrenite:
 
 ~~~bash
-npm run verify:deployment -- https://cookie.brendigo.com
+npm run verify:deployment -- --website https://cookie.brendigo.com
+npm run verify:deployment -- --cdn https://api.brendigo.com/cookieconsent/
 ~~~
 
 Provjera preuzima samo javne web/CDN datoteke, bez cookiesa, prijave ili podataka korisnika. Validira status, MIME, pravilan origin i SHA-256 svakog deklariranog resursa. Radi i na lokalnom HTTP test serveru, ali za javne domene zahtijeva HTTPS.
@@ -52,3 +53,7 @@ Provjera preuzima samo javne web/CDN datoteke, bez cookiesa, prijave ili podatak
 Sama GitHub objava ne postavlja DNS, certifikat, hosting, operatorove log politike ili CDN monitoring. Za te zadatke potreban je administrativni pristup ciljanoj infrastrukturi. Shopify traži i registriranu aplikaciju te razvojnu/produkcijsku trgovinu, a WordPress.org vlastiti račun i odobrenje.
 
 [CDN tehničke pojedinosti](CDN.hr.md) · [Produkicjski prihvat](GO-LIVE.hr.md) · [Matrica testova](QUALITY-GATES.hr.md).
+
+## Odvojeni CDN hosting
+
+Raspakirajte sadržaj CDN ZIP-a (verzionirani `vX.Y.Z/` direktorij) u direktorij koji poslužuje `https://api.brendigo.com/cookieconsent/`. Ne prepisujte prethodne objavljene verzije. Prezentacijska stranica ostaje na `cookie.brendigo.com`. Prije prebacivanja korisnika na CDN provjerite DNS, TLS, MIME, cache, CORS i integritet datoteka prema checkoutu odgovarajućeg izdanja. Bez potvrđenog hostinga koristite lokalne resurse.

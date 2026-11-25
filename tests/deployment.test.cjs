@@ -3,6 +3,7 @@ const test=require('node:test'),assert=require('node:assert/strict');
 const http=require('node:http'),fs=require('node:fs'),path=require('node:path');
 const {createHash}=require('node:crypto'),{spawn}=require('node:child_process');
 const root=path.resolve(__dirname,'..'),version=require('../package.json').version;
+const {renderLoader}=require('../tools/render-cdn-loader.cjs');
 test('deployment verifier validates reachable files and checksum manifest on local HTTP',async()=>{
  const files={};
  for(const [name,source] of [
@@ -12,13 +13,14 @@ test('deployment verifier validates reachable files and checksum manifest on loc
   ['google-consent-basic.js','packages/integrations/google-consent-basic.js'],
   ['video-embeds.js','packages/integrations/video-embeds.js'],
   ['LICENSE','LICENSE']
- ])files[name]=fs.readFileSync(path.join(root,source));
+ ])files[name]=name==='loader.js'?renderLoader(root):fs.readFileSync(path.join(root,source));
  const manifest={schema:1,version,origin:'http://127.0.0.1',files:{}};
  for(const [name,body] of Object.entries(files))manifest.files[name]={
-  size:body.length,sha256:createHash('sha256').update(body).digest('hex')};
+  size:body.length,sha256:createHash('sha256').update(body).digest('hex'),
+  integrity:'sha384-'+createHash('sha384').update(body).digest('base64')};
  const server=http.createServer((req,res)=>{
   const u=new URL(req.url,'http://127.0.0.1'),name=u.pathname.split('/').pop();
-  const isFile=u.pathname.startsWith('/v'+version+'/');
+  const isFile=u.pathname.startsWith('/v'+version+'/') || u.pathname.startsWith('/cookieconsent/v'+version+'/');
   const body= isFile && name==='manifest.json' ? Buffer.from(JSON.stringify(manifest)) :
     isFile ? files[name] :
     u.pathname==='/' ? fs.readFileSync(path.join(root,'website/index.html')) :
@@ -42,6 +44,33 @@ test('deployment verifier validates reachable files and checksum manifest on loc
    child.once('close',code=>code===0?resolve(text):reject(Error(text)));
   });
   assert.match(output,/PASS: website and CDN/);
+  for(const mode of ['--website','--cdn']){
+   const checked=await new Promise((resolve,reject)=>{
+    const child=spawn(process.execPath,['tools/verify-deployment.mjs',mode,mode==='--cdn'?url+'cookieconsent/':url],{cwd:root});
+    let out='';child.stdout.on('data',chunk=>out+=chunk);child.stderr.on('data',chunk=>out+=chunk);
+    child.once('error',reject);child.once('close',code=>code===0?resolve(out):reject(Error(out)));
+   });
+   assert.match(checked,mode==='--website'?/PASS: website pages/:/PASS: CDN v/);
+   assert.doesNotMatch(checked,mode==='--website'?/PASS: CDN v/:/PASS: website pages/);
+  }
+  // A compromised server can replace both its asset and the remote manifest.
+  // The trusted checkout must still reject the altered content.
+  files['loader.js']=Buffer.from('/* altered loader */');
+  manifest.files['loader.js']={
+    size:files['loader.js'].length,
+    sha256:createHash('sha256').update(files['loader.js']).digest('hex'),
+    integrity:'sha384-'+createHash('sha384').update(files['loader.js']).digest('base64')
+  };
+  const tampered=await new Promise((resolve,reject)=>{
+   const child=spawn(process.execPath,['tools/verify-deployment.mjs',url],{cwd:root});
+   let output='';
+   child.stdout.on('data',chunk=>output+=chunk.toString());
+   child.stderr.on('data',chunk=>output+=chunk.toString());
+   child.once('error',reject);
+   child.once('close',code=>resolve({code,output}));
+  });
+  assert.notEqual(tampered.code,0);
+  assert.match(tampered.output,/loader\.js differs from trusted checkout/);
   // The checked website is local. This test never claims public DNS is live.
  }finally{await new Promise(resolve=>server.close(resolve));}
 });

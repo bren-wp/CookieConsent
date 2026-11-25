@@ -3,7 +3,7 @@
  * Plugin Name: CookieConsent by Brendigo
  * Plugin URI: https://cookie.brendigo.com
  * Description: Privacy preferences and granular cookie consent for WordPress, with local or CDN delivery.
- * Version: 0.11.7
+ * Version: 0.11.8
  * Requires at least: 6.2
  * Requires PHP: 7.4
  * Author: Brendigo
@@ -18,8 +18,10 @@ namespace Brendigo\CookieConsent;
 
 defined('ABSPATH') || exit;
 
-const VERSION = '0.11.7';
+const VERSION = '0.11.8';
 const OPTION = 'brendigo_cookieconsent_options';
+
+require_once __DIR__ . '/includes/ledger-client.php';
 
 function defaults(): array {
     return [
@@ -102,7 +104,7 @@ function sanitize_options($input): array {
         'theme' => in_array($theme, ['custom', 'light', 'dark'], true) ? $theme : 'custom',
         'preferences_position' => in_array($preferences_position, ['center', 'left', 'right'], true) ? $preferences_position : 'center',
         'flip_buttons' => empty($input['flip_buttons']) ? 0 : 1,
-        'equal_weight_buttons' => empty($input['equal_weight_buttons']) ? 0 : 1,
+        'equal_weight_buttons' => 1,
         'disable_animations' => empty($input['disable_animations']) ? 0 : 1,
         'asset_source' => in_array($asset_source, ['local','cdn'], true) ? $asset_source : 'local',
         'policy_url' => $policy,
@@ -447,7 +449,7 @@ function render_settings(): void {
                     <th scope="row"><?php esc_html_e('Banner button layout', 'brendigo-cookieconsent'); ?></th>
                     <td>
                         <label><input id="bcc-flip" type="checkbox" name="<?php echo esc_attr(OPTION); ?>[flip_buttons]" value="1" <?php checked($o['flip_buttons'], 1); ?>> <?php esc_html_e('Reverse the accept and reject button order', 'brendigo-cookieconsent'); ?></label>
-                        <p><label><input id="bcc-equal" type="checkbox" name="<?php echo esc_attr(OPTION); ?>[equal_weight_buttons]" value="1" <?php checked($o['equal_weight_buttons'], 1); ?>> <?php esc_html_e('Give accept and reject equally prominent widths (recommended)', 'brendigo-cookieconsent'); ?></label></p>
+                        <p><?php esc_html_e('Accept and reject always have equally prominent widths.', 'brendigo-cookieconsent'); ?></p>
                         <p><label><input id="bcc-no-motion" type="checkbox" name="<?php echo esc_attr(OPTION); ?>[disable_animations]" value="1" <?php checked($o['disable_animations'], 1); ?>> <?php esc_html_e('Disable all banner animations', 'brendigo-cookieconsent'); ?></label></p>
                     </td>
                 </tr>
@@ -455,7 +457,7 @@ function render_settings(): void {
                     <th scope="row"><label for="bcc-assets"><?php esc_html_e('Asset delivery', 'brendigo-cookieconsent'); ?></label></th>
                     <td><select id="bcc-assets" name="<?php echo esc_attr(OPTION); ?>[asset_source]">
                         <option value="local" <?php selected($o['asset_source'], 'local'); ?>><?php esc_html_e('Local files (recommended)', 'brendigo-cookieconsent'); ?></option>
-                        <option value="cdn" <?php selected($o['asset_source'], 'cdn'); ?>><?php esc_html_e('cookie.brendigo.com CDN (after deployment)', 'brendigo-cookieconsent'); ?></option>
+                        <option value="cdn" <?php selected($o['asset_source'], 'cdn'); ?>><?php esc_html_e('api.brendigo.com CDN (after deployment)', 'brendigo-cookieconsent'); ?></option>
                     </select><p class="description"><?php esc_html_e('CDN mode requires the assets to be deployed and reachable. A third-party request may disclose visitor IP data to the CDN operator.', 'brendigo-cookieconsent'); ?></p></td>
                 </tr>
                 <tr>
@@ -693,10 +695,13 @@ add_shortcode('brendigo_consent_video', __NAMESPACE__ . '\\render_video_shortcod
 
 function frontend_assets(): void {
     $o = options();
-    $base = $o['asset_source'] === 'cdn'
-        ? 'https://cookie.brendigo.com/v' . VERSION . '/'
-        : plugin_dir_url(__FILE__) . 'assets/';
-    wp_enqueue_style('brendigo-cookieconsent', $base . 'brendigo-cookieconsent.css', [], VERSION);
+    $base = plugin_dir_url(__FILE__) . 'assets/';
+    // CDN mode uses a same-origin bootstrap with trusted SRI and fallback.
+    // Keep the early Google default-denied adapter and video adapter local.
+    $cdn_mode = $o['asset_source'] === 'cdn';
+    if (!$cdn_mode) {
+        wp_enqueue_style('brendigo-cookieconsent', $base . 'brendigo-cookieconsent.css', [], VERSION);
+    }
     if (!empty($o['google_basic'])) {
         // Enqueue this early in <head>. Actual Google tags must remain gated separately.
         wp_enqueue_script('brendigo-cookieconsent-google-basic', $base . 'google-consent-basic.js', [], VERSION, false);
@@ -705,7 +710,7 @@ function frontend_assets(): void {
     // Load configuration in <head>; the core is enqueued in the footer after it.
     wp_enqueue_script('brendigo-cookieconsent-wp-config',
         plugin_dir_url(__FILE__) . 'assets/wp-config.js', [], VERSION, false);
-    wp_enqueue_script('brendigo-cookieconsent', $base . 'brendigo-cookieconsent.js',
+    wp_enqueue_script('brendigo-cookieconsent', $base . ($cdn_mode ? 'wp-cdn-loader.js' : 'brendigo-cookieconsent.js'),
         ['brendigo-cookieconsent-wp-config'], VERSION, true);
     wp_enqueue_script('brendigo-cookieconsent-video', $base . 'video-embeds.js',
         ['brendigo-cookieconsent'], VERSION, true);
@@ -740,7 +745,7 @@ function frontend_config_meta(): void {
         'theme' => $o['theme'],
         'preferencesPosition' => $o['preferences_position'],
         'flipButtons' => (bool) $o['flip_buttons'],
-        'equalWeightButtons' => (bool) $o['equal_weight_buttons'],
+        'equalWeightButtons' => true,
         'disableAnimations' => (bool) $o['disable_animations'],
         'services' => array_merge(woocommerce_services(), parse_services($o['services_catalog'])),
         'cookieCleanupRules' => parse_cleanup_rules($o['cookie_cleanup_rules']),
@@ -763,6 +768,32 @@ add_action('wp_head', __NAMESPACE__ . '\\frontend_config_meta', 8);
 
 
 
+// BEGIN CDN BOOTSTRAP (excluded from WordPress.org distribution)
+/**
+ * Supply trusted same-version pins to the first-party loader. Never fetch a
+ * remote manifest or emit inline executable code.
+ */
+function configure_cdn_bootstrap(string $tag, string $handle, string $src): string {
+    if ($handle !== 'brendigo-cookieconsent' || options()['asset_source'] !== 'cdn') return $tag;
+    $expected = plugin_dir_url(__FILE__) . 'assets/wp-cdn-loader.js';
+    if (explode('?', $src, 2)[0] !== $expected || !class_exists('WP_HTML_Tag_Processor')) return '';
+    $processor = new \WP_HTML_Tag_Processor($tag);
+    if (!$processor->next_tag('script')) return '';
+    $actual = $processor->get_attribute('src');
+    if (!is_string($actual) || explode('?', $actual, 2)[0] !== $expected) return '';
+    foreach (['css', 'js'] as $extension) {
+        $file = __DIR__ . '/assets/brendigo-cookieconsent.' . $extension;
+        if (!is_readable($file)) return '';
+        $digest = hash_file('sha384', $file, true);
+        if ($digest === false) return '';
+        $processor->set_attribute('data-bcc-' . $extension . '-integrity', 'sha384-' . base64_encode($digest));
+    }
+    $processor->set_attribute('data-bcc-cdn', 'true');
+    return $processor->get_updated_html();
+}
+add_filter('script_loader_tag', __NAMESPACE__ . '\\configure_cdn_bootstrap', PHP_INT_MAX, 3);
+// END CDN BOOTSTRAP
+
 /**
  * Change *selected* WP enqueued script tags into inert scripts.
  * Inline snippets, other tags and third-party plugin behavior need separate review.
@@ -770,6 +801,7 @@ add_action('wp_head', __NAMESPACE__ . '\\frontend_config_meta', 8);
 function gate_enqueued_script(string $tag, string $handle, string $src): string {
     if ($handle === 'brendigo-cookieconsent' ||
         $handle === 'brendigo-cookieconsent-google-basic' ||
+        $handle === 'brendigo-cookieconsent-wp-config' ||
         $handle === 'brendigo-cookieconsent-video' ||
         protected_woocommerce_script($handle)) return $tag;
     $raw = options()['blocked_handles'];

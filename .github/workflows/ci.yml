@@ -20,9 +20,13 @@ jobs:
           npm run check
           npm run audit:supply-chain
           npm test
+          python3 tests/consent_ledger_test.py
+          python3 tests/consent_ledger_api_test.py
           npm run build:cdn
           npm run build:wporg
-          test -s dist/cdn/v0.11.7/manifest.json
+          test -s dist/cdn/v0.11.8/manifest.json
+          python3 tools/package.py
+          python3 tools/package.py --verify
       - name: Validate CMS manifests and PHP integration syntax
         run: |
           python3 tools/validate-integrations.py
@@ -38,7 +42,8 @@ jobs:
 
   browser:
     name: Browser E2E (${{ matrix.browser }})
-    runs-on: ubuntu-latest
+    # Playwright 1.56.1 does not support Ubuntu 26.04.
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     strategy:
       fail-fast: false
@@ -87,7 +92,8 @@ jobs:
 
   wordpress-integration:
     name: Real WordPress ${{ matrix.wordpress }} smoke
-    runs-on: ubuntu-latest
+    # The WooCommerce browser acceptance uses the same pinned Playwright.
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
       fail-fast: false
@@ -154,6 +160,13 @@ jobs:
           npm install --no-save --no-package-lock playwright@1.56.1
           npx playwright install --with-deps chromium
           BCC_WC_FIXTURE="$RUNNER_TEMP/bcc-wc-fixture.json" node tests/wc-browser.cjs
+      - name: Real WooCommerce checkout with CDN outage and local fallback
+        if: matrix.wordpress == 'latest'
+        run: |
+          wp_cli() { php "$RUNNER_TEMP/bin/wp" --path="$RUNNER_TEMP/wordpress" "$@" --allow-root; }
+          trap 'wp_cli option patch update brendigo_cookieconsent_options asset_source local' EXIT
+          wp_cli option patch update brendigo_cookieconsent_options asset_source cdn
+          BCC_WC_CDN=1 BCC_WC_FIXTURE="$RUNNER_TEMP/bcc-wc-fixture.json" node tests/wc-browser.cjs
       - name: Official Plugin Check report (review aid, not approval)
         if: matrix.wordpress == 'latest'
         run: |
@@ -163,9 +176,14 @@ jobs:
           cp -R dist/wporg/brendigo-cookieconsent "$RUNNER_TEMP/wordpress/wp-content/plugins/"
           php "$RUNNER_TEMP/bin/wp" --path="$RUNNER_TEMP/wordpress" plugin activate brendigo-cookieconsent --allow-root
           php "$RUNNER_TEMP/bin/wp" --path="$RUNNER_TEMP/wordpress" plugin install plugin-check --activate --allow-root
+          check_status=0
           php "$RUNNER_TEMP/bin/wp" --path="$RUNNER_TEMP/wordpress" plugin check brendigo-cookieconsent \
-            --format=table --allow-root > "$RUNNER_TEMP/plugin-check.txt" 2>&1 || true
+            --format=table --allow-root > "$RUNNER_TEMP/plugin-check.txt" 2>&1 || check_status=$?
           cat "$RUNNER_TEMP/plugin-check.txt"
+          if [ "$check_status" -ne 0 ]; then
+            echo "WordPress Plugin Check failed with exit status $check_status"
+            exit "$check_status"
+          fi
           if grep -Eq '(^|[[:space:]])ERROR([[:space:]]|$)' "$RUNNER_TEMP/plugin-check.txt"; then
             echo "WordPress Plugin Check found blocking errors"
             exit 1

@@ -90,7 +90,7 @@ WordPress generira samo lokalni placeholder bez iframea. Priložena skripta `vid
 
 Brendigo WordPress dodatak šalje konfiguraciju kao escapirani `<meta name="brendigo-cookieconsent-config" content="...">` prije JavaScript datoteka u `wp_head` (prioritet 8), a mali lokalni `assets/wp-config.js` čita JSON i postavlja `window.BCC_SITE_CONFIG`. Jezgra ovisi o bootstrapu i učitava se poslije njega; nije potreban inline JS ili `unsafe-inline` za konfiguraciju privola.
 
-**Za produkciju:** dopustite relevantne izvore u `script-src` (`'self'` u lokalnom modu, ili i odobreni `https://cookie.brendigo.com` za opcijski CDN). Kod strožih `script-src 'nonce-...'` pravila host mora dodijeliti nonce relevantnim skriptnim oznakama, osobito uz `strict-dynamic`. `style-src`/`style-src-attr` zahtijevaju posebno testiranje zbog dinamičkih UI stilova i same WordPress teme. Ne pretpostavljajte da ostali dodaci prestaju koristiti inline kod.
+**Za produkciju:** dopustite relevantne izvore u `script-src` (`'self'` u lokalnom modu, ili i odobreni `https://api.brendigo.com` za opcijski CDN). Kod strožih `script-src 'nonce-...'` pravila host mora dodijeliti nonce relevantnim skriptnim oznakama, osobito uz `strict-dynamic`. `style-src`/`style-src-attr` zahtijevaju posebno testiranje zbog dinamičkih UI stilova i same WordPress teme. Ne pretpostavljajte da ostali dodaci prestaju koristiti inline kod.
 
 Provjerite u Developer Tools da HTML sadrži `brendigo-cookieconsent-config` i `wp-config.js` prije jezgre, bez `window.BCC_SITE_CONFIG = ...` inline skripte, a zatim anonimni opt-in, odbijanje i opoziv.
 
@@ -110,3 +110,15 @@ Ilustrativni WordPress pregled ima gumbe Desktop / Mobitel 390 px / Mobitel 320 
 
 
 **Mobilna širina u previewu:** WP ilustrativni uređaj sada uvažava postotak `mobile_width` između 82 % i 100 % (i maksimalne rubove) bez mijenjanja produkcijske CSS jezgre. Nevrijedni brojevi u previewu vraćaju se na 100 %; PHP validacija potvrđuje spremljenu vrijednost pri spremanju.
+
+## Integritet i fallback WordPress resursa (v0.11.8)
+
+GitHub distribucija u CDN načinu učitava lokalni bootstrap s pouzdanim SHA-384 pinovima za JS i CSS. Bootstrap pokušava verzionirani API CDN i nakon mrežne ili SRI greške učitava identične lokalne datoteke. Google Basic adapter i video adapter ostaju lokalni radi sigurnog redoslijeda inicijalizacije. Nema inline izvršnog koda. CDN mora podržavati anonimni CORS. U slučaju nedostupnosti oba izvora, neobvezne resurse treba držati inertnima; bootstrap ne može blokirati proizvoljne vanjske trackere. WordPress.org kandidat izostavlja CDN bootstrap i koristi isključivo lokalnu jezgru. WordPress CDN način zahtijeva da lokalni plugin resursi dolaze s istog origina kao stranica.
+
+## Opcionalni privatni consent ledger
+
+GitHub izdanje sadrži serverski konektor, isključen bez konfiguracijskih konstanti. Ne postoji automatsko slanje odluka iz bannera. Vidjeti [Consent Ledger](CONSENT-LEDGER-DESIGN.hr.md). WordPress.org izdanje ne uključuje udaljeni konektor.
+
+### Autentificirana WordPress ulazna točka
+
+U GitHub distribuciji operator može izričito omogućiti `BCC_LEDGER_VISITOR_ROUTE` (boolean true), uz privatni endpoint i API ključ. POST na `/wp-json/brendigo-cookieconsent/v1/ledger-events` zahtijeva prijavljenog korisnika, važeći WordPress REST nonce, odgovarajući Origin ako je prisutan i JSON. Pouzdani server-side filter `bcc_ledger_subject_token` mora vratiti prethodno dodijeljen slučajni 32-bajtni token (64 hex znakova) za aktualnog korisnika; bez resolvera zahtjev se odbija. Ne derivirati token iz emaila ili IP-a. Browser šalje samo request_id, kind, categories, services, gpc i revision, nikada token subjekta ili API ključ. `Sec-GPC: 1` ima prednost nad dostavljenim signalom. Klijentski adapter operatera mora eksplicitno povezati stvarnu odluku, povlačenje i signal s ovom rutom, koristiti isti request_id pri ponovnom pokušaju i prikazati neuspjeh evidencije bez ponovnog uključivanja trackera. Javni anonimni posjetitelji nisu obuhvaćeni. Zadano nema automatskog slanja. WordPress.org izdanje izostavlja cijeli konektor. Potrebni su testovi prijavljenog korisnika, server-side resolvera i stvarnog privatnog HTTPS API-ja prije produkcije.

@@ -8,6 +8,7 @@ import crypto from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import {createRequire} from 'node:module';
 const require = createRequire(import.meta.url);
+const {renderLoader} = require('./render-cdn-loader.cjs');
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '..');
 const version = require(path.join(root, 'package.json')).version;
@@ -24,11 +25,11 @@ const entries = [
   ['packages/integrations/video-embeds.js', 'video-embeds.js'],
   ['LICENSE', 'LICENSE']
 ];
-const manifest = { schema: 1, version, origin: 'https://cookie.brendigo.com', files: {} };
+const manifest = { schema: 1, version, origin: 'https://api.brendigo.com', basePath: '/cookieconsent/', files: {} };
 for (const [source, name] of entries) {
-  const bytes = fs.readFileSync(path.join(root,source));
+  const bytes = name==='loader.js' ? renderLoader(root) : fs.readFileSync(path.join(root,source));
   fs.writeFileSync(path.join(target,name), bytes);
-  manifest.files[name] = {sha256:crypto.createHash('sha256').update(bytes).digest('hex'),size:bytes.length};
+  manifest.files[name] = {sha256:crypto.createHash('sha256').update(bytes).digest('hex'),integrity:'sha384-'+crypto.createHash('sha384').update(bytes).digest('base64'),size:bytes.length};
 }
 fs.writeFileSync(path.join(target,'manifest.json'), JSON.stringify(manifest,null,2)+'\n');
 console.log('CDN build prepared:',target, 'files:',Object.keys(manifest.files).join(', '));

@@ -1,14 +1,15 @@
-/* Magento Brendigo configuration — parse only non-executable JSON. */
+/* CookieConsent by Brendigo — inert CMS JSON configuration bootstrap. */
 (function (root) {
   'use strict';
-  var node = root.document.getElementById('brendigo-cookieconsent-config');
+  var doc = root.document;
+  if (!doc || root.BCC_SITE_CONFIG) return;
+  var node = doc.getElementById('brendigo-cookieconsent-config');
   if (!node) return;
+  var raw = node.textContent || '';
+  if (!raw || raw.length > 131072) return;
   try {
-    var data = JSON.parse(node.textContent || '');
-    if (data && typeof data === 'object' && !Array.isArray(data)) {
-      root.BCC_SITE_CONFIG = data;
-    }
-  } catch (error) {
-    if (root.console) root.console.error('[Brendigo] Invalid Magento consent settings.');
-  }
+    var config = JSON.parse(raw);
+    if (config && typeof config === 'object' && !Array.isArray(config))
+      root.BCC_SITE_CONFIG = config;
+  } catch (_) { /* Invalid configuration must not execute code. */ }
 })(window);

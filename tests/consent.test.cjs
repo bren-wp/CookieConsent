@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const consent = require('../packages/core/brendigo-cookieconsent.js');
 
 test('core can be loaded without DOM or third-party packages', () => {
-  assert.equal(consent.version, '0.11.7');
+  assert.equal(consent.version, '0.11.8');
   assert.equal(typeof consent.init, 'function');
 });
 test('optional categories are denied by default', () => {
@@ -106,7 +106,10 @@ test('cleanup requires explicit safe cookie names or literal prefixes', () => {
     {category:'analytics',name:'_gid',path:'/'},
     {category:'necessary',name:'session'},
     {category:'marketing',prefix:'.*'},
-    {category:'marketing',name:'foo;Path=/'}
+    {category:'marketing',name:'foo;Path=/'},
+    {category:'marketing',name:'valid',prefix:'bad;'},
+    {category:'marketing',name:'valid',prefix:'valid'},
+    {category:'marketing',name:'valid',serviceId:'invalid id'}
   ]);
   assert.equal(rules.length,2);
   assert.equal(rules[0].serviceId,'google-analytics');
@@ -189,7 +192,7 @@ test('scanner redacts URLs and reports bounded ResourceTiming metadata only',()=
  const doc={readyState:'loading',documentElement:{lang:'en'},cookie:'session=secret',
    addEventListener(){}, querySelectorAll(selector){
      return selector.startsWith('script')?[{
-       getAttribute(key){return key==='src'?'https://analytics.example/collect?token=SECRET#frag':null;}
+       getAttribute(key){return key==='src'?'https://analytics.example/PRIVATEPATH/collect?token=SECRET#frag':null;}
      }]:[];
    }};
  const win={document:doc,location:{href:'https://example.org/',origin:'https://example.org'},
@@ -205,6 +208,8 @@ test('scanner redacts URLs and reports bounded ResourceTiming metadata only',()=
  assert.ok(!JSON.stringify(report).includes('TOPSECRET'));
  assert.ok(!JSON.stringify(report).includes('SECRET'));
  assert.ok(!JSON.stringify(report).includes('secret'));
+ assert.ok(!JSON.stringify(report).includes('PRIVATEPATH'));
+ assert.equal(report.resourceRequests[0].url,'https://cdn.example');
  assert.ok(report.limitations.some(x=>x.includes('HttpOnly')));
 });
 
@@ -244,4 +249,29 @@ test('standalone JSON import keeps numeric design settings and validates them',(
  assert.equal(invalid.bannerWidth,0);
  assert.equal(invalid.mobileWidth,100);
  assert.equal(invalid.buttonHeight,0);
+});
+
+test('cleanup never removes protected WordPress, WooCommerce or session cookies',()=>{
+ for(const name of ['bcc_consent','wordpress_logged_in_abc','wp_woocommerce_session_abc','woocommerce_cart_hash','woocommerce_items_in_cart','PHPSESSID','csrfToken','__Host-session','wp-settings-1'])
+   assert.equal(consent.utils.protectedCookieName(name,'bcc_consent'),true,name);
+ assert.equal(consent.utils.protectedCookieName('_ga','bcc_consent'),false);
+});
+
+test('tracker hints use exact hostname boundaries and are advisory',()=>{
+ const classify=consent.utils.classifyResource;
+ assert.equal(classify('https://www.google-analytics.com/g/collect').provider,'Google Analytics');
+ assert.equal(classify('https://www.googletagmanager.com/gtm.js').suggestedCategory,'review');
+ assert.equal(classify('https://google-analytics.com.evil.example/x'),null);
+ assert.equal(classify('https://fakegoogle-analytics.com/x'),null);
+ assert.equal(classify('data:text/plain,google-analytics.com'),null);
+});
+test('IndexedDB discovery is read-only metadata and excludes database names',async()=>{
+ const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+ const win={document:{},indexedDB:{databases:async()=>[{name:'secret-account',version:1}],open(){throw Error('must not open');}},URL};
+ vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../packages/core/brendigo-cookieconsent.js'),'utf8'),{window:win,globalThis:win});
+ const result=await win.BrendigoCookieConsent.discoverIndexedDB();
+ assert.equal(result.status,'available');assert.equal(result.count,1);
+ assert.ok(!JSON.stringify(result).includes('secret-account'));
+ win.indexedDB={databases:async()=>{throw Error('blocked');}};
+ assert.equal((await win.BrendigoCookieConsent.discoverIndexedDB()).status,'unavailable');
 });

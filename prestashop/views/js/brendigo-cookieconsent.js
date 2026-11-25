@@ -1,5 +1,5 @@
 /*!
- * CookieConsent by Brendigo — v0.11.7
+ * CookieConsent by Brendigo — v0.11.8
  * Copyright (c) 2026 Brendigo · MIT License
  * Zero-dependency, self-hosted consent manager.
  */
@@ -14,7 +14,7 @@
 })(typeof window !== 'undefined' ? window : globalThis, function (root) {
   'use strict';
 
-  var VERSION = '0.11.7';
+  var VERSION = '0.11.8';
   var CATEGORIES = ['necessary', 'preferences', 'analytics', 'marketing'];
   var POSITIONS = ['bottom-center', 'bottom-left', 'bottom-right',
     'bottom-bar', 'top-center', 'top-left', 'top-right', 'top-bar', 'center'];
@@ -187,6 +187,18 @@
   var serviceConsent = Object.create(null);
   var providers = Object.create(null);
   var providerStates = Object.create(null);
+  var transitionActive = false;
+  var dynamicObserver = null;
+  var dynamicRefreshPending = false;
+  var lastGpcSignal = false;
+  // Public mutations are synchronous and non-reentrant. A callback cannot
+  // overwrite a decision halfway through persistence, notification or gating.
+  function withTransition(operation) {
+    if (transitionActive) throw new Error('CookieConsent transition in progress');
+    transitionActive = true;
+    try { return operation(); }
+    finally { transitionActive = false; }
+  }
   function normalizeServices(items) {
     if (!Array.isArray(items)) return [];
     var seen = Object.create(null);
@@ -211,22 +223,25 @@
       };
     });
   }
-  function normalizeServiceChoices(categories, choices) {
+  function normalizeServiceChoices(categories, choices, restored) {
     var output = Object.create(null);
     var provided = choices && typeof choices === 'object' ? choices : {};
     (config && config.services || []).forEach(function (service) {
       if (!service.toggleable) return;
       var chosen = Object.prototype.hasOwnProperty.call(provided, service.id)
-        ? provided[service.id] === true : !!(categories && categories[service.category]);
+        ? provided[service.id] === true : !restored && !!(categories && categories[service.category]);
       output[service.id] = !!(categories && categories[service.category] && chosen);
     });
     return output;
   }
   function hasServiceConsent(id) {
-    return typeof id === 'string' && serviceConsent[id] === true;
+    return typeof id === 'string' && serviceConsent[id] === true &&
+      !(isGpc() && config && config.services.some(function (service) {
+        return service.id === id && service.category === 'marketing';
+      }));
   }
   function getServiceConsent() {
-    return Object.assign({}, serviceConsent);
+    return Object.assign({}, normalizeServiceChoices(getConsent(), serviceConsent, true));
   }
   function safeHttpUrl(raw) {
     if (!raw || !root.URL || !root.location) return null;
@@ -239,25 +254,85 @@
       return url.href;
     } catch (_) { return null; }
   }
-  function invokeProvider(record, method) {
-    if (typeof record[method] !== 'function') return;
-    try { record[method](getConsent()); }
-    catch (err) {
-      if (root.console && typeof root.console.error === 'function') root.console.error('[CookieConsent by Brendigo] Provider callback error', err);
+  function reportProviderError(err) {
+    if (root.console && typeof root.console.error === 'function')
+      root.console.error('[CookieConsent by Brendigo] Provider callback error', err);
+  }
+  function providerAllowed(record) {
+    return hasConsent(record.category) &&
+      (!record.serviceId || hasServiceConsent(record.serviceId));
+  }
+  function stopProvider(record, state) {
+    if (!state || state.phase !== 'running') return;
+    // Invalidate before invoking external code, including abort listeners.
+    state.phase = 'stopping';
+    var controller = state.controller;
+    state.controller = null;
+    if (controller) controller.abort();
+    function complete(ok) {
+      if (state.phase !== 'stopping') return;
+      state.phase = !ok ? 'blocked' : state.failedGrant && providerAllowed(record) ? 'failed' : 'stopped';
+      state.failedGrant = false;
+      if (state.retired && state.phase === 'stopped' && providerStates[state.id] === state) delete providerStates[state.id];
+      // No automatic restart after failed teardown; an adapter must be fixed.
+      if (state.phase === 'stopped' && !transitionActive && providers[state.id] === record && providerAllowed(record))
+        withTransition(syncProviders);
     }
+    try {
+      if (typeof record.onRevoke === 'function') {
+        var result = record.onRevoke(getConsent());
+        if (result && typeof result.then === 'function') {
+          Promise.resolve(result).then(function () { complete(true); }, function (err) {
+            reportProviderError(err); complete(false);
+          });
+          return;
+        }
+      }
+      complete(true);
+    } catch (err) { reportProviderError(err); complete(false); }
+  }
+  function startProvider(id, record, state) {
+    state.phase = 'running';
+    var controller = typeof root.AbortController === 'function' ? new root.AbortController() : null;
+    state.controller = controller;
+    var token = {};
+    state.token = token;
+    var context = {
+      signal: controller ? controller.signal : null,
+      isCurrent: function () {
+        return providers[id] === record && providerStates[id] === state &&
+          state.token === token && state.phase === 'running' && providerAllowed(record);
+      }
+    };
+    function failed(err) {
+      reportProviderError(err);
+      if (!context.isCurrent()) return;
+      state.failedGrant = true;
+      if (transitionActive) stopProvider(record, state);
+      else withTransition(function () { stopProvider(record, state); });
+    }
+    try {
+      if (typeof record.onGrant === 'function') {
+        var result = record.onGrant(getConsent(), context);
+        if (result && typeof result.then === 'function') Promise.resolve(result).catch(failed);
+      }
+    } catch (err) { failed(err); }
+  }
+  function stopDeniedProviders() {
+    // Revocations precede new grants, including mixed service decisions.
+    Object.keys(providers).forEach(function (id) {
+      var record = providers[id], state = providerStates[id];
+      if (!record || !state || providerAllowed(record)) return;
+      if (state.phase === 'failed') state.phase = 'stopped';
+      else stopProvider(record, state);
+    });
   }
   function syncProviders() {
+    stopDeniedProviders();
     Object.keys(providers).forEach(function (id) {
-      var record = providers[id];
-      var shouldRun = record.serviceId ? hasServiceConsent(record.serviceId) : hasConsent(record.category);
-      var wasRunning = providerStates[id] === true;
-      if (shouldRun && !wasRunning) {
-        providerStates[id] = true;
-        invokeProvider(record, 'onGrant');
-      } else if (!shouldRun && wasRunning) {
-        providerStates[id] = false;
-        invokeProvider(record, 'onRevoke');
-      }
+      var record = providers[id], state = providerStates[id];
+      if (record && state && state.phase === 'stopped' && providerAllowed(record))
+        startProvider(id, record, state);
     });
   }
   function registerProvider(definition) {
@@ -266,25 +341,48 @@
         !/^[a-zA-Z0-9._-]{1,64}$/.test(definition.id) ||
         !CATEGORIES.includes(definition.category) ||
         definition.category === 'necessary' ||
-        providers[definition.id] ||
+        providers[definition.id] || providerStates[definition.id] ||
         (definition.serviceId && !((config && config.services || []).some(function (s) {
           return s.id === definition.serviceId && s.toggleable && s.category === definition.category;
         })))) {
       throw new TypeError('Invalid or duplicate CookieConsent provider');
     }
     var id = definition.id;
-    providers[id] = { category: definition.category, serviceId: definition.serviceId || '',
+    var record = { category: definition.category, serviceId: definition.serviceId || '',
       onGrant: definition.onGrant, onRevoke: definition.onRevoke };
-    providerStates[id] = false;
-    if (nodes.root) syncProviders();
+    var state = { id: id, phase: 'stopped', controller: null, token: null, failedGrant: false };
+    providers[id] = record;
+    providerStates[id] = state;
+    if (nodes.root && !transitionActive) withTransition(syncProviders);
     return function unregister() {
-      if (!providers[id]) return;
-      if (providerStates[id]) invokeProvider(providers[id], 'onRevoke');
+      // An old unregister handle must never remove a replacement provider.
+      if (providers[id] !== record) return;
       delete providers[id];
-      delete providerStates[id];
+      state.retired = true;
+      if (state.phase === 'running') {
+        if (transitionActive) stopProvider(record, state);
+        else withTransition(function () { stopProvider(record, state); });
+      }
+      if (state.phase === 'stopped' || state.phase === 'failed') delete providerStates[id];
     };
   }
 
+  function normalizePolicyProfile(value) {
+    return ['global-strict','eu-eea','uk','us-privacy','no-marketing','essential-only'].indexOf(value) !== -1
+      ? value : 'global-strict';
+  }
+  function policyAllows(category) {
+    if (category === 'necessary' || !config) return true;
+    if (config.policyProfile === 'essential-only') return false;
+    return !(category === 'marketing' && config.policyProfile === 'no-marketing');
+  }
+  function effectiveChoice(input, gpc) {
+    var result = normalizeConsent(input, gpc);
+    CATEGORIES.forEach(function (category) {
+      if (!policyAllows(category)) result[category] = false;
+    });
+    return result;
+  }
   function normalizeConsent(input, gpc) {
     var values = input && typeof input === 'object' ? input : {};
     return {
@@ -301,7 +399,7 @@
       categories: normalizeConsent(value), services: services || {}
     }));
   }
-  function parseRecord(value, revision, gpc, consentDays) {
+  function decodeSavedRecord(value, revision, gpc, consentDays) {
     try {
       if (typeof value !== 'string' || value.length > 14000) return null;
       var parsed = JSON.parse(decodeURIComponent(value || ''));
@@ -316,16 +414,19 @@
       // restored from backup, or the site's duration was shortened.
       if (!Number.isFinite(timestamp) || timestamp > now + 5 * 60000 ||
           now - timestamp > days * 86400000) return null;
-      return normalizeConsent(parsed.categories, gpc);
+      if (new Date(timestamp).toISOString() !== parsed.date) return null;
+      return { categories: normalizeConsent(parsed.categories, gpc), date: parsed.date,
+        services: parsed.services && typeof parsed.services === 'object' && !Array.isArray(parsed.services)
+          ? parsed.services : null };
     } catch (_) { return null; }
   }
+  function parseRecord(value, revision, gpc, consentDays) {
+    var record = decodeSavedRecord(value, revision, gpc, consentDays);
+    return record ? record.categories : null;
+  }
   function parseServiceRecord(value, revision, gpc, consentDays) {
-    if (!parseRecord(value, revision, gpc, consentDays)) return null;
-    try {
-      var parsed = JSON.parse(decodeURIComponent(value));
-      return parsed && parsed.services && typeof parsed.services === 'object' && !Array.isArray(parsed.services)
-        ? parsed.services : null;
-    } catch (_) { return null; }
+    var record = decodeSavedRecord(value, revision, gpc, consentDays);
+    return record ? record.services : null;
   }
   function getLanguage() {
     var explicit = config.language;
@@ -343,52 +444,49 @@
   function isGpc() {
     return !!(root.navigator && root.navigator.globalPrivacyControl === true);
   }
-  function readSaved() {
-    var name = config.cookieName + '=';
-    var parts = (root.document.cookie || '').split(';');
-    for (var i = 0; i < parts.length; i++) {
-      var part = parts[i].trim();
-      if (part.indexOf(name) === 0) return parseRecord(part.slice(name.length), config.revision, isGpc(), config.consentDays);
-    }
-    return null;
+  function visibleCookies() {
+    try { return root.document.cookie || ''; }
+    catch (_) { return ''; }
   }
-  function readServiceSaved() {
-    var name = config.cookieName + '=';
-    var parts = (root.document.cookie || '').split(';');
-    for (var i = 0; i < parts.length; i++) {
-      var part = parts[i].trim();
-      if (part.indexOf(name) === 0) return parseServiceRecord(part.slice(name.length), config.revision, isGpc(), config.consentDays);
-    }
-    return null;
+  function writeCookie(value) {
+    try { root.document.cookie = value; }
+    catch (_) { /* Storage restrictions must not interrupt in-page revocation. */ }
   }
-  function readDecisionDate() {
+  function readSavedSnapshot() {
     var name = config.cookieName + '=';
-    var parts = (root.document.cookie || '').split(';');
+    var parts = visibleCookies().split(';');
+    var value = null;
     for (var i = 0; i < parts.length; i++) {
       var part = parts[i].trim();
       if (part.indexOf(name) !== 0) continue;
-      var value = part.slice(name.length);
-      if (!parseRecord(value, config.revision, isGpc(), config.consentDays)) return null;
-      try {
-        var raw = JSON.parse(decodeURIComponent(value));
-        return typeof raw.date === 'string' ? raw.date : null;
-      } catch (_) { return null; }
+      // Ambiguous path/domain cookies must never restore optional consent.
+      if (value !== null) return null;
+      value = part.slice(name.length);
     }
-    return null;
+    var snapshot = decodeSavedRecord(value, config.revision, false, config.consentDays);
+    if (snapshot) {
+      var effective = effectiveChoice(snapshot.categories, isGpc());
+      snapshot.policySuppressed = CATEGORIES.some(function (category) {
+        return snapshot.categories[category] && !effective[category];
+      });
+      snapshot.categories = effective;
+    }
+    return snapshot;
   }
   function persist() {
     var maxAge = Math.max(1, Math.min(365, Number(config.consentDays) || 180)) * 86400;
     var secure = root.location && root.location.protocol === 'https:' ? '; Secure' : '';
-    root.document.cookie = config.cookieName + '=' + encodeRecord(consent, config.revision, lastDecisionAt, serviceConsent) +
-      '; Path=/; Max-Age=' + maxAge + '; SameSite=Lax' + secure;
+    writeCookie(config.cookieName + '=' + encodeRecord(consent, config.revision, lastDecisionAt, serviceConsent) +
+      '; Path=/; Max-Age=' + maxAge + '; SameSite=Lax' + secure);
   }
   // Explicit first-party only cleanup rules: no RegExp input and no cross-origin access.
   function normalizeCleanupRules(items) {
     if (!Array.isArray(items)) return [];
     return items.slice(0, 100).filter(function (item) {
       return item && ['preferences', 'analytics', 'marketing'].indexOf(item.category) !== -1 &&
-        ((typeof item.name === 'string' && /^[a-zA-Z0-9_.-]{1,120}$/.test(item.name)) ||
-         (typeof item.prefix === 'string' && /^[a-zA-Z0-9_.-]{1,120}$/.test(item.prefix)));
+        ((typeof item.name === 'string' && /^[a-zA-Z0-9_.-]{1,120}$/.test(item.name) && !item.prefix) ||
+         (typeof item.prefix === 'string' && /^[a-zA-Z0-9_.-]{1,120}$/.test(item.prefix) && !item.name)) &&
+        (!item.serviceId || (typeof item.serviceId === 'string' && /^[a-zA-Z0-9._-]{1,64}$/.test(item.serviceId)));
     }).map(function (item) {
       var serviceId = typeof item.serviceId === 'string' && /^[a-zA-Z0-9._-]{1,64}$/.test(item.serviceId)
         ? item.serviceId : '';
@@ -401,9 +499,13 @@
       };
     });
   }
+  function protectedCookieName(name, consentName) {
+    return name === consentName ||
+      /^(?:__Host-|__Secure-|wordpress_|wp-settings-|wp_woocommerce_session_|woocommerce_|wc_|PHPSESSID$|JSESSIONID$|session(?:id)?$|csrf(?:token)?$|xsrf-token$)/i.test(name);
+  }
   function clearConfiguredCookies(previous, current, oldServices, nextServices) {
     if (!config || !config.cookieCleanupRules.length || !root.document) return;
-    var visible = (root.document.cookie || '').split(';').map(function (part) {
+    var visible = visibleCookies().split(';').map(function (part) {
       return part.trim().split('=')[0];
     }).filter(Boolean);
     config.cookieCleanupRules.forEach(function (rule) {
@@ -419,10 +521,10 @@
         if (previous && !previous[rule.category]) return;
       }
       visible.forEach(function (name) {
-        if (name === config.cookieName) return;
+        if (protectedCookieName(name, config.cookieName)) return;
         if (!(rule.name && rule.name === name) && !(rule.prefix && name.indexOf(rule.prefix) === 0)) return;
         var secure = root.location && root.location.protocol === 'https:' ? '; Secure' : '';
-        root.document.cookie = name + '=; Max-Age=0; Path=' + rule.path + '; SameSite=Lax' + secure;
+        writeCookie(name + '=; Max-Age=0; Path=' + rule.path + '; SameSite=Lax' + secure);
       });
     });
   }
@@ -468,7 +570,7 @@
     }
   }
   function getConsent() {
-    return consent ? Object.assign({}, consent) : null;
+    return consent ? effectiveChoice(consent, isGpc()) : null;
   }
   /**
    * A user-owned copy of the locally persisted choice, NOT an authenticated
@@ -515,16 +617,33 @@
     }
   }
   function hasConsent(category) {
-    return CATEGORIES.indexOf(category) !== -1 && (category === 'necessary' || !!(consent && consent[category]));
+    return CATEGORIES.indexOf(category) !== -1 && (category === 'necessary' ||
+      (policyAllows(category) && !(category === 'marketing' && isGpc()) && !!(consent && consent[category])));
+  }
+  function resourceAllowed(category, serviceId) {
+    if (!hasConsent(category)) return false;
+    if (!serviceId) return true;
+    return !!config && config.services.some(function (service) {
+      return service.id === serviceId && service.toggleable &&
+        service.category === category && hasServiceConsent(serviceId);
+    });
+  }
+  function controlledMedia() {
+    return root.document.querySelectorAll('iframe[data-bcc-category][data-bcc-src],img[data-bcc-category][data-bcc-src]');
+  }
+  function revokeDeniedMedia() {
+    Array.prototype.forEach.call(controlledMedia(), function (node) {
+      if (!resourceAllowed(node.getAttribute('data-bcc-category'), node.getAttribute('data-bcc-service')) &&
+          node.hasAttribute('src')) node.removeAttribute('src');
+    });
   }
   function applyGatedResources() {
     var doc = root.document;
     var scripts = doc.querySelectorAll('script[type="text/plain"][data-bcc-category]:not([data-bcc-activated])');
     Array.prototype.forEach.call(scripts, function (source) {
       var category = source.getAttribute('data-bcc-category');
-      if (!hasConsent(category)) return;
       var serviceId = source.getAttribute('data-bcc-service');
-      if (serviceId && !hasServiceConsent(serviceId)) return;
+      if (!resourceAllowed(category, serviceId)) return;
       var script = doc.createElement('script');
       ['nonce', 'integrity', 'crossorigin', 'referrerpolicy'].forEach(function (attribute) {
         var value = source.getAttribute('data-bcc-' + attribute);
@@ -543,14 +662,11 @@
       source.setAttribute('data-bcc-activated', 'true');
       source.parentNode.insertBefore(script, source.nextSibling);
     });
-    var frames = doc.querySelectorAll('iframe[data-bcc-category][data-bcc-src]');
-    Array.prototype.forEach.call(frames, function (frame) {
-      var permitted = hasConsent(frame.getAttribute('data-bcc-category'));
-      var serviceId = frame.getAttribute('data-bcc-service');
-      if (serviceId && !hasServiceConsent(serviceId)) permitted = false;
-      var src = safeHttpUrl(frame.getAttribute('data-bcc-src'));
-      if (permitted && src && frame.getAttribute('src') !== src) frame.setAttribute('src', src);
-      if ((!permitted || !src) && frame.hasAttribute('src')) frame.removeAttribute('src');
+    Array.prototype.forEach.call(controlledMedia(), function (node) {
+      var permitted = resourceAllowed(node.getAttribute('data-bcc-category'), node.getAttribute('data-bcc-service'));
+      var src = safeHttpUrl(node.getAttribute('data-bcc-src'));
+      if (permitted && src && node.getAttribute('src') !== src) node.setAttribute('src', src);
+      if ((!permitted || !src) && node.hasAttribute('src')) node.removeAttribute('src');
     });
   }
   /**
@@ -558,17 +674,44 @@
    * cross-origin cookies/storage, server-to-server calls and dynamically generated
    * requests cannot be discovered. Never transmits this information externally.
    */
+  function observeDynamicResources() {
+    if (!config.observeDynamicResources || dynamicObserver ||
+        typeof root.MutationObserver !== 'function' || !root.document.documentElement) return;
+    var selector = 'script[type="text/plain"][data-bcc-category],iframe[data-bcc-category][data-bcc-src],img[data-bcc-category][data-bcc-src]';
+    function relevant(node) {
+      return node && node.nodeType === 1 &&
+        ((typeof node.matches === 'function' && node.matches(selector)) ||
+         (typeof node.querySelector === 'function' && node.querySelector(selector)));
+    }
+    dynamicObserver = new root.MutationObserver(function (records) {
+      if (dynamicRefreshPending || !records.some(function (record) {
+        return record.type === 'attributes' ? relevant(record.target) :
+          Array.prototype.some.call(record.addedNodes || [], relevant);
+      })) return;
+      dynamicRefreshPending = true;
+      Promise.resolve().then(function () {
+        dynamicRefreshPending = false;
+        if (!transitionActive) refreshResources();
+      });
+    });
+    // Observe only inert markers, not src or our own activation attribute.
+    dynamicObserver.observe(root.document.documentElement, {
+      childList: true, subtree: true, attributes: true,
+      attributeFilter: ['data-bcc-category','data-bcc-service','data-bcc-src','type']
+    });
+  }
   function auditLocal() {
     if (!root.document) return { cookies: [], localStorage: [], sessionStorage: [], scripts: [], iframes: [] };
-    function storageKeys(storage) {
+    function storageKeys(name) {
       var keys = [];
       try {
+        var storage = root[name];
         if (!storage) return keys;
         for (var i = 0; i < storage.length; i++) keys.push(storage.key(i));
       } catch (_) { /* Storage access may be blocked by the browser. */ }
       return keys.filter(function (key) { return typeof key === 'string'; }).sort();
     }
-    var cookies = (root.document.cookie || '').split(';').map(function (item) {
+    var cookies = visibleCookies().split(';').map(function (item) {
       return item.trim().split('=')[0];
     }).filter(Boolean).sort();
     function inspect(selector) {
@@ -577,7 +720,7 @@
         var category = node.getAttribute('data-bcc-category');
         result.push({
           category: category || null,
-          enabled: category ? hasConsent(category) : null,
+          enabled: category ? resourceAllowed(category, node.getAttribute('data-bcc-service')) : null,
           source: node.getAttribute('data-bcc-src') || node.getAttribute('src') || '',
           marked: !!category
         });
@@ -585,8 +728,8 @@
       return result;
     }
     return {
-      cookies: cookies, localStorage: storageKeys(root.localStorage),
-      sessionStorage: storageKeys(root.sessionStorage),
+      cookies: cookies, localStorage: storageKeys('localStorage'),
+      sessionStorage: storageKeys('sessionStorage'),
       scripts: inspect('script[src],script[data-bcc-category]'),
       iframes: inspect('iframe[src],iframe[data-bcc-category]')
     };
@@ -610,17 +753,30 @@
    * tabs reread the site's own cookie instead.
    */
   function reconcileTabConsent() {
-    if (!config) return;
-    var previous = getConsent();
-    var previousServices = getServiceConsent();
-    var next = readSaved();
-    var nextServices = normalizeServiceChoices(next, readServiceSaved());
+    if (!config || transitionActive) return;
+    return withTransition(reconcileTabConsentInternal);
+  }
+  function reconcileTabConsentInternal() {
+    var previous = consent ? Object.assign({}, consent) : null;
+    var previousServices = Object.assign({}, serviceConsent);
+    var snapshot = readSavedSnapshot();
+    var next = snapshot ? snapshot.categories : null;
+    var nextServices = normalizeServiceChoices(next, snapshot && snapshot.services, true);
+    var signalChanged = lastGpcSignal !== isGpc();
+    lastGpcSignal = isGpc();
     var before = JSON.stringify([previous, previousServices]);
     var after = JSON.stringify([next, nextServices]);
-    if (before === after) return;
+    if (before === after && !signalChanged) {
+      lastDecisionAt = snapshot ? snapshot.date : null;
+      if (snapshot && snapshot.policySuppressed) persist();
+      return;
+    }
     consent = next;
     serviceConsent = nextServices;
-    lastDecisionAt = next ? readDecisionDate() : null;
+    lastDecisionAt = snapshot ? snapshot.date : null;
+    if (snapshot && snapshot.policySuppressed) persist();
+    stopDeniedProviders();
+    revokeDeniedMedia();
     clearConfiguredCookies(previous, consent, previousServices, serviceConsent);
     emit('change');
     if ((previous && CATEGORIES.some(function (category) {
@@ -685,13 +841,19 @@
   }
   function saveChoice(choice, services) {
     if (!config) throw new Error('Initialize CookieConsent before setting consent.');
-    var previous = getConsent();
-    var oldServices = getServiceConsent();
+    return withTransition(function () { return commitChoice(choice, services); });
+  }
+  function commitChoice(choice, services) {
+    var previous = consent ? Object.assign({}, consent) : null;
+    var oldServices = Object.assign({}, serviceConsent);
     var firstChoice = !previous;
-    consent = normalizeConsent(choice, isGpc());
+    lastGpcSignal = isGpc();
+    consent = effectiveChoice(choice, lastGpcSignal);
     serviceConsent = normalizeServiceChoices(consent, services);
     lastDecisionAt = new Date().toISOString();
     persist();
+    stopDeniedProviders();
+    revokeDeniedMedia();
     clearConfiguredCookies(previous, consent, oldServices, serviceConsent);
     // Adapters receive the complete decision before any gated script starts.
     emit('change');
@@ -732,18 +894,23 @@
   }
   function reset() {
     if (!config) return;
-    var old = getConsent();
-    var oldServices = getServiceConsent();
+    return withTransition(resetInternal);
+  }
+  function resetInternal() {
+    var old = consent ? Object.assign({}, consent) : null;
+    var oldServices = Object.assign({}, serviceConsent);
     consent = null;
     serviceConsent = Object.create(null);
     lastDecisionAt = null;
-    root.document.cookie = config.cookieName + '=; Path=/; Max-Age=0; SameSite=Lax';
+    writeCookie(config.cookieName + '=; Path=/; Max-Age=0; SameSite=Lax' + (root.location && root.location.protocol === 'https:' ? '; Secure' : ''));
+    stopDeniedProviders();
+    revokeDeniedMedia();
     clearConfiguredCookies(old, null, oldServices, serviceConsent);
     emit('change');
     if ((old && CATEGORIES.some(function (category) { return category !== 'necessary' && old[category]; })) ||
         Object.keys(oldServices).some(function (id) { return oldServices[id]; })) emit('revoked');
     syncProviders();
-    applyGatedResources(); // clears gated iframe src attributes
+    applyGatedResources(); // clears denied controlled media sources
     showBanner();
     closePreferences();
     notifyOtherTabs();
@@ -751,8 +918,8 @@
   function openPreferences() {
     if (!config || !nodes.root || nodes.overlay) return;
     var t = translations();
-    var draft = normalizeConsent(consent, isGpc());
-    var draftServices = Object.assign({}, serviceConsent);
+    var draft = effectiveChoice(consent, isGpc());
+    var draftServices = getServiceConsent();
     var categoryCheckboxes = {};
     lastFocused = root.document.activeElement;
     var overlay = element('div', 'bcc-overlay bcc-preferences-' + config.preferencesPosition);
@@ -781,7 +948,7 @@
       var checkbox = element('input');
       checkbox.type = 'checkbox';
       checkbox.checked = draft[category];
-      checkbox.disabled = category === 'necessary' || (category === 'marketing' && isGpc());
+      checkbox.disabled = category === 'necessary' || !policyAllows(category) || (category === 'marketing' && isGpc());
       checkbox.setAttribute('aria-label', t[category]);
       categoryCheckboxes[category] = checkbox;
       checkbox.addEventListener('change', function () {
@@ -805,7 +972,7 @@
             serviceSwitch.checked = !!draftServices[service.id];
             serviceSwitch.setAttribute('data-bcc-service-option', service.id);
             serviceSwitch.setAttribute('aria-label', service.name);
-            serviceSwitch.disabled = service.category === 'marketing' && isGpc();
+            serviceSwitch.disabled = !policyAllows(service.category) || (service.category === 'marketing' && isGpc());
             serviceSwitch.addEventListener('change', function () {
               draftServices[service.id] = serviceSwitch.checked;
               var relatedSwitches = row.querySelectorAll('[data-bcc-service-option]');
@@ -886,7 +1053,10 @@
     panel.querySelector('button').focus();
   }
   function mount() {
-    if (nodes.root) return;
+    if (nodes.root || transitionActive) return;
+    return withTransition(mountInternal);
+  }
+  function mountInternal() {
     var t = translations();
     var holder = element('div', 'bcc-root bcc-position-' + config.position + ' bcc-style-' + config.bannerStyle +
       ' bcc-theme-' + config.theme + (config.equalWeightButtons ? ' bcc-equal-buttons' : '') +
@@ -954,6 +1124,7 @@
     nodes.banner = banner;
     showBanner();
     // Subscription already installed during init, before DOM rendering.
+    observeDynamicResources();
     emit('ready'); // Returning consent is propagated before third-party tag activation.
     if (consent) invokeHook('onConsent', getConsentReceipt());
     syncProviders();
@@ -981,6 +1152,7 @@
         !envelope.config || typeof envelope.config !== 'object' ||
         Array.isArray(envelope.config)) return null;
     var input = envelope.config, output = Object.create(null);
+    if (typeof input.policyProfile === 'string') output.policyProfile = normalizePolicyProfile(input.policyProfile);
     var strings = ['language','direction','position','bannerStyle','theme',
       'preferencesPosition','accentColor','surfaceColor','textColor','revision','policyUrl'];
     strings.forEach(function (key) {
@@ -1000,7 +1172,7 @@
     });
     if (output.policyUrl && !/^(https?:\/\/|\/(?!\/))/.test(output.policyUrl)) delete output.policyUrl;
     if (output.revision) output.revision = output.revision.slice(0,40);
-    ['flipButtons','equalWeightButtons','disableAnimations'].forEach(function (key) {
+    ['flipButtons','equalWeightButtons','disableAnimations','observeDynamicResources'].forEach(function (key) {
       if (typeof input[key] === 'boolean') output[key] = input[key];
     });
     Object.keys(LAYOUT_LIMITS).forEach(function (key) {
@@ -1045,6 +1217,87 @@
    * Passive local resource inventory, never transmits or auto-classifies data.
    * Unknown elements may be first-party essential files: a human must inspect.
    */
+  // A conservative local hint list, not a legal classification or a blocklist.
+  var TRACKER_HINTS = [
+    ['Google Analytics','analytics',['google-analytics.com','analytics.google.com']],
+    ['Google advertising','marketing',['doubleclick.net','googlesyndication.com','googleadservices.com']],
+    ['Google Tag Manager','review',['googletagmanager.com']],
+    ['Meta Pixel','marketing',['connect.facebook.net']],
+    ['Microsoft Clarity','analytics',['clarity.ms']],
+    ['Hotjar','analytics',['hotjar.com','hotjar.io']],
+    ['TikTok advertising','marketing',['analytics.tiktok.com']],
+    ['LinkedIn Insight','marketing',['snap.licdn.com']],
+    ['Mixpanel','analytics',['mixpanel.com']],
+    ['Amplitude','analytics',['amplitude.com']],
+    ['Segment','review',['segment.com','segment.io']],
+    ['YouTube','review',['youtube.com','youtube-nocookie.com']],
+    ['Vimeo','review',['vimeo.com']],
+    ['Matomo Cloud','analytics',['matomo.cloud']],
+    ['Plausible','analytics',['plausible.io']],
+    ['Fathom','analytics',['usefathom.com']],
+    ['PostHog','review',['posthog.com']],
+    ['FullStory','review',['fullstory.com']],
+    ['Sentry','review',['sentry.io']],
+    ['HubSpot','review',['hs-scripts.com','hs-analytics.net','hubspot.com']],
+    ['Pinterest advertising','marketing',['ct.pinterest.com','s.pinimg.com']],
+    ['Snap advertising','marketing',['tr.snapchat.com','sc-static.net']],
+    ['Bing advertising','marketing',['bat.bing.com']]
+  ];
+  function classifyResource(raw) {
+    var hostname;
+    try {
+      var url = new root.URL(raw, root.location && root.location.href || 'https://invalid.example/');
+      if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
+      hostname = url.hostname.toLowerCase().replace(/\.$/, '');
+    } catch (_) { return null; }
+    for (var i = 0; i < TRACKER_HINTS.length; i++) {
+      var hint = TRACKER_HINTS[i];
+      if (hint[2].some(function (domain) {
+        return hostname === domain || hostname.endsWith('.' + domain);
+      })) return {provider: hint[0], suggestedCategory: hint[1], basis: 'hostname', reviewRequired: true};
+    }
+    return null;
+  }
+  async function discoverIndexedDB() {
+    // Do not open databases, enumerate stores or return database names.
+    try {
+      if (!root.indexedDB || typeof root.indexedDB.databases !== 'function')
+        return {status:'unsupported', count:null};
+      var databases = await root.indexedDB.databases();
+      return {status:'available', count:databases.length};
+    } catch (_) { return {status:'unavailable', count:null}; }
+  }
+  function getPrivacySignals() {
+    return {globalPrivacyControl: isGpc(), marketingAllowed: hasConsent('marketing'),
+      policyProfile: config ? config.policyProfile : 'global-strict'};
+  }
+  function refreshResources() {
+    if (!config) return;
+    return withTransition(function () {
+      var currentSignal = isGpc();
+      var changed = currentSignal !== lastGpcSignal;
+      lastGpcSignal = currentSignal;
+      // A signal is not a new user decision. Do not create a receipt or
+      // update the existing decision timestamp merely because it changed.
+      if (currentSignal && consent && consent.marketing) {
+        var previous = Object.assign({}, consent), oldServices = Object.assign({}, serviceConsent);
+        consent.marketing = false;
+        serviceConsent = normalizeServiceChoices(consent, oldServices, true);
+        persist();
+        stopDeniedProviders();
+        revokeDeniedMedia();
+        clearConfiguredCookies(previous, consent, oldServices, serviceConsent);
+        emit('change');
+        emit('revoked');
+        notifyOtherTabs();
+        closePreferences();
+      } else if (changed) {
+        emit('change');
+      }
+      syncProviders();
+      applyGatedResources();
+    });
+  }
   function scanLocalResources() {
     var snapshot = auditLocal();
     // Never include URL credentials, search parameters, fragments or storage
@@ -1053,17 +1306,33 @@
       if (typeof raw !== 'string' || !raw) return '';
       try {
         var url = new root.URL(raw, root.location && root.location.href || 'https://invalid.example/');
-        url.username = '';
-        url.password = '';
-        url.search = '';
-        url.hash = '';
-        return url.href.slice(0, 500);
-      } catch (_) { return raw.split(/[?#]/)[0].slice(0, 500); }
+        if (url.protocol !== 'https:' && url.protocol !== 'http:') return '';
+        // Paths can contain account identifiers or bearer tokens as well.
+        // Origin-only inventory deliberately excludes all URL paths.
+        return url.origin;
+      } catch (_) { return ''; }
     }
     function sanitized(items) {
       return items.map(function (entry) {
         return {category: entry.category, enabled: entry.enabled,
-          source: redactUrl(entry.source), marked: entry.marked};
+          source: redactUrl(entry.source), marked: entry.marked, classification: classifyResource(entry.source)};
+      });
+    }
+    var media = [];
+    var mediaCount = 0;
+    if (root.document) {
+      var candidates = root.document.querySelectorAll('img[src],img[srcset],img[data-bcc-src],link[href],source[src],source[srcset],video[src],audio[src],object[data],embed[src]');
+      mediaCount = candidates.length;
+      Array.prototype.slice.call(candidates, 0, 200).forEach(function (node) {
+        var category = node.getAttribute('data-bcc-category');
+        var serviceId = node.getAttribute('data-bcc-service');
+        var raw = node.getAttribute('data-bcc-src') || node.getAttribute('src') ||
+          node.getAttribute('href') || node.getAttribute('data') || '';
+        var tag = String(node.tagName || '').toLowerCase();
+        var controlled = (tag === 'img') && !!category && !!node.getAttribute('data-bcc-src');
+        media.push({tag: tag, origin: redactUrl(raw), classification: classifyResource(raw), marked: !!category,
+          controlled: controlled, enabled: controlled ? resourceAllowed(category, serviceId) : null,
+          hasResponsiveSource: !!node.getAttribute('srcset')});
       });
     }
     var timing = [];
@@ -1080,7 +1349,7 @@
         external = !!(root.location && new root.URL(url).origin !== root.location.origin);
       } catch (_) { /* Invalid or browser-private URL; leave origin unknown. */ }
       return {url: url, initiator: String(entry.initiatorType || 'other').slice(0, 32),
-        thirdParty: external};
+        thirdParty: external, classification: classifyResource(entry.name)};
     });
     return {
       schema: 'brendigo-local-audit-v2',
@@ -1088,7 +1357,10 @@
       visibility: 'browser-visible current document only; resource timing can omit requests; never scans HttpOnly/cross-origin storage/server-side activity',
       limitations: ['No HttpOnly cookie visibility', 'No cross-origin cookie or storage contents',
         'No server-to-server events', 'No guaranteed coverage of earlier or blocked requests',
-        'Resource timing lists URLs only, never responses or request payloads'],
+        'Resource timing lists origins only, never paths, responses or request payloads',
+        'Hostname classifications are advisory and never authorize or block resources',
+        'Unclassified resources are review candidates, not evidence of tracking',
+        'Responsive image srcset, picture sources and arbitrary network APIs are not gated'],
       cookies: snapshot.cookies,
       localStorage: snapshot.localStorage,
       sessionStorage: snapshot.sessionStorage,
@@ -1096,6 +1368,7 @@
       unclassifiedScripts: sanitized(snapshot.scripts.filter(function (r) { return !r.marked; })),
       markedIframes: sanitized(snapshot.iframes.filter(function (r) { return r.marked; })),
       unclassifiedIframes: sanitized(snapshot.iframes.filter(function (r) { return !r.marked; })),
+      mediaResources: media, mediaResourceCount: mediaCount, mediaResourceTruncated: mediaCount > 200,
       resourceRequests: resources, resourceRequestCount: total, resourceRequestTruncated: total > 100
     };
   }
@@ -1155,14 +1428,16 @@
     options = options || {};
     config = {
       language: options.language || 'auto',
+      policyProfile: normalizePolicyProfile(options.policyProfile),
       policyUrl: typeof options.policyUrl === 'string' ? options.policyUrl : '/cookie-policy',
       position: sanitizePosition(options.position),
       bannerStyle: sanitizeStyle(options.bannerStyle),
       theme: sanitizeTheme(options.theme),
       preferencesPosition: sanitizePreferencesPosition(options.preferencesPosition),
       flipButtons: options.flipButtons === true,
-      equalWeightButtons: options.equalWeightButtons !== false,
+      equalWeightButtons: true, // Privacy invariant: legacy false values cannot weaken parity.
       disableAnimations: options.disableAnimations === true,
+      observeDynamicResources: options.observeDynamicResources === true,
       direction: sanitizeDirection(options.direction),
       accentColor: sanitizeColor(options.accentColor, '#4357e8'),
       surfaceColor: sanitizeColor(options.surfaceColor, '#ffffff'),
@@ -1187,9 +1462,12 @@
       onFirstConsent: options.onFirstConsent,
       onDecision: options.onDecision
     };
-    consent = readSaved();
-    serviceConsent = normalizeServiceChoices(consent, readServiceSaved());
-    lastDecisionAt = consent ? readDecisionDate() : null;
+    var snapshot = readSavedSnapshot();
+    consent = snapshot ? snapshot.categories : null;
+    serviceConsent = normalizeServiceChoices(consent, snapshot && snapshot.services, true);
+    lastDecisionAt = snapshot ? snapshot.date : null;
+    lastGpcSignal = isGpc();
+    if (snapshot && snapshot.policySuppressed) persist();
     // Subscribe before mounting the banner: other tabs can make a decision
     // while this tab is still building its UI.
     listenForTabUpdates();
@@ -1205,7 +1483,9 @@
     getServiceConsent: getServiceConsent, hasServiceConsent: hasServiceConsent,
     reset: reset, openPreferences: openPreferences,
     registerProvider: registerProvider,
-    refresh: applyGatedResources, auditLocal: auditLocal, scanLocalResources: scanLocalResources,
+    refresh: refreshResources,
+    getPrivacySignals: getPrivacySignals, discoverIndexedDB: discoverIndexedDB,
+    auditLocal: auditLocal, scanLocalResources: scanLocalResources,
     getCatalog: getCatalog, renderCatalog: renderCatalog,
     utils: {
       normalizeConsent: normalizeConsent, encodeRecord: encodeRecord, parseRecord: parseRecord,
@@ -1214,9 +1494,9 @@
       sanitizeDirection: sanitizeDirection, sanitizeColor: sanitizeColor,
       contrastRatio: contrastRatio, accessibleText: accessibleText,
       normalizeServices: normalizeServices,
-      normalizeCleanupRules: normalizeCleanupRules, parseServiceRecord: parseServiceRecord,
+      normalizeCleanupRules: normalizeCleanupRules, protectedCookieName: protectedCookieName, parseServiceRecord: parseServiceRecord,
       sanitizeLayoutNumber: sanitizeLayoutNumber,
-      parseConfigurationJSON: parseConfigurationJSON
+      classifyResource: classifyResource, parseConfigurationJSON: parseConfigurationJSON
     }
   };
   return api;

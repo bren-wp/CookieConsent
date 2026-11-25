@@ -13,6 +13,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const http = require('node:http');
 const repoRoot = path.resolve(__dirname, '..');
+const expectedVersion = require('../package.json').version;
 function makeServer() {
   return http.createServer((req, res) => {
     let p;
@@ -33,7 +34,7 @@ function makeServer() {
     fs.createReadStream(resolved).pipe(res);
   });
 }
-test('real Chromium smoke tests: consent, persistence, resources, keyboard and styles',
+test(`real ${browserName} smoke tests: consent, persistence, resources, keyboard and styles`,
   {timeout:180000}, async t => {
     const server = makeServer();
     await new Promise(resolve => server.listen(0,'127.0.0.1',resolve));
@@ -42,6 +43,51 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
     try {
       browser=await selectedBrowser.launch({
         headless:true, args:browserName==='chromium' ? ['--no-sandbox'] : []
+      });
+      await t.test('real browser SRI rejects tampered CDN JS and uses pinned local fallback', async()=>{
+        const version=require('../package.json').version;
+        const {renderLoader}=require('../tools/render-cdn-loader.cjs');
+        const asset= name=>fs.readFileSync(path.join(repoRoot,'packages/core',name));
+        const css='brendigo-cookieconsent.css',js='brendigo-cookieconsent.js';
+        const cdn='https://api.brendigo.com/cookieconsent/v'+version+'/';
+        const {createHash}=require('node:crypto');
+        const pin=name=>'sha384-'+createHash('sha384').update(asset(name)).digest('base64');
+        for(const mode of ['valid','tampered','offline','wordpress']){
+          const context=await browser.newContext();
+          try{
+            const page=await context.newPage();
+            let localJS=0;
+            await page.route(origin+'/bcc-sri/**',async route=>{
+              const name=new URL(route.request().url()).pathname.split('/').pop();
+              if(name==='index.html')return route.fulfill({contentType:'text/html',body:
+                '<!doctype html><html lang="en"><head><script>window.BCC_SITE_CONFIG={language:"en"}</script><script defer src="./loader.js" data-bcc-cdn="true"'+
+                (mode==='wordpress'?' data-bcc-css-integrity="'+pin(css)+'" data-bcc-js-integrity="'+pin(js)+'"':'')+
+                '></script></head><body>'+
+                '<script type="text/plain" data-bcc-category="analytics">window.optionalExecuted=true;</script></body></html>'});
+              if(name==='loader.js')return route.fulfill({contentType:'text/javascript',body:mode==='wordpress'?fs.readFileSync(path.join(repoRoot,'wordpress/brendigo-cookieconsent/assets/wp-cdn-loader.js')):renderLoader(repoRoot)});
+              if(name===css||name===js){
+                if(mode==='offline')return route.abort();
+                if(name===js)localJS++;
+                return route.fulfill({contentType:name===css?'text/css':'text/javascript',body:asset(name)});
+              }
+              return route.abort();
+            });
+            await page.route(cdn+'**',async route=>{
+              if(mode==='offline'||mode==='wordpress')return route.abort();
+              const name=new URL(route.request().url()).pathname.split('/').pop();
+              if(name!==css&&name!==js)return route.abort();
+              return route.fulfill({contentType:name===css?'text/css':'text/javascript',
+                headers:{'access-control-allow-origin':'*'},
+                body:mode==='tampered'&&name===js?'window.tamperedExecuted=true;':asset(name)});
+            });
+            await page.goto(origin+'/bcc-sri/index.html');
+            await page.waitForFunction(state=>window.__bccLoaderState===state,mode==='offline'?'unavailable':'ready');
+            assert.equal(await page.evaluate(()=>Boolean(window.tamperedExecuted||window.optionalExecuted)),false);
+            assert.equal(await page.evaluate(()=>Boolean(window.BrendigoCookieConsent)),mode!=='offline');
+            assert.equal(localJS,mode==='tampered'||mode==='wordpress'?1:0);
+            if(mode!=='offline')await page.locator('.bcc-banner').waitFor({state:'visible'});
+          }finally{await context.close();}
+        }
       });
       await t.test('no optional tracker fires before choice; reject all and reopen', async () => {
         const context=await browser.newContext();
@@ -213,7 +259,8 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
           await page.locator('#prefs').selectOption('right');
           await page.locator('#language').selectOption('en');
           await page.locator('#flip').check();
-          await page.locator('#equal').uncheck();
+          assert.equal(await page.locator('#equal').isChecked(),true,'choice parity must be enabled');
+          assert.equal(await page.locator('#equal').isDisabled(),true,'choice parity must not be configurable off');
           await page.locator('#heading').fill('Privacy settings by Brendigo');
           await page.locator('#intro').fill('Only selected services can load.');
           await page.locator('#accept').fill('Allow chosen services');
@@ -238,6 +285,8 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
           },null,{timeout:15000});
           const exported=await page.locator('#snippet').inputValue();
           assert.ok(exported.includes('"theme": "dark"'));
+          assert.ok(exported.includes('"equalWeightButtons": true'));
+          assert.ok((await preview.locator('.bcc-root').getAttribute('class')).includes('bcc-equal-buttons'));
           assert.ok(exported.includes('"bannerWidth": 930'));
           assert.ok(exported.includes('"mobileWidth": 88'));
           assert.ok(exported.includes('"buttonHeight": 50'));
@@ -612,12 +661,44 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
           await page.goto(origin+'/demo/wp-csp.html');
           await page.locator('.bcc-banner').waitFor({state:'visible'});
           assert.equal(await page.evaluate(()=>BCC_SITE_CONFIG.language),'en');
-          assert.equal(await page.evaluate(()=>BrendigoCookieConsent.version),'0.11.7');
+          assert.equal(await page.evaluate(()=>BrendigoCookieConsent.version),expectedVersion);
           assert.equal(await page.locator('.bcc-banner-actions').getByRole('button',{name:'Reject all'}).count(),1);
           assert.equal(await page.evaluate(()=>BrendigoCookieConsent.hasConsent('analytics')),false);
           await page.locator('.bcc-banner-actions').getByRole('button',{name:'Reject all'}).click();
           assert.equal(await page.evaluate(()=>BrendigoCookieConsent.hasConsent('analytics')),false);
           assert.deepEqual(csp,[],'script-src without unsafe-inline must not block WordPress config');
+        }finally{await context.close();}
+      });
+      await t.test('marked tracking image stays inert until consent and is removed on revoke',async()=>{
+        const context=await browser.newContext();
+        try{
+          const page=await context.newPage();
+          let requests=0;
+          await page.route('https://pixels.example/**',async route=>{
+            requests++;
+            await route.fulfill({contentType:'image/gif',body:Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7','base64')});
+          });
+          await page.goto(origin+'/demo/index.html');
+          await page.locator('.bcc-banner').waitFor({state:'visible'});
+          await page.evaluate(()=>{
+            const img=document.createElement('img');
+            img.id='test-consent-pixel';img.alt='';
+            img.dataset.bccCategory='marketing';
+            img.dataset.bccSrc='https://pixels.example/collect?token=PRIVATE';
+            document.body.appendChild(img);
+            BrendigoCookieConsent.refresh();
+          });
+          const img=page.locator('#test-consent-pixel');
+          assert.equal(await img.getAttribute('src'),null);
+          assert.equal(requests,0);
+          const report=await page.evaluate(()=>BrendigoCookieConsent.scanLocalResources());
+          assert.ok(report.mediaResources.some(x=>x.origin==='https://pixels.example'&&x.controlled&&!x.enabled));
+          assert.ok(!JSON.stringify(report).includes('PRIVATE'));
+          const request=page.waitForRequest('https://pixels.example/**');
+          await page.evaluate(()=>BrendigoCookieConsent.setConsent({marketing:true}));
+          await request;
+          await page.evaluate(()=>BrendigoCookieConsent.setConsent({}));
+          assert.equal(await img.getAttribute('src'),null);
         }finally{await context.close();}
       });
       await t.test('resource scan exposes neither query tokens nor cookie values',async()=>{

@@ -1,11 +1,11 @@
 {
   "name": "@brendigo/cookieconsent",
-  "version": "0.11.7",
+  "version": "0.11.8",
   "private": true,
   "description": "CookieConsent by Brendigo — self-hosted privacy choices",
   "license": "MIT",
   "scripts": {
-    "test": "node --test tests/consent.test.cjs tests/integrations.test.cjs tests/docs.test.cjs tests/site.test.cjs tests/wporg.test.cjs tests/source-audit.test.cjs tests/performance.test.cjs tests/platforms.test.cjs tests/deployment.test.cjs",
+    "test": "node --test tests/consent.test.cjs tests/integrations.test.cjs tests/docs.test.cjs tests/site.test.cjs tests/wporg.test.cjs tests/source-audit.test.cjs tests/performance.test.cjs tests/platforms.test.cjs tests/deployment.test.cjs tests/consent-attestation.test.cjs",
     "test:browser": "node --test tests/browser.test.cjs",
     "check": "node tools/check-scripts.mjs && node tools/check-release.mjs",
     "build:cdn": "node tools/build-cdn.mjs",

@@ -1,6 +1,6 @@
 # Razvojni plan — CookieConsent by Brendigo
 
-**Aktualno testno izdanje: v0.11.7** · Revizija 11. 11. 2026. · [Dokumentacija](README.md) · [Povijest](CHANGELOG.md)
+**Priprema testnog izdanja: v0.11.8** · Revizija 25. 11. 2026. · [Dokumentacija](README.md) · [Povijest](CHANGELOG.md)
 
 Projekt razlikuje **implementirano**, **automatizirano provjereno**, **ovisno o produkcijskoj instalaciji** i **vanjsku certifikaciju**. Svi preostali zadaci ostaju vidljivi. Zeleni CI ne zamjenjuje neovisnu sigurnosnu, pravnu ili pristupačnu validaciju.
 
@@ -87,6 +87,11 @@ Projekt razlikuje **implementirano**, **automatizirano provjereno**, **ovisno o 
 - [Opcionalni ledger](CONSENT-LEDGER-DESIGN.hr.md)
 - [Arhiviranje verzija politike](POLICY-REVISION-ARCHIVE.hr.md)
 - Opt-in DNS/TLS monitoring: `.github/workflows/monitor.yml` (varijabla `BCC_PRODUCTION_DEPLOYED=true` aktivira dnevne provjere tek nakon stvarne objave).
+
+### Izdanje v0.11.8 — CDN sigurnost i odvojeni origin
+
+- Provjera integriteta prema pouzdanom checkoutu, SHA-384 podaci i odvojeni deployment validatori.
+- Priprema distribucije na api.brendigo.com; stvarni hosting i CI moraju se zasebno potvrditi.
 
 ### Izdanje v0.11.7 — dodatno CSP učvršćivanje
 

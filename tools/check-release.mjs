@@ -16,8 +16,8 @@ const required=[
  ['wordpress/brendigo-cookieconsent/brendigo-cookieconsent.php','Plugin URI: https://cookie.brendigo.com'],
  ['wordpress/brendigo-cookieconsent/brendigo-cookieconsent.php','Author URI: https://brendigo.com'],
  ['wordpress/brendigo-cookieconsent/brendigo-cookieconsent.php','Author: Brendigo'],
- ['website/index.html','https://cookie.brendigo.com/v'+version+'/loader.js'],
- ['website/installation.html','https://cookie.brendigo.com/v'+version+'/loader.js'],
+ ['website/index.html','https://api.brendigo.com/cookieconsent/v'+version+'/loader.js'],
+ ['website/installation.html','https://api.brendigo.com/cookieconsent/v'+version+'/loader.js'],
  ['cdn/loader.js','v'+version],
  ['README.md','version-'+version],
  ['README.md','/v'+version+'/loader.js'],
@@ -66,5 +66,9 @@ const video=fs.readFileSync(path.join(root,'packages/integrations/video-embeds.j
 const wpVideo=fs.readFileSync(path.join(root,'wordpress/brendigo-cookieconsent/assets/video-embeds.js'));
 if(!video.equals(wpVideo))errors.push('Video adapter and WordPress copy differ');
 if(!fs.readFileSync(path.join(root,'tools/build-cdn.mjs'),'utf8').includes("'video-embeds.js'"))errors.push('CDN video adapter missing');
+if(!fs.readFileSync(path.join(root,'cdn/loader.js')).equals(fs.readFileSync(path.join(root,'wordpress/brendigo-cookieconsent/assets/wp-cdn-loader.js'))))errors.push('WordPress and CDN loader templates differ');
+for(const filename of ['prestashop/views/js/bootstrap.js','opencart/catalog/view/javascript/bootstrap.js']){
+ if(!fs.readFileSync(path.join(root,'magento/view/frontend/web/js/bootstrap.js')).equals(fs.readFileSync(path.join(root,filename))))errors.push('Shared CMS JSON bootstrap differs: '+filename);
+}
 if(errors.length){errors.forEach(x=>process.stderr.write('FAIL '+x+'\\n'));process.exit(1);}
 process.stdout.write('Version consistency OK: v'+version+'\n');

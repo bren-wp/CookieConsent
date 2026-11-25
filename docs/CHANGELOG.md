@@ -1,5 +1,24 @@
 # Povijest promjena — CookieConsent by Brendigo
 
+## 0.11.8 — Unreleased
+
+- Deliver WordPress CDN core via first-party pinned bootstrap and local fallback; keep adapters local.
+- Correct optional credit configuration in the local-only WordPress.org candidate.
+
+- Isolate consent transactions and wait for asynchronous provider teardown before restarting.
+- Add optional server-side Ed25519 receipt attestation primitive and tamper tests.
+- Verify all eleven ZIP distributions before merge and publish checksum reports.
+
+- Add cancellable provider generations, stale unregister protection, revoke-before-grant ordering and protected first-party cookie cleanup.
+- Pin WordPress CDN script and stylesheet tags to bundled release bytes.
+
+- Generate browser-side SHA-384 pins from trusted core assets; add same-origin fallback and browser SRI regression scenarios.
+
+- Split website and CDN deployment verification.
+- Prepare remote assets on api.brendigo.com/cookieconsent/.
+- Verify CDN bytes against the trusted checkout; add SHA-384 integrity metadata and tampering regression tests.
+- Preserve monitoring failures and separate diagnostics.
+
 ## 0.11.7 — dizajnerski predlošci, provjera kontrasta i prikaz na uređajima
 
 - Četiri predloška izgleda (Uravnoteženi, Plutajući, Minimalni, Tamni premium) za javni vizualni konfigurator i WordPress administraciju; mijenjaju samo dizajnerske parametre.

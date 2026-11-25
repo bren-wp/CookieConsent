@@ -13,8 +13,13 @@ test('directory candidate uses bundled assets and opt-in credit',()=>{
   assert.ok(php.includes("'showBranding' => !empty($o['show_branding'])"));
   assert.ok(php.includes("$base = plugin_dir_url(__FILE__) . 'assets/';"));
   assert.ok(!php.includes(' * Update URI:'));
+  assert.ok(!php.includes('configure_cdn_bootstrap'));
+  assert.ok(!fs.existsSync(path.join(dir,'assets/wp-cdn-loader.js')));
+  assert.ok(!fs.existsSync(path.join(dir,'includes/ledger-client.php')));
+  assert.ok(!php.includes('ledger-client.php'));
   assert.ok(!php.includes("asset_source' => in_array"));
   assert.match(js,/config && config\.showBranding === true/);
+  assert.match(js,/showBranding: options\.showBranding === true/);
   assert.match(readme,/off by default/);
   assert.ok(fs.existsSync(path.join(dir,'assets/admin-preview.js')));
   assert.ok(fs.existsSync(path.join(dir,'assets/wp-config.js')));

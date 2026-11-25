@@ -51,8 +51,8 @@
 
 ## Operativni prihvat — nova automatizacija
 
-- [ ] Pokrenuti `npm run verify:deployment -- https://cookie.brendigo.com` nakon stvarnog uploada (status, MIME, SHA-256).
-- [ ] Pokrenuti `npm run verify:hosting -- https://cookie.brendigo.com` i sačuvati `dist/hosting/latest-report.json` (DNS, TLS, HTTP sigurnosna zaglavlja, cache).
+- [ ] Pokrenuti `npm run verify:deployment -- --website https://cookie.brendigo.com` i `npm run verify:deployment -- --cdn https://api.brendigo.com/cookieconsent/` nakon stvarnog uploada (status, MIME, SHA-256).
+- [ ] Pokrenuti `npm run verify:hosting -- --website https://cookie.brendigo.com` i `npm run verify:hosting -- --cdn https://api.brendigo.com/cookieconsent/` i sačuvati `dist/hosting/latest-website-report.json` i `dist/hosting/latest-cdn-report.json` (DNS, TLS, HTTP sigurnosna zaglavlja, cache).
 - [ ] Provjeriti privolu, checkout i povlačenje na stvarnoj reprezentativnoj trgovini te ažurirati staging zapisnik.
 - [ ] Iz GitHub Actions preuzeti sintetička Chromium mjerenja. Ne predstavljati ih kao real-device/RUM ili manualnu screen-reader provjeru.
 - [ ] Potvrditi odabranog operatera/CDN, trajanje i obujam logova, pristupe i način brisanja.

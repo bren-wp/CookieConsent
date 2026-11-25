@@ -10,6 +10,7 @@ import hashlib
 import json
 import os
 import sys
+import tempfile
 import zipfile
 from pathlib import Path
 
@@ -137,8 +138,10 @@ def verify(destination: Path, members: dict[str, bytes]) -> None:
         for info in archive.infolist():
             assert info.date_time == FIXED_TIME, "Nondeterministic timestamp"
     before = hashlib.sha256(destination.read_bytes()).hexdigest()
-    normalized_zip(destination, members)
-    after = hashlib.sha256(destination.read_bytes()).hexdigest()
+    with tempfile.TemporaryDirectory() as temp:
+        rebuilt = Path(temp) / destination.name
+        normalized_zip(rebuilt, members)
+        after = hashlib.sha256(rebuilt.read_bytes()).hexdigest()
     assert before == after, f"Nondeterministic rebuild: {destination}"
     print(destination.name, "SHA-256:", after)
 
@@ -157,6 +160,26 @@ def main() -> None:
         if not verify_only:
             normalized_zip(destination, members)
         verify(destination, members)
+    if len(members_by_archive) != 11:
+        raise RuntimeError("Expected exactly eleven distribution packages")
+    manifest = {"schema": 1, "version": VERSION, "files": {}}
+    checksums = []
+    for filename in sorted(members_by_archive):
+        data = (DIST / filename).read_bytes()
+        digest = hashlib.sha256(data).hexdigest()
+        manifest["files"][filename] = {"sha256": digest, "size": len(data)}
+        checksums.append(f"{digest}  {filename}")
+    reports = {
+        "release-manifest.json": json.dumps(manifest, indent=2, sort_keys=True) + "\n",
+        "SHA256SUMS": "\n".join(checksums) + "\n",
+    }
+    for name, contents in reports.items():
+        target = DIST / name
+        if verify_only:
+            if target.read_bytes() != contents.encode("utf-8"):
+                raise RuntimeError(f"Release metadata mismatch: {name}")
+        else:
+            target.write_bytes(contents.encode("utf-8"))
 
 
 if __name__ == "__main__":

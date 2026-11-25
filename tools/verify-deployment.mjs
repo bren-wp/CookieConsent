@@ -1,27 +1,35 @@
 #!/usr/bin/env node
 /**
  * Verify a DEPLOYED Brendigo website and versioned CDN without modifying it.
- * Usage: node tools/verify-deployment.mjs https://cookie.brendigo.com
+ * Usage: node tools/verify-deployment.mjs --website https://cookie.brendigo.com
+ *        node tools/verify-deployment.mjs --cdn https://api.brendigo.com/cookieconsent/
  * HTTP is accepted only on localhost for local CI tests.
  */
 import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
+import {createRequire} from 'node:module';
+const {renderLoader}=createRequire(import.meta.url)('./render-cdn-loader.cjs');
 import path from 'node:path';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const version=JSON.parse(readFileSync(path.join(root,'package.json'),'utf8')).version;
-const raw=process.argv[2] || 'https://cookie.brendigo.com';
-const origin=new URL(raw);
+const args=process.argv.slice(2);
+const mode=args[0]==='--website'?'website':args[0]==='--cdn'?'cdn':'combined';
+if(args.length!==(mode==='combined'?1:2))throw Error('Supply --website URL or --cdn URL (or a local combined test URL)');
+const origin=new URL(args[mode==='combined'?0:1]);
 const local=['localhost','127.0.0.1','[::1]'].includes(origin.hostname);
 if(origin.protocol!=='https:' && !(local && origin.protocol==='http:')) {
   throw new Error('Only HTTPS origins and local HTTP test servers are permitted.');
 }
-if(origin.username || origin.password || origin.pathname!=='/' || origin.search || origin.hash) {
-  throw new Error('Supply an origin URL only, without credentials, path or query.');
+if(origin.username || origin.password || origin.search || origin.hash ||
+   (mode!=='cdn' && origin.pathname!=='/') ||
+   (mode==='cdn' && !/^\/(?:[A-Za-z0-9_-]+\/)*$/.test(origin.pathname))) {
+  throw new Error('Supply a valid website origin or CDN directory URL with trailing slash.');
 }
+if(mode==='combined' && !local)throw Error('Combined mode is only for local tests; use explicit website and CDN checks.');
 async function get(target, expectedMime){
-  const url=new URL(target,origin);
+  const url=new URL(target.replace(/^\//,''),origin);
   const controller=new AbortController();
   const timeout=setTimeout(()=>controller.abort(),12000);
   try {
@@ -61,16 +69,31 @@ const html=/^text\/html\b/i;
 const json=/^application\/json\b/i;
 const css=/^text\/css\b/i;
 const script=/^(?:text|application)\/(?:javascript|ecmascript)\b/i;
+if(mode!=='cdn'){
 for(const page of ['/','/en.html','/installation.html','/legal.html','/demo/index.html']){
   const bytes=await get(page,html);
   if(!bytes.toString('utf8').includes('CookieConsent'))throw new Error(page+' missing product identity');
 }
+console.log('PASS: website pages are reachable.');
+}
+if(mode!=='website'){
 const prefix='/v'+version+'/';
 const manifest=JSON.parse((await get(prefix+'manifest.json',json)).toString('utf8'));
 if(manifest.version!==version || manifest.schema!==1 || !manifest.files ||
-    typeof manifest.files!=='object')throw new Error('CDN manifest version/schema mismatch');
-for(const name of ['loader.js','brendigo-cookieconsent.js',
-  'brendigo-cookieconsent.css','google-consent-basic.js','video-embeds.js','LICENSE']){
+    typeof manifest.files!=='object' || Array.isArray(manifest.files))throw new Error('CDN manifest version/schema mismatch');
+if(!local && (manifest.origin!==origin.origin || manifest.basePath!==origin.pathname))
+  throw new Error('CDN manifest origin or basePath mismatch');
+const trustedSources={
+  'loader.js':'cdn/loader.js',
+  'brendigo-cookieconsent.js':'packages/core/brendigo-cookieconsent.js',
+  'brendigo-cookieconsent.css':'packages/core/brendigo-cookieconsent.css',
+  'google-consent-basic.js':'packages/integrations/google-consent-basic.js',
+  'video-embeds.js':'packages/integrations/video-embeds.js',
+  'LICENSE':'LICENSE'
+};
+if(Object.keys(manifest.files).length!==Object.keys(trustedSources).length)
+  throw new Error('Unexpected CDN manifest entries');
+for(const [name,source] of Object.entries(trustedSources)){
   const listed=manifest.files[name];
   if(!listed || !/^[a-f0-9]{64}$/.test(listed.sha256))throw new Error('Missing checksum '+name);
   const expect=name.endsWith('.js')?script:name.endsWith('.css')?css:null;
@@ -78,5 +101,13 @@ for(const name of ['loader.js','brendigo-cookieconsent.js',
   if(bytes.length!==listed.size)throw new Error(name+' size differs from manifest');
   const sha=createHash('sha256').update(bytes).digest('hex');
   if(sha!==listed.sha256)throw new Error(name+' checksum differs from manifest');
+  const trusted=name==='loader.js'?renderLoader(root):readFileSync(path.join(root,source));
+  const trustedSha=createHash('sha256').update(trusted).digest('hex');
+  if(sha!==trustedSha || bytes.length!==trusted.length)
+    throw new Error(name+' differs from trusted checkout');
+  const integrity='sha384-'+createHash('sha384').update(trusted).digest('base64');
+  if(listed.integrity!==integrity)throw new Error(name+' SRI differs from trusted checkout');
 }
-console.log('PASS: website and CDN v'+version+' are reachable with expected MIME and SHA-256.');
+console.log('PASS: CDN v'+version+' is reachable with expected MIME and trusted SHA-256.');
+}
+if(mode==='combined')console.log('PASS: website and CDN');

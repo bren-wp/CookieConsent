@@ -1,6 +1,6 @@
 # Web distribucija — CookieConsent by Brendigo
 
-Ova mapa sadržava statičnu marketinšku web-stranicu spremnu za **pripremu** produkcijskog hostinga `cookie.brendigo.com`. Autor: **Brendigo**, https://brendigo.com. Službena adresa dodatka i skripte: https://cookie.brendigo.com.
+Ova mapa sadržava statičnu marketinšku web-stranicu spremnu za **pripremu** produkcijskog hostinga `cookie.brendigo.com`. Autor: **Brendigo**, https://brendigo.com. Službena adresa dodatka: https://cookie.brendigo.com. Udaljeni resursi: https://api.brendigo.com/cookieconsent/ (nakon potvrđenog deploya).
 
 ## Lokalno testiranje
 
@@ -15,8 +15,8 @@ Otvorite http://localhost:8000/. Paket uključuje web stranice, lokalne demo dat
 ## Postavljanje domene
 
 1. Osigurati DNS i HTTPS/TLS za `cookie.brendigo.com`.
-2. Prenijeti sadržaj web ZIP-a u **document root**, uključujući `v0.11.7/`.
-3. Provjeriti `/index.html`, `/installation.html`, `/en.html`, `/legal.html`, `/demo/index.html`, `/v0.11.7/loader.js`.
+2. Prenijeti sadržaj web ZIP-a u **document root**, uključujući `v0.11.8/`.
+3. Provjeriti `/index.html`, `/installation.html`, `/en.html`, `/legal.html`, `/demo/index.html`, `/v0.11.8/loader.js`.
 4. Postaviti odgovarajuće HTTP MIME tipove, CSP, cache i log policy. Ne mijenjati već objavljene verzionirane resurse.
 5. **Prije javne objave** dodati točnu politiku privatnosti s identitetom voditelja obrade, kontaktom, server logovima i rokovima čuvanja; `legal.html` sadrži upozorenje, ali nije potpuna politika privatnosti.
 6. Testirati release download poveznice na stvarnom izdanju.
@@ -32,4 +32,4 @@ Na naslovnici je katalog platformskih dodataka: Joomla, Drupal, Shopify Theme Ap
 
 ## Provjera javnog URL-a
 
-Nakon postavljanja na domenu pokrenite iz korijena izvornog repozitorija `npm run verify:deployment -- https://cookie.brendigo.com`. Validator provjerava HTTP status, MIME tipove, verzionirane resurse, CDN manifest i SHA-256, bez promjene hostinga. [Detaljne upute](../docs/DEPLOY.hr.md).
+Nakon postavljanja na domenu pokrenite iz korijena izvornog repozitorija `npm run verify:deployment -- --website https://cookie.brendigo.com` i `npm run verify:deployment -- --cdn https://api.brendigo.com/cookieconsent/`. Validator provjerava HTTP status, MIME tipove, verzionirane resurse, CDN manifest i SHA-256, bez promjene hostinga. [Detaljne upute](../docs/DEPLOY.hr.md).
