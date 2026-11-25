@@ -118,3 +118,7 @@ GitHub distribucija u CDN načinu učitava lokalni bootstrap s pouzdanim SHA-384
 ## Opcionalni privatni consent ledger
 
 GitHub izdanje sadrži serverski konektor, isključen bez konfiguracijskih konstanti. Ne postoji automatsko slanje odluka iz bannera. Vidjeti [Consent Ledger](CONSENT-LEDGER-DESIGN.hr.md). WordPress.org izdanje ne uključuje udaljeni konektor.
+
+### Autentificirana WordPress ulazna točka
+
+U GitHub distribuciji operator može izričito omogućiti `BCC_LEDGER_VISITOR_ROUTE` (boolean true), uz privatni endpoint i API ključ. POST na `/wp-json/brendigo-cookieconsent/v1/ledger-events` zahtijeva prijavljenog korisnika, važeći WordPress REST nonce, odgovarajući Origin ako je prisutan i JSON. Pouzdani server-side filter `bcc_ledger_subject_token` mora vratiti prethodno dodijeljen slučajni 32-bajtni token (64 hex znakova) za aktualnog korisnika; bez resolvera zahtjev se odbija. Ne derivirati token iz emaila ili IP-a. Browser šalje samo request_id, kind, categories, services, gpc i revision, nikada token subjekta ili API ključ. `Sec-GPC: 1` ima prednost nad dostavljenim signalom. Klijentski adapter operatera mora eksplicitno povezati stvarnu odluku, povlačenje i signal s ovom rutom, koristiti isti request_id pri ponovnom pokušaju i prikazati neuspjeh evidencije bez ponovnog uključivanja trackera. Javni anonimni posjetitelji nisu obuhvaćeni. Zadano nema automatskog slanja. WordPress.org izdanje izostavlja cijeli konektor. Potrebni su testovi prijavljenog korisnika, server-side resolvera i stvarnog privatnog HTTPS API-ja prije produkcije.

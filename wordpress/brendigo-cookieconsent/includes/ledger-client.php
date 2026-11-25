@@ -76,3 +76,74 @@ function record_ledger_event(array $event) {
     }
     return ['event_id' => $data['event_id']];
 }
+
+/**
+ * An explicitly enabled, logged-in visitor ingestion route. The operator
+ * must provide a random subject token through a trusted server-side resolver.
+ * The browser never supplies a subject token or the private API credential.
+ */
+function ledger_route_permission(\WP_REST_Request $request) {
+    if (!defined('BCC_LEDGER_VISITOR_ROUTE') || BCC_LEDGER_VISITOR_ROUTE !== true ||
+        !defined('BCC_LEDGER_ENDPOINT') || !defined('BCC_LEDGER_API_KEY')) {
+        return new \WP_Error('bcc_ledger_disabled', 'Consent ledger is disabled.', ['status'=>403]);
+    }
+    if (!is_user_logged_in() || !wp_verify_nonce($request->get_header('X-WP-Nonce'), 'wp_rest')) {
+        return new \WP_Error('bcc_ledger_auth', 'Authentication required.', ['status'=>403]);
+    }
+    $origin = $request->get_header('origin');
+    $site = wp_parse_url(home_url('/'));
+    if (!is_array($site) || empty($site['scheme']) || empty($site['host'])) {
+        return new \WP_Error('bcc_ledger_origin', 'Invalid site origin.', ['status'=>403]);
+    }
+    $expected = $site['scheme'] . '://' . $site['host'] .
+        (isset($site['port']) ? ':' . $site['port'] : '');
+    // Browser fetches must originate from the configured public site origin.
+    if ($origin !== '' && $origin !== $expected) {
+        return new \WP_Error('bcc_ledger_origin', 'Invalid origin.', ['status'=>403]);
+    }
+    return true;
+}
+
+function ledger_route_submit(\WP_REST_Request $request) {
+    $permission = ledger_route_permission($request);
+    if (is_wp_error($permission)) return $permission;
+    $body = $request->get_body();
+    $type = strtolower(trim(explode(';', $request->get_header('content-type'), 2)[0]));
+    if ($type !== 'application/json' || strlen($body) > 8192 || $body === '') {
+        return new \WP_Error('bcc_ledger_event', 'Invalid ledger request.', ['status'=>400]);
+    }
+    $event = json_decode($body, true);
+    $fields = ['request_id','kind','categories','services','gpc','revision'];
+    if (!is_array($event) || count($event) !== count($fields) || array_diff($fields, array_keys($event))) {
+        return new \WP_Error('bcc_ledger_event', 'Invalid ledger request.', ['status'=>400]);
+    }
+    $subject = apply_filters('bcc_ledger_subject_token', null, get_current_user_id());
+    if (!is_string($subject) || !preg_match('/^[0-9a-f]{64}$/D', $subject)) {
+        return new \WP_Error('bcc_ledger_subject', 'Consent ledger subject unavailable.', ['status'=>403]);
+    }
+    $event['subject_token'] = $subject;
+    if ($request->get_header('sec-gpc') === '1') $event['gpc'] = true;
+    if ($event['gpc'] === true && (!is_array($event['categories']) ||
+        ($event['categories']['marketing'] ?? null) !== false)) {
+        return new \WP_Error('bcc_ledger_event', 'GPC conflicts with marketing permission.', ['status'=>400]);
+    }
+    $result = record_ledger_event($event);
+    if (is_wp_error($result)) {
+        return new \WP_Error('bcc_ledger_submission', 'Consent ledger submission failed.',
+            ['status'=>$result->get_error_code() === 'bcc_ledger_event' ? 400 : 503]);
+    }
+    $response = new \WP_REST_Response($result, 200);
+    $response->header('Cache-Control', 'no-store');
+    return $response;
+}
+
+function register_ledger_route(): void {
+    if (!defined('BCC_LEDGER_VISITOR_ROUTE') || BCC_LEDGER_VISITOR_ROUTE !== true ||
+        !defined('BCC_LEDGER_ENDPOINT') || !defined('BCC_LEDGER_API_KEY')) return;
+    register_rest_route('brendigo-cookieconsent/v1', '/ledger-events', [
+        'methods' => 'POST',
+        'permission_callback' => __NAMESPACE__ . '\\ledger_route_permission',
+        'callback' => __NAMESPACE__ . '\\ledger_route_submit',
+    ]);
+}
+add_action('rest_api_init', __NAMESPACE__ . '\\register_ledger_route');

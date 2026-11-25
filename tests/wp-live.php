@@ -88,3 +88,8 @@ bcc_live_verify(function_exists('Brendigo\\CookieConsent\\record_ledger_event'),
 $disabled_ledger = \Brendigo\CookieConsent\record_ledger_event([]);
 bcc_live_verify(is_wp_error($disabled_ledger) && $disabled_ledger->get_error_code() === 'bcc_ledger_disabled',
     'ledger is disabled by default and does not send any request');
+
+$ledger_request = new WP_REST_Request('POST', '/brendigo-cookieconsent/v1/ledger-events');
+$ledger_denied = \Brendigo\CookieConsent\ledger_route_permission($ledger_request);
+bcc_live_verify(is_wp_error($ledger_denied) && $ledger_denied->get_error_code() === 'bcc_ledger_disabled',
+    'visitor ledger route disabled by default');

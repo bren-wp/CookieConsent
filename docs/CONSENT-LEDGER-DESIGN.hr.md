@@ -63,3 +63,5 @@ WordPress GitHub distribucija uključuje opcionalni `record_ledger_event(array $
 ### Rotacija pristupnog ključa API-ja
 
 Factory `make_app` prihvaća opcionalni `previous_api_key` tijekom kontrolirane migracije pozivatelja. Oba ključa moraju biti različita i slučajna; nakon migracije uklonite prethodni ključ i ponovno pokrenite servis. Nema automatskog isteka preklapanja, pa ga operator mora vremenski ograničiti. Ovo rotira API autentifikaciju, ne HMAC ključ povijesnih zapisa, pseudonimizacijski ključ ili ključ neovisnog sidra. Ti ključevi zahtijevaju zaseban verificiran migracijski postupak. Erasure sada provjerava integritet ciljanih redaka prije brisanja; istekli ponovljeni zahtjev se odbija dok je njegov zapis prisutan. Nakon retencijskog brisanja trajna replay zaštita zahtijevala bi dodatnu strategiju.
+
+Opcionalna WordPress REST ruta omogućuje autentificirani prijem odluke prijavljenog korisnika uz eksplicitni opt-in operatora i pouzdani resolver slučajnog tokena subjekta. Ne uključuje anonimne posjetitelje niti automatsku browser dostavu. Vidi [WordPress](WORDPRESS.hr.md).
