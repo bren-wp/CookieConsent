@@ -78,7 +78,9 @@ if(mode!=='website'){
 const prefix='/v'+version+'/';
 const manifest=JSON.parse((await get(prefix+'manifest.json',json)).toString('utf8'));
 if(manifest.version!==version || manifest.schema!==1 || !manifest.files ||
-    typeof manifest.files!=='object')throw new Error('CDN manifest version/schema mismatch');
+    typeof manifest.files!=='object' || Array.isArray(manifest.files))throw new Error('CDN manifest version/schema mismatch');
+if(!local && (manifest.origin!==origin.origin || manifest.basePath!==origin.pathname))
+  throw new Error('CDN manifest origin or basePath mismatch');
 const trustedSources={
   'loader.js':'cdn/loader.js',
   'brendigo-cookieconsent.js':'packages/core/brendigo-cookieconsent.js',
@@ -87,6 +89,8 @@ const trustedSources={
   'video-embeds.js':'packages/integrations/video-embeds.js',
   'LICENSE':'LICENSE'
 };
+if(Object.keys(manifest.files).length!==Object.keys(trustedSources).length)
+  throw new Error('Unexpected CDN manifest entries');
 for(const [name,source] of Object.entries(trustedSources)){
   const listed=manifest.files[name];
   if(!listed || !/^[a-f0-9]{64}$/.test(listed.sha256))throw new Error('Missing checksum '+name);
@@ -99,6 +103,8 @@ for(const [name,source] of Object.entries(trustedSources)){
   const trustedSha=createHash('sha256').update(trusted).digest('hex');
   if(sha!==trustedSha || bytes.length!==trusted.length)
     throw new Error(name+' differs from trusted checkout');
+  const integrity='sha384-'+createHash('sha384').update(trusted).digest('base64');
+  if(listed.integrity!==integrity)throw new Error(name+' SRI differs from trusted checkout');
 }
 console.log('PASS: CDN v'+version+' is reachable with expected MIME and trusted SHA-256.');
 }

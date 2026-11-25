@@ -71,3 +71,7 @@ Za pravilno cacheiranje `/cookieconsent/v*/` koristite nepromjenjive verzioniran
 ## Nasljeđivanje noncea (v0.11.7)
 
 Ako host ima CSP i postavi valjan `nonce` na `<script src=".../loader.js" nonce="..."></script>`, loader sada prenosi isti nonce na verzionirani JavaScript i CSS koji sam dodaje. Način rada s `strict-dynamic` i `style-src` ovisi o stvarnim CSP direktivama. Nonce mora generirati hosting po HTTP odgovoru, nikada ne smije biti hardkodiran ili dijeljen među odgovorima. CDNs ne ovjeravaju samu politiku privatnosti niti dopuštenja pružatelja.
+
+## Subresource Integrity (SRI)
+
+Manifest za svaku datoteku sadržava SHA-256 i `integrity` (SHA-384 u SRI formatu). Verifikator uspoređuje oba sa sadržajem pouzdanog lokalnog checkouta. Za browser-side SRI preuzmite vrijednosti iz neovisno verificiranog release paketa i navedite `integrity` i `crossorigin="anonymous"` na izravnim JS/CSS oznakama. CDN mora dopustiti odgovarajući CORS. Ne kopirajte vrijednosti iz neprovjerenog udaljenog manifesta. SRI na samom loaderu ne štiti automatski njegove dinamički dodane resurse; potpuna zaštita loadera zahtijeva zasebno pinanje tih resursa.

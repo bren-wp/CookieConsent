@@ -28,7 +28,7 @@ const manifest = { schema: 1, version, origin: 'https://api.brendigo.com', baseP
 for (const [source, name] of entries) {
   const bytes = fs.readFileSync(path.join(root,source));
   fs.writeFileSync(path.join(target,name), bytes);
-  manifest.files[name] = {sha256:crypto.createHash('sha256').update(bytes).digest('hex'),size:bytes.length};
+  manifest.files[name] = {sha256:crypto.createHash('sha256').update(bytes).digest('hex'),integrity:'sha384-'+crypto.createHash('sha384').update(bytes).digest('base64'),size:bytes.length};
 }
 fs.writeFileSync(path.join(target,'manifest.json'), JSON.stringify(manifest,null,2)+'\n');
 console.log('CDN build prepared:',target, 'files:',Object.keys(manifest.files).join(', '));
