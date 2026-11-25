@@ -665,6 +665,38 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
           assert.deepEqual(csp,[],'script-src without unsafe-inline must not block WordPress config');
         }finally{await context.close();}
       });
+      await t.test('marked tracking image stays inert until consent and is removed on revoke',async()=>{
+        const context=await browser.newContext();
+        try{
+          const page=await context.newPage();
+          let requests=0;
+          await page.route('https://pixels.example/**',async route=>{
+            requests++;
+            await route.fulfill({contentType:'image/gif',body:Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7','base64')});
+          });
+          await page.goto(origin+'/demo/index.html');
+          await page.locator('.bcc-banner').waitFor({state:'visible'});
+          await page.evaluate(()=>{
+            const img=document.createElement('img');
+            img.id='test-consent-pixel';img.alt='';
+            img.dataset.bccCategory='marketing';
+            img.dataset.bccSrc='https://pixels.example/collect?token=PRIVATE';
+            document.body.appendChild(img);
+            BrendigoCookieConsent.refresh();
+          });
+          const img=page.locator('#test-consent-pixel');
+          assert.equal(await img.getAttribute('src'),null);
+          assert.equal(requests,0);
+          const report=await page.evaluate(()=>BrendigoCookieConsent.scanLocalResources());
+          assert.ok(report.mediaResources.some(x=>x.origin==='https://pixels.example'&&x.controlled&&!x.enabled));
+          assert.ok(!JSON.stringify(report).includes('PRIVATE'));
+          const request=page.waitForRequest('https://pixels.example/**');
+          await page.evaluate(()=>BrendigoCookieConsent.setConsent({marketing:true}));
+          await request;
+          await page.evaluate(()=>BrendigoCookieConsent.setConsent({}));
+          assert.equal(await img.getAttribute('src'),null);
+        }finally{await context.close();}
+      });
       await t.test('resource scan exposes neither query tokens nor cookie values',async()=>{
         const context=await browser.newContext();
         try{

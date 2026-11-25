@@ -597,12 +597,13 @@
         service.category === category && hasServiceConsent(serviceId);
     });
   }
-  function revokeDeniedFrames() {
-    var frames = root.document.querySelectorAll('iframe[data-bcc-category][data-bcc-src]');
-    Array.prototype.forEach.call(frames, function (frame) {
-      var serviceId = frame.getAttribute('data-bcc-service');
-      if (!resourceAllowed(frame.getAttribute('data-bcc-category'), serviceId) && frame.hasAttribute('src'))
-        frame.removeAttribute('src');
+  function controlledMedia() {
+    return root.document.querySelectorAll('iframe[data-bcc-category][data-bcc-src],img[data-bcc-category][data-bcc-src]');
+  }
+  function revokeDeniedMedia() {
+    Array.prototype.forEach.call(controlledMedia(), function (node) {
+      if (!resourceAllowed(node.getAttribute('data-bcc-category'), node.getAttribute('data-bcc-service')) &&
+          node.hasAttribute('src')) node.removeAttribute('src');
     });
   }
   function applyGatedResources() {
@@ -630,12 +631,11 @@
       source.setAttribute('data-bcc-activated', 'true');
       source.parentNode.insertBefore(script, source.nextSibling);
     });
-    var frames = doc.querySelectorAll('iframe[data-bcc-category][data-bcc-src]');
-    Array.prototype.forEach.call(frames, function (frame) {
-      var permitted = resourceAllowed(frame.getAttribute('data-bcc-category'), frame.getAttribute('data-bcc-service'));
-      var src = safeHttpUrl(frame.getAttribute('data-bcc-src'));
-      if (permitted && src && frame.getAttribute('src') !== src) frame.setAttribute('src', src);
-      if ((!permitted || !src) && frame.hasAttribute('src')) frame.removeAttribute('src');
+    Array.prototype.forEach.call(controlledMedia(), function (node) {
+      var permitted = resourceAllowed(node.getAttribute('data-bcc-category'), node.getAttribute('data-bcc-service'));
+      var src = safeHttpUrl(node.getAttribute('data-bcc-src'));
+      if (permitted && src && node.getAttribute('src') !== src) node.setAttribute('src', src);
+      if ((!permitted || !src) && node.hasAttribute('src')) node.removeAttribute('src');
     });
   }
   /**
@@ -663,7 +663,7 @@
         var category = node.getAttribute('data-bcc-category');
         result.push({
           category: category || null,
-          enabled: category ? hasConsent(category) : null,
+          enabled: category ? resourceAllowed(category, node.getAttribute('data-bcc-service')) : null,
           source: node.getAttribute('data-bcc-src') || node.getAttribute('src') || '',
           marked: !!category
         });
@@ -715,7 +715,7 @@
     serviceConsent = nextServices;
     lastDecisionAt = snapshot ? snapshot.date : null;
     stopDeniedProviders();
-    revokeDeniedFrames();
+    revokeDeniedMedia();
     clearConfiguredCookies(previous, consent, previousServices, serviceConsent);
     emit('change');
     if ((previous && CATEGORIES.some(function (category) {
@@ -791,7 +791,7 @@
     lastDecisionAt = new Date().toISOString();
     persist();
     stopDeniedProviders();
-    revokeDeniedFrames();
+    revokeDeniedMedia();
     clearConfiguredCookies(previous, consent, oldServices, serviceConsent);
     // Adapters receive the complete decision before any gated script starts.
     emit('change');
@@ -842,13 +842,13 @@
     lastDecisionAt = null;
     writeCookie(config.cookieName + '=; Path=/; Max-Age=0; SameSite=Lax' + (root.location && root.location.protocol === 'https:' ? '; Secure' : ''));
     stopDeniedProviders();
-    revokeDeniedFrames();
+    revokeDeniedMedia();
     clearConfiguredCookies(old, null, oldServices, serviceConsent);
     emit('change');
     if ((old && CATEGORIES.some(function (category) { return category !== 'necessary' && old[category]; })) ||
         Object.keys(oldServices).some(function (id) { return oldServices[id]; })) emit('revoked');
     syncProviders();
-    applyGatedResources(); // clears gated iframe src attributes
+    applyGatedResources(); // clears denied controlled media sources
     showBanner();
     closePreferences();
     notifyOtherTabs();
@@ -1161,17 +1161,33 @@
       if (typeof raw !== 'string' || !raw) return '';
       try {
         var url = new root.URL(raw, root.location && root.location.href || 'https://invalid.example/');
-        url.username = '';
-        url.password = '';
-        url.search = '';
-        url.hash = '';
-        return url.href.slice(0, 500);
-      } catch (_) { return raw.split(/[?#]/)[0].slice(0, 500); }
+        if (url.protocol !== 'https:' && url.protocol !== 'http:') return '';
+        // Paths can contain account identifiers or bearer tokens as well.
+        // Origin-only inventory deliberately excludes all URL paths.
+        return url.origin;
+      } catch (_) { return ''; }
     }
     function sanitized(items) {
       return items.map(function (entry) {
         return {category: entry.category, enabled: entry.enabled,
           source: redactUrl(entry.source), marked: entry.marked};
+      });
+    }
+    var media = [];
+    var mediaCount = 0;
+    if (root.document) {
+      var candidates = root.document.querySelectorAll('img[src],img[srcset],img[data-bcc-src],link[href],source[src],source[srcset],video[src],audio[src],object[data],embed[src]');
+      mediaCount = candidates.length;
+      Array.prototype.slice.call(candidates, 0, 200).forEach(function (node) {
+        var category = node.getAttribute('data-bcc-category');
+        var serviceId = node.getAttribute('data-bcc-service');
+        var raw = node.getAttribute('data-bcc-src') || node.getAttribute('src') ||
+          node.getAttribute('href') || node.getAttribute('data') || '';
+        var tag = String(node.tagName || '').toLowerCase();
+        var controlled = (tag === 'img') && !!category && !!node.getAttribute('data-bcc-src');
+        media.push({tag: tag, origin: redactUrl(raw), marked: !!category,
+          controlled: controlled, enabled: controlled ? resourceAllowed(category, serviceId) : null,
+          hasResponsiveSource: !!node.getAttribute('srcset')});
       });
     }
     var timing = [];
@@ -1196,7 +1212,9 @@
       visibility: 'browser-visible current document only; resource timing can omit requests; never scans HttpOnly/cross-origin storage/server-side activity',
       limitations: ['No HttpOnly cookie visibility', 'No cross-origin cookie or storage contents',
         'No server-to-server events', 'No guaranteed coverage of earlier or blocked requests',
-        'Resource timing lists URLs only, never responses or request payloads'],
+        'Resource timing lists origins only, never paths, responses or request payloads',
+        'Unclassified resources are review candidates, not evidence of tracking',
+        'Responsive image srcset, picture sources and arbitrary network APIs are not gated'],
       cookies: snapshot.cookies,
       localStorage: snapshot.localStorage,
       sessionStorage: snapshot.sessionStorage,
@@ -1204,6 +1222,7 @@
       unclassifiedScripts: sanitized(snapshot.scripts.filter(function (r) { return !r.marked; })),
       markedIframes: sanitized(snapshot.iframes.filter(function (r) { return r.marked; })),
       unclassifiedIframes: sanitized(snapshot.iframes.filter(function (r) { return !r.marked; })),
+      mediaResources: media, mediaResourceCount: mediaCount, mediaResourceTruncated: mediaCount > 200,
       resourceRequests: resources, resourceRequestCount: total, resourceRequestTruncated: total > 100
     };
   }

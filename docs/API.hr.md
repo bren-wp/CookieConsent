@@ -120,3 +120,7 @@ Od v0.11.8 `onGrant(consent, context)` prima dodatni kontekst: `context.signal` 
 ### Izolacija odluke i asinkroni opoziv
 
 Od v0.11.8 `setConsent`, `setDetailedConsent`, `reset` i `refresh` ne dopuštaju reentrantni poziv tijekom aktivne transakcije; callback koji želi pokrenuti novu odluku mora to učiniti izvan trenutačnog sinkronog poziva. Promjena privole ne može se prepisati usred emisije događaja. Asinkroni `onRevoke` zadržava pružatelja u stanju zaustavljanja do dovršetka; greška blokira ponovnu aktivaciju. Otkazivanje `onGrant` ostaje kooperativno i adapter mora poštovati signal i generaciju. Ova izolacija vrijedi unutar jedne instance preglednika; nije distribuirana transakcija između kartica ili poslužitelja.
+
+### Lokalni inventar medijskih resursa
+
+`scanLocalResources()` dodatno prikazuje do 200 DOM medijskih/link resursa uz broj i oznaku skraćivanja. Prikazuju se samo HTTP(S) origini, bez URL putanja, upita, fragmenata ili vjerodajnica. `controlled` opisuje podržano označavanje slike, ne dokaz da je integrator spriječio ranije zahtjeve. Neoznačene stavke služe za ručni pregled, ne automatsku klasifikaciju trackera. Izvještaj ostaje u pregledniku.

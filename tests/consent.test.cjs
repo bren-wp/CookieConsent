@@ -192,7 +192,7 @@ test('scanner redacts URLs and reports bounded ResourceTiming metadata only',()=
  const doc={readyState:'loading',documentElement:{lang:'en'},cookie:'session=secret',
    addEventListener(){}, querySelectorAll(selector){
      return selector.startsWith('script')?[{
-       getAttribute(key){return key==='src'?'https://analytics.example/collect?token=SECRET#frag':null;}
+       getAttribute(key){return key==='src'?'https://analytics.example/PRIVATEPATH/collect?token=SECRET#frag':null;}
      }]:[];
    }};
  const win={document:doc,location:{href:'https://example.org/',origin:'https://example.org'},
@@ -208,6 +208,8 @@ test('scanner redacts URLs and reports bounded ResourceTiming metadata only',()=
  assert.ok(!JSON.stringify(report).includes('TOPSECRET'));
  assert.ok(!JSON.stringify(report).includes('SECRET'));
  assert.ok(!JSON.stringify(report).includes('secret'));
+ assert.ok(!JSON.stringify(report).includes('PRIVATEPATH'));
+ assert.equal(report.resourceRequests[0].url,'https://cdn.example');
  assert.ok(report.limitations.some(x=>x.includes('HttpOnly')));
 });
 
