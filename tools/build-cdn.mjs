@@ -8,6 +8,7 @@ import crypto from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import {createRequire} from 'node:module';
 const require = createRequire(import.meta.url);
+const {renderLoader} = require('./render-cdn-loader.cjs');
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '..');
 const version = require(path.join(root, 'package.json')).version;
@@ -26,7 +27,7 @@ const entries = [
 ];
 const manifest = { schema: 1, version, origin: 'https://api.brendigo.com', basePath: '/cookieconsent/', files: {} };
 for (const [source, name] of entries) {
-  const bytes = fs.readFileSync(path.join(root,source));
+  const bytes = name==='loader.js' ? renderLoader(root) : fs.readFileSync(path.join(root,source));
   fs.writeFileSync(path.join(target,name), bytes);
   manifest.files[name] = {sha256:crypto.createHash('sha256').update(bytes).digest('hex'),integrity:'sha384-'+crypto.createHash('sha384').update(bytes).digest('base64'),size:bytes.length};
 }

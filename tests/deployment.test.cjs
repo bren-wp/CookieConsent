@@ -3,6 +3,7 @@ const test=require('node:test'),assert=require('node:assert/strict');
 const http=require('node:http'),fs=require('node:fs'),path=require('node:path');
 const {createHash}=require('node:crypto'),{spawn}=require('node:child_process');
 const root=path.resolve(__dirname,'..'),version=require('../package.json').version;
+const {renderLoader}=require('../tools/render-cdn-loader.cjs');
 test('deployment verifier validates reachable files and checksum manifest on local HTTP',async()=>{
  const files={};
  for(const [name,source] of [
@@ -12,7 +13,7 @@ test('deployment verifier validates reachable files and checksum manifest on loc
   ['google-consent-basic.js','packages/integrations/google-consent-basic.js'],
   ['video-embeds.js','packages/integrations/video-embeds.js'],
   ['LICENSE','LICENSE']
- ])files[name]=fs.readFileSync(path.join(root,source));
+ ])files[name]=name==='loader.js'?renderLoader(root):fs.readFileSync(path.join(root,source));
  const manifest={schema:1,version,origin:'http://127.0.0.1',files:{}};
  for(const [name,body] of Object.entries(files))manifest.files[name]={
   size:body.length,sha256:createHash('sha256').update(body).digest('hex'),

@@ -8,6 +8,8 @@
 import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
+import {createRequire} from 'node:module';
+const {renderLoader}=createRequire(import.meta.url)('./render-cdn-loader.cjs');
 import path from 'node:path';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
@@ -99,7 +101,7 @@ for(const [name,source] of Object.entries(trustedSources)){
   if(bytes.length!==listed.size)throw new Error(name+' size differs from manifest');
   const sha=createHash('sha256').update(bytes).digest('hex');
   if(sha!==listed.sha256)throw new Error(name+' checksum differs from manifest');
-  const trusted=readFileSync(path.join(root,source));
+  const trusted=name==='loader.js'?renderLoader(root):readFileSync(path.join(root,source));
   const trustedSha=createHash('sha256').update(trusted).digest('hex');
   if(sha!==trustedSha || bytes.length!==trusted.length)
     throw new Error(name+' differs from trusted checkout');

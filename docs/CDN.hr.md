@@ -75,3 +75,13 @@ Ako host ima CSP i postavi valjan `nonce` na `<script src=".../loader.js" nonce=
 ## Subresource Integrity (SRI)
 
 Manifest za svaku datoteku sadržava SHA-256 i `integrity` (SHA-384 u SRI formatu). Verifikator uspoređuje oba sa sadržajem pouzdanog lokalnog checkouta. Za browser-side SRI preuzmite vrijednosti iz neovisno verificiranog release paketa i navedite `integrity` i `crossorigin="anonymous"` na izravnim JS/CSS oznakama. CDN mora dopustiti odgovarajući CORS. Ne kopirajte vrijednosti iz neprovjerenog udaljenog manifesta. SRI na samom loaderu ne štiti automatski njegove dinamički dodane resurse; potpuna zaštita loadera zahtijeva zasebno pinanje tih resursa.
+
+## Siguran lokalni bootstrap i automatski fallback (v0.11.8)
+
+Iz verificiranog CDN ZIP-a kopirajte `loader.js`, JS i CSS jezgru iste verzije na vlastiti origin (npr. `/assets/cookieconsent/`). Ugradite lokalni bootstrap:
+
+~~~html
+<script defer src="/assets/cookieconsent/loader.js" data-bcc-cdn="true"></script>
+~~~
+
+Bootstrap uključuje release-pinned SHA-384 vrijednosti i traži CDN CSS prije JS-a; pri mrežnoj ili SRI grešci pokušava lokalne datoteke iste verzije. `data-bcc-fallback` može navesti drugi same-origin direktorij s završnom kosom crtom. Cross-origin fallback nije dopušten. Ako oba pokušaja ne uspiju, objavljuje `brendigo:loaderstate` sa stanjem `unavailable`, ne aktivira neobvezne resurse. Web mora sve neobvezne resurse prethodno držati inertnima neovisno o dostupnosti bannera. Za sam udaljeni loader također pinajte njegov SRI na host-stranici; kopiranje verificiranog loadera na vlastiti origin preporučeni je način rada. Nema agresivnog timeout retryja izvršnog koda zbog rizika kasnog izvršavanja. Izvor `cdn/loader.js` je build predložak i bez generiranih pinova namjerno ne radi.

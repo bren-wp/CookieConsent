@@ -49,19 +49,58 @@ test('GPC keeps Google marketing signals denied even when a client requests mark
   assert.equal(state.ad_user_data,'denied');
 });
 
-test('CDN loader resolves only assets in its versioned own directory', () => {
-  const tags=[];
-  const doc={
-    currentScript:{src:'https://cookie.brendigo.com/v0.8.1/loader.js'},
-    head:{appendChild(tag){tags.push(tag);}},
-    createElement(tagName){return {tagName,addEventListener(){}};}
-  };
-  vm.runInNewContext(fs.readFileSync(path.join(root,'cdn/loader.js'),'utf8'),{
-    document:doc, URL,window:{console}
-  });
-  assert.equal(tags.length,2);
-  assert.equal(tags[0].href,'https://cookie.brendigo.com/v0.8.1/brendigo-cookieconsent.css');
-  assert.equal(tags[1].src,'https://cookie.brendigo.com/v0.8.1/brendigo-cookieconsent.js');
+const {renderLoader}=require('../tools/render-cdn-loader.cjs');
+function loaderFixture(attrs={},src='https://example.org/assets/loader.js'){
+  const nodes=[],events=[];
+  const win={location:{href:'https://example.org/page'},console,
+    CustomEvent:function(type,init){this.type=type;this.detail=init.detail;},
+    dispatchEvent(event){events.push(event.detail.state);}};
+  const doc={currentScript:{src,nonce:'page-nonce',getAttribute(k){return attrs[k]||null;}},
+    head:{appendChild(node){nodes.push(node);}},
+    createElement(type){return {type,handlers:{},addEventListener(k,f){this.handlers[k]=f;},
+      remove(){this.removed=true;},fire(k){this.handlers[k]();}};}};
+  const run=()=>vm.runInNewContext(renderLoader(root).toString(),{document:doc,window:win,URL});
+  run();
+  return {nodes,events,win,run};
+}
+test('CDN loader pins both resources, waits for CSS and rejects duplicate startup',()=>{
+  const f=loaderFixture({'data-bcc-cdn':'true'});
+  assert.equal(f.nodes.length,1);
+  assert.match(f.nodes[0].href,/^https:\/\/api\.brendigo\.com\/cookieconsent\/v/);
+  f.run();assert.equal(f.nodes.length,1);
+  f.nodes[0].fire('load');
+  assert.equal(f.nodes.length,2);
+  for(const n of f.nodes){
+    assert.match(n.integrity,/^sha384-[A-Za-z0-9+/]{64}$/);
+    assert.equal(n.nonce,'page-nonce');
+    assert.equal(n.crossOrigin,'anonymous');
+    assert.equal(n.referrerPolicy,'no-referrer');
+  }
+  f.win.BrendigoCookieConsent={};
+  f.nodes[1].fire('load');
+  assert.deepEqual(f.events,['ready']);
+});
+test('CDN script failure uses equally pinned same-origin fallback exactly once',()=>{
+  const f=loaderFixture({'data-bcc-cdn':'true'});
+  f.nodes[0].fire('load');f.nodes[1].fire('error');
+  assert.equal(f.nodes[0].removed,true);
+  assert.equal(f.nodes[2].href,'https://example.org/assets/brendigo-cookieconsent.css');
+  assert.equal(f.nodes[2].integrity,f.nodes[0].integrity);
+  f.nodes[2].fire('load');
+  assert.equal(f.nodes[3].integrity,f.nodes[1].integrity);
+  f.nodes[3].fire('error');
+  assert.deepEqual(f.events,['unavailable']);
+  assert.equal(f.nodes.length,4);
+});
+test('remote loader refuses an unrelated origin and untrusted fallback',()=>{
+  const bad=loaderFixture({},'https://untrusted.example/loader.js');
+  assert.equal(bad.nodes.length,0);
+  const version=require('../package.json').version;
+  const f=loaderFixture({'data-bcc-fallback':'https://untrusted.example/'},
+    'https://api.brendigo.com/cookieconsent/v'+version+'/loader.js');
+  f.nodes[0].fire('error');
+  assert.deepEqual(f.events,['unavailable']);
+  assert.equal(f.nodes.length,1);
 });
 
 test('all nine supported banner positions have a CSS rule', () => {
@@ -135,24 +174,6 @@ test('provider lifecycle rejects invalid registration and duplicate IDs', () => 
   assert.throws(()=>cc.registerProvider({id:'provider-1',category:'analytics'}), /Invalid or duplicate CookieConsent provider/);
 });
 
-test('CDN loader propagates explicit CSP nonce and request credentials policy to local assets',()=>{
-  const nodes=[];
-  const doc={
-    currentScript:{src:'https://cookie.brendigo.com/v0.11.5/loader.js',
-      nonce:'nonce-from-page',crossOrigin:'anonymous',referrerPolicy:'no-referrer'},
-    head:{appendChild(n){nodes.push(n);}},
-    createElement(type){return {type,addEventListener(){}};}
-  };
-  vm.runInNewContext(fs.readFileSync(path.join(root,'cdn/loader.js'),'utf8'),{
-    document:doc,URL,window:{console}
-  });
-  assert.equal(nodes.length,2);
-  for(const node of nodes){
-    assert.equal(node.nonce,'nonce-from-page');
-    assert.equal(node.crossOrigin,'anonymous');
-    assert.equal(node.referrerPolicy,'no-referrer');
-  }
-});
 test('WordPress external config reader uses inert JSON without evaluating input',()=>{
   const queries=[];
   const win={BCC_SITE_CONFIG:null,document:{querySelector(selector){
