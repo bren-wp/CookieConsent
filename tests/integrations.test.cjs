@@ -50,7 +50,7 @@ test('GPC keeps Google marketing signals denied even when a client requests mark
 });
 
 const {renderLoader}=require('../tools/render-cdn-loader.cjs');
-function loaderFixture(attrs={},src='https://example.org/assets/loader.js'){
+function loaderFixture(attrs={},src='https://example.org/assets/loader.js',code=renderLoader(root).toString()){
   const nodes=[],events=[];
   const win={location:{href:'https://example.org/page'},console,
     CustomEvent:function(type,init){this.type=type;this.detail=init.detail;},
@@ -59,7 +59,7 @@ function loaderFixture(attrs={},src='https://example.org/assets/loader.js'){
     head:{appendChild(node){nodes.push(node);}},
     createElement(type){return {type,handlers:{},addEventListener(k,f){this.handlers[k]=f;},
       remove(){this.removed=true;},fire(k){this.handlers[k]();}};}};
-  const run=()=>vm.runInNewContext(renderLoader(root).toString(),{document:doc,window:win,URL});
+  const run=()=>vm.runInNewContext(code,{document:doc,window:win,URL});
   run();
   return {nodes,events,win,run};
 }
@@ -274,4 +274,19 @@ test('failed asynchronous teardown blocks future activation',async()=>{
  cc.setConsent({analytics:true});cc.setConsent({analytics:false});cc.setConsent({analytics:true});
  await new Promise(resolve=>setImmediate(resolve));
  cc.setConsent({analytics:false});cc.setConsent({analytics:true});assert.equal(grants,1);
+});
+
+test('WordPress bootstrap accepts trusted local tag pins only on its own origin',()=>{
+ const code=fs.readFileSync(path.join(root,'wordpress/brendigo-cookieconsent/assets/wp-cdn-loader.js'),'utf8');
+ const {createHash}=require('node:crypto');
+ const pin=ext=>'sha384-'+createHash('sha384').update(fs.readFileSync(path.join(root,'packages/core/brendigo-cookieconsent.'+ext))).digest('base64');
+ const attrs={'data-bcc-cdn':'true','data-bcc-css-integrity':pin('css'),'data-bcc-js-integrity':pin('js')};
+ const src='https://example.org/assets/wp-cdn-loader.js?ver='+require('../package.json').version;
+ const f=loaderFixture(attrs,src,code);
+ assert.equal(f.nodes[0].integrity,pin('css'));
+ f.nodes[0].fire('error');assert.equal(f.nodes[1].href,'https://example.org/assets/brendigo-cookieconsent.css');
+ f.nodes[1].fire('load');assert.equal(f.nodes[2].integrity,pin('js'));
+ assert.equal(loaderFixture({'data-bcc-cdn':'true'},src,code).nodes.length,0);
+ const remote='https://api.brendigo.com/cookieconsent/v'+require('../package.json').version+'/loader.js';
+ assert.equal(loaderFixture(attrs,remote,code).nodes.length,0);
 });

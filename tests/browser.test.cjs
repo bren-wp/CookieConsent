@@ -49,7 +49,9 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
         const asset= name=>fs.readFileSync(path.join(repoRoot,'packages/core',name));
         const css='brendigo-cookieconsent.css',js='brendigo-cookieconsent.js';
         const cdn='https://api.brendigo.com/cookieconsent/v'+version+'/';
-        for(const mode of ['valid','tampered','offline']){
+        const {createHash}=require('node:crypto');
+        const pin=name=>'sha384-'+createHash('sha384').update(asset(name)).digest('base64');
+        for(const mode of ['valid','tampered','offline','wordpress']){
           const context=await browser.newContext();
           try{
             const page=await context.newPage();
@@ -57,9 +59,11 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
             await page.route(origin+'/bcc-sri/**',async route=>{
               const name=new URL(route.request().url()).pathname.split('/').pop();
               if(name==='index.html')return route.fulfill({contentType:'text/html',body:
-                '<!doctype html><html lang="en"><head><script defer src="./loader.js" data-bcc-cdn="true"></script></head><body>'+
+                '<!doctype html><html lang="en"><head><script>window.BCC_SITE_CONFIG={language:"en"}</script><script defer src="./loader.js" data-bcc-cdn="true"'+
+                (mode==='wordpress'?' data-bcc-css-integrity="'+pin(css)+'" data-bcc-js-integrity="'+pin(js)+'"':'')+
+                '></script></head><body>'+
                 '<script type="text/plain" data-bcc-category="analytics">window.optionalExecuted=true;</script></body></html>'});
-              if(name==='loader.js')return route.fulfill({contentType:'text/javascript',body:renderLoader(repoRoot)});
+              if(name==='loader.js')return route.fulfill({contentType:'text/javascript',body:mode==='wordpress'?fs.readFileSync(path.join(repoRoot,'wordpress/brendigo-cookieconsent/assets/wp-cdn-loader.js')):renderLoader(repoRoot)});
               if(name===css||name===js){
                 if(mode==='offline')return route.abort();
                 if(name===js)localJS++;
@@ -68,7 +72,7 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
               return route.abort();
             });
             await page.route(cdn+'**',async route=>{
-              if(mode==='offline')return route.abort();
+              if(mode==='offline'||mode==='wordpress')return route.abort();
               const name=new URL(route.request().url()).pathname.split('/').pop();
               if(name!==css&&name!==js)return route.abort();
               return route.fulfill({contentType:name===css?'text/css':'text/javascript',
@@ -79,7 +83,8 @@ test('real Chromium smoke tests: consent, persistence, resources, keyboard and s
             await page.waitForFunction(state=>window.__bccLoaderState===state,mode==='offline'?'unavailable':'ready');
             assert.equal(await page.evaluate(()=>Boolean(window.tamperedExecuted||window.optionalExecuted)),false);
             assert.equal(await page.evaluate(()=>Boolean(window.BrendigoCookieConsent)),mode!=='offline');
-            assert.equal(localJS,mode==='tampered'?1:0);
+            assert.equal(localJS,mode==='tampered'||mode==='wordpress'?1:0);
+            if(mode!=='offline')await page.locator('.bcc-banner').waitFor({state:'visible'});
           }finally{await context.close();}
         }
       });

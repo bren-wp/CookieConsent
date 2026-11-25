@@ -2,6 +2,9 @@
 
 ## 0.11.8 — Unreleased
 
+- Deliver WordPress CDN core via first-party pinned bootstrap and local fallback; keep adapters local.
+- Correct optional credit configuration in the local-only WordPress.org candidate.
+
 - Isolate consent transactions and wait for asynchronous provider teardown before restarting.
 - Add optional server-side Ed25519 receipt attestation primitive and tamper tests.
 - Verify all eleven ZIP distributions before merge and publish checksum reports.

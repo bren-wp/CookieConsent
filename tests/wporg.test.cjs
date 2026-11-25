@@ -17,6 +17,7 @@ test('directory candidate uses bundled assets and opt-in credit',()=>{
   assert.ok(!fs.existsSync(path.join(dir,'assets/wp-cdn-loader.js')));
   assert.ok(!php.includes("asset_source' => in_array"));
   assert.match(js,/config && config\.showBranding === true/);
+  assert.match(js,/showBranding: options\.showBranding === true/);
   assert.match(readme,/off by default/);
   assert.ok(fs.existsSync(path.join(dir,'assets/admin-preview.js')));
   assert.ok(fs.existsSync(path.join(dir,'assets/wp-config.js')));

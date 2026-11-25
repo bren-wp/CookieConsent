@@ -60,7 +60,10 @@ edit(path.join(dest,'brendigo-cookieconsent.php'),original=>{
 edit(path.join(dest,'assets/brendigo-cookieconsent.js'),source=>{
   const count=(source.match(/\bbranding\(footer,\s*t\);/g)||[]).length;
   if(count!==2)throw Error('Unexpected attribution call count: '+count);
-  return source.replace(/\bbranding\(footer,\s*t\);/g,
+  const configMarker = '      translations: options.translations || null,';
+  if(!source.includes(configMarker))throw Error('Missing core configuration marker');
+  return source.replace(configMarker, configMarker+'\n      showBranding: options.showBranding === true,')
+    .replace(/\bbranding\(footer,\s*t\);/g,
     'if (config && config.showBranding === true) branding(footer, t);');
 });
 edit(path.join(dest,'readme.txt'),source=>source

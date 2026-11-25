@@ -165,9 +165,14 @@ jobs:
           cp -R dist/wporg/brendigo-cookieconsent "$RUNNER_TEMP/wordpress/wp-content/plugins/"
           php "$RUNNER_TEMP/bin/wp" --path="$RUNNER_TEMP/wordpress" plugin activate brendigo-cookieconsent --allow-root
           php "$RUNNER_TEMP/bin/wp" --path="$RUNNER_TEMP/wordpress" plugin install plugin-check --activate --allow-root
+          check_status=0
           php "$RUNNER_TEMP/bin/wp" --path="$RUNNER_TEMP/wordpress" plugin check brendigo-cookieconsent \
-            --format=table --allow-root > "$RUNNER_TEMP/plugin-check.txt" 2>&1 || true
+            --format=table --allow-root > "$RUNNER_TEMP/plugin-check.txt" 2>&1 || check_status=$?
           cat "$RUNNER_TEMP/plugin-check.txt"
+          if [ "$check_status" -ne 0 ]; then
+            echo "WordPress Plugin Check failed with exit status $check_status"
+            exit "$check_status"
+          fi
           if grep -Eq '(^|[[:space:]])ERROR([[:space:]]|$)' "$RUNNER_TEMP/plugin-check.txt"; then
             echo "WordPress Plugin Check found blocking errors"
             exit 1
