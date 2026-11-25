@@ -25,6 +25,7 @@ edit(path.join(dest,'brendigo-cookieconsent.php'),original=>{
     php=php.replace(from,to);
   }
   replace(' * Update URI: https://cookie.brendigo.com\n','', 'Update URI');
+  replace("require_once __DIR__ . '/includes/ledger-client.php';", '', 'exclude private remote ledger bridge');
   replace("        'google_basic' => 0,",
     "        'google_basic' => 0,\n        'show_branding' => 0,", 'default credit');
   replace("        'google_basic' => empty($input['google_basic']) ? 0 : 1,",
@@ -76,4 +77,6 @@ edit(path.join(dest,'readme.txt'),source=>source
  .replace('Yes. Local delivery is the default and has no required external runtime libraries.',
    'Yes. All assets are served locally without external runtime libraries.'));
 fs.rmSync(path.join(dest,'assets/wp-cdn-loader.js'));
+fs.rmSync(path.join(dest,'includes/ledger-client.php'));
+fs.rmdirSync(path.join(dest,'includes'));
 console.log('Prepared WordPress.org submission candidate at dist/wporg/brendigo-cookieconsent');

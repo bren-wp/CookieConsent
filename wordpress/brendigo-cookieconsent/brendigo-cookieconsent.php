@@ -21,6 +21,8 @@ defined('ABSPATH') || exit;
 const VERSION = '0.11.8';
 const OPTION = 'brendigo_cookieconsent_options';
 
+require_once __DIR__ . '/includes/ledger-client.php';
+
 function defaults(): array {
     return [
         'language' => 'auto',

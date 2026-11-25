@@ -114,3 +114,7 @@ Ilustrativni WordPress pregled ima gumbe Desktop / Mobitel 390 px / Mobitel 320 
 ## Integritet i fallback WordPress resursa (v0.11.8)
 
 GitHub distribucija u CDN načinu učitava lokalni bootstrap s pouzdanim SHA-384 pinovima za JS i CSS. Bootstrap pokušava verzionirani API CDN i nakon mrežne ili SRI greške učitava identične lokalne datoteke. Google Basic adapter i video adapter ostaju lokalni radi sigurnog redoslijeda inicijalizacije. Nema inline izvršnog koda. CDN mora podržavati anonimni CORS. U slučaju nedostupnosti oba izvora, neobvezne resurse treba držati inertnima; bootstrap ne može blokirati proizvoljne vanjske trackere. WordPress.org kandidat izostavlja CDN bootstrap i koristi isključivo lokalnu jezgru. WordPress CDN način zahtijeva da lokalni plugin resursi dolaze s istog origina kao stranica.
+
+## Opcionalni privatni consent ledger
+
+GitHub izdanje sadrži serverski konektor, isključen bez konfiguracijskih konstanti. Ne postoji automatsko slanje odluka iz bannera. Vidjeti [Consent Ledger](CONSENT-LEDGER-DESIGN.hr.md). WordPress.org izdanje ne uključuje udaljeni konektor.

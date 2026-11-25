@@ -82,3 +82,9 @@ if (class_exists('WooCommerce')) {
         'WooCommerce catalog');
 }
 fwrite(STDOUT,"PASS real WP version ".get_bloginfo('version')."\n");
+
+bcc_live_verify(function_exists('Brendigo\\CookieConsent\\record_ledger_event'),
+    'optional private ledger connector available');
+$disabled_ledger = \Brendigo\CookieConsent\record_ledger_event([]);
+bcc_live_verify(is_wp_error($disabled_ledger) && $disabled_ledger->get_error_code() === 'bcc_ledger_disabled',
+    'ledger is disabled by default and does not send any request');
