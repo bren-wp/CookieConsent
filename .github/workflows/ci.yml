@@ -42,7 +42,8 @@ jobs:
 
   browser:
     name: Browser E2E (${{ matrix.browser }})
-    runs-on: ubuntu-latest
+    # Playwright 1.56.1 does not support Ubuntu 26.04.
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     strategy:
       fail-fast: false
@@ -91,7 +92,8 @@ jobs:
 
   wordpress-integration:
     name: Real WordPress ${{ matrix.wordpress }} smoke
-    runs-on: ubuntu-latest
+    # The WooCommerce browser acceptance uses the same pinned Playwright.
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
       fail-fast: false

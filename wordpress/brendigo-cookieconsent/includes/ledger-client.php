@@ -98,7 +98,7 @@ function ledger_route_permission(\WP_REST_Request $request) {
     $expected = $site['scheme'] . '://' . $site['host'] .
         (isset($site['port']) ? ':' . $site['port'] : '');
     // Browser fetches must originate from the configured public site origin.
-    if ($origin !== '' && $origin !== $expected) {
+    if (is_string($origin) && $origin !== '' && $origin !== $expected) {
         return new \WP_Error('bcc_ledger_origin', 'Invalid origin.', ['status'=>403]);
     }
     return true;

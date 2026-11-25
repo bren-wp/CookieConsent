@@ -241,7 +241,7 @@
       }));
   }
   function getServiceConsent() {
-    return normalizeServiceChoices(getConsent(), serviceConsent, true);
+    return Object.assign({}, normalizeServiceChoices(getConsent(), serviceConsent, true));
   }
   function safeHttpUrl(raw) {
     if (!raw || !root.URL || !root.location) return null;

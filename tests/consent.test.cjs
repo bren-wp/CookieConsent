@@ -267,7 +267,7 @@ test('tracker hints use exact hostname boundaries and are advisory',()=>{
 });
 test('IndexedDB discovery is read-only metadata and excludes database names',async()=>{
  const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
- const win={indexedDB:{databases:async()=>[{name:'secret-account',version:1}],open(){throw Error('must not open');}},URL};
+ const win={document:{},indexedDB:{databases:async()=>[{name:'secret-account',version:1}],open(){throw Error('must not open');}},URL};
  vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../packages/core/brendigo-cookieconsent.js'),'utf8'),{window:win,globalThis:win});
  const result=await win.BrendigoCookieConsent.discoverIndexedDB();
  assert.equal(result.status,'available');assert.equal(result.count,1);
