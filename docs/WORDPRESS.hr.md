@@ -110,3 +110,7 @@ Ilustrativni WordPress pregled ima gumbe Desktop / Mobitel 390 px / Mobitel 320 
 
 
 **Mobilna širina u previewu:** WP ilustrativni uređaj sada uvažava postotak `mobile_width` između 82 % i 100 % (i maksimalne rubove) bez mijenjanja produkcijske CSS jezgre. Nevrijedni brojevi u previewu vraćaju se na 100 %; PHP validacija potvrđuje spremljenu vrijednost pri spremanju.
+
+## Integritet udaljenih WordPress resursa (v0.11.8)
+
+GitHub distribucija u CDN načinu dodaje SHA-384 SRI na službene JS/CSS oznake, uključujući Google Basic i video adapter. Vrijednosti dolaze iz lokalnih datoteka iste verzije, a ne udaljenog manifesta. Neočekivani URL ili nedostupan lokalni izvor za hash blokira udaljenu oznaku. CDN mora ispravno podržavati anonimni CORS. WordPress.org kandidat i dalje koristi lokalne datoteke. Automatski fallback WordPress enqueued resursa nije uključen; kod nedostupnog CDN-a koristite lokalni način, a neobvezne resurse držite inertnima. Izbjegavajte optimizatore koji uklanjaju integrity atribute.

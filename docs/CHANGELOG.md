@@ -2,6 +2,9 @@
 
 ## 0.11.8 — Unreleased
 
+- Add cancellable provider generations, stale unregister protection, revoke-before-grant ordering and protected first-party cookie cleanup.
+- Pin WordPress CDN script and stylesheet tags to bundled release bytes.
+
 - Generate browser-side SHA-384 pins from trusted core assets; add same-origin fallback and browser SRI regression scenarios.
 
 - Split website and CDN deployment verification.

@@ -764,12 +764,50 @@ add_action('wp_head', __NAMESPACE__ . '\\frontend_config_meta', 8);
 
 
 /**
+ * Pin official CDN assets to the corresponding bundled, trusted release bytes.
+ * A missing or unreadable local file must not cause an unpinned remote load.
+ */
+function pin_cdn_asset(string $tag, string $handle, string $url, string $element): string {
+    $files = [
+        'brendigo-cookieconsent' => $element === 'link' ? 'brendigo-cookieconsent.css' : 'brendigo-cookieconsent.js',
+        'brendigo-cookieconsent-google-basic' => 'google-consent-basic.js',
+        'brendigo-cookieconsent-video' => 'video-embeds.js',
+    ];
+    if (!isset($files[$handle]) || ($element === 'link' && $handle !== 'brendigo-cookieconsent') ||
+        options()['asset_source'] !== 'cdn') return $tag;
+    $expected = 'https://api.brendigo.com/cookieconsent/v' . VERSION . '/' . $files[$handle];
+    if (explode('?', $url, 2)[0] !== $expected || !class_exists('WP_HTML_Tag_Processor')) return '';
+    $processor = new \\WP_HTML_Tag_Processor($tag);
+    if (!$processor->next_tag($element)) return '';
+    $attribute = $element === 'link' ? 'href' : 'src';
+    $actual = $processor->get_attribute($attribute);
+    if (!is_string($actual) || explode('?', $actual, 2)[0] !== $expected) return '';
+    $file = __DIR__ . '/assets/' . $files[$handle];
+    if (!is_readable($file)) return '';
+    $digest = hash_file('sha384', $file, true);
+    if ($digest === false) return '';
+    $processor->set_attribute('integrity', 'sha384-' . base64_encode($digest));
+    $processor->set_attribute('crossorigin', 'anonymous');
+    $processor->set_attribute('referrerpolicy', 'no-referrer');
+    return $processor->get_updated_html();
+}
+function pin_cdn_script(string $tag, string $handle, string $src): string {
+    return pin_cdn_asset($tag, $handle, $src, 'script');
+}
+function pin_cdn_style(string $tag, string $handle, string $href): string {
+    return pin_cdn_asset($tag, $handle, $href, 'link');
+}
+add_filter('script_loader_tag', __NAMESPACE__ . '\\pin_cdn_script', PHP_INT_MAX, 3);
+add_filter('style_loader_tag', __NAMESPACE__ . '\\pin_cdn_style', PHP_INT_MAX, 3);
+
+/**
  * Change *selected* WP enqueued script tags into inert scripts.
  * Inline snippets, other tags and third-party plugin behavior need separate review.
  */
 function gate_enqueued_script(string $tag, string $handle, string $src): string {
     if ($handle === 'brendigo-cookieconsent' ||
         $handle === 'brendigo-cookieconsent-google-basic' ||
+        $handle === 'brendigo-cookieconsent-wp-config' ||
         $handle === 'brendigo-cookieconsent-video' ||
         protected_woocommerce_script($handle)) return $tag;
     $raw = options()['blocked_handles'];
