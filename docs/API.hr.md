@@ -124,3 +124,11 @@ Od v0.11.8 `setConsent`, `setDetailedConsent`, `reset` i `refresh` ne dopuštaju
 ### Lokalni inventar medijskih resursa
 
 `scanLocalResources()` dodatno prikazuje do 200 DOM medijskih/link resursa uz broj i oznaku skraćivanja. Prikazuju se samo HTTP(S) origini, bez URL putanja, upita, fragmenata ili vjerodajnica. `controlled` opisuje podržano označavanje slike, ne dokaz da je integrator spriječio ranije zahtjeve. Neoznačene stavke služe za ručni pregled, ne automatsku klasifikaciju trackera. Izvještaj ostaje u pregledniku.
+
+### Dodatne lokalne dijagnostičke metode
+
+`getPrivacySignals()` vraća browser GPC signal i učinkovitu marketinšku dozvolu. `refresh()` ponovno provjerava signal; naknadno aktiviranje GPC-a može opozvati marketing bez stvaranja nove korisničke odluke. Uklanjanje signala nije samo po sebi nova privola. Operator mora posebno provesti server-side `Sec-GPC` i opt-out prodaje/dijeljenja podataka.
+
+`discoverIndexedDB()` je izričit asinkroni poziv koji vraća samo status i broj dostupnih baza trenutnog origina. Ne otvara baze, ne čita zapise, ne vraća nazive i ništa ne šalje. Podrška ovisi o pregledniku.
+
+`scanLocalResources()` uključuje lokalne indikacije poznatih hostova; svaka klasifikacija ima `reviewRequired: true`. Hostname nije dokaz namjene, a nepoznat hostname nije dokaz odsutnosti praćenja.

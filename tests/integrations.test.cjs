@@ -336,3 +336,18 @@ test('resource category must match declared granular service',()=>{
  const cc=w.BrendigoCookieConsent;cc.init({services:[{id:'stats',category:'analytics',name:'Stats',toggleable:true}]});
  cc.setConsent({analytics:true,preferences:true});assert.deepEqual(activated,['stats:analytics']);
 });
+
+test('new GPC signal revokes marketing without fabricating a user decision or regranting on signal removal',()=>{
+ const doc={readyState:'loading',documentElement:{lang:'en'},cookie:'',addEventListener(){},querySelectorAll(){return []}};
+ const w={document:doc,navigator:{globalPrivacyControl:false},location:{protocol:'https:',href:'https://example.org/'},URL,AbortController,console};
+ vm.runInNewContext(fs.readFileSync(path.join(root,'packages/core/brendigo-cookieconsent.js'),'utf8'),{window:w,globalThis:w});
+ const cc=w.BrendigoCookieConsent;let decisions=0,revokes=0;
+ cc.init({onDecision(){decisions++;}});
+ cc.registerProvider({id:'ads',category:'marketing',onRevoke(){revokes++;}});
+ cc.setConsent({marketing:true});const date=cc.getConsentReceipt().decidedAt;
+ w.navigator.globalPrivacyControl=true;assert.equal(cc.hasConsent('marketing'),false);
+ cc.refresh();assert.equal(revokes,1);assert.equal(decisions,1);
+ assert.equal(cc.getConsentReceipt().decidedAt,date);
+ assert.equal(cc.getPrivacySignals().globalPrivacyControl,true);
+ w.navigator.globalPrivacyControl=false;cc.refresh();assert.equal(cc.hasConsent('marketing'),false);
+});

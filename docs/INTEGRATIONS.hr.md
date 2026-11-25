@@ -102,3 +102,7 @@ Prilagodite kategoriju stvarnoj svrsi i ponašanju pružatelja; `preferences` je
 ~~~
 
 Ne postavljajte `src`, `srcset`, `picture/source` ili CSS URL prije privole. Jezgra aktivira samo označeni `src` nakon odgovarajuće kategorijske i servisne privole, te ga uklanja pri opozivu. Već poslani zahtjevi ne mogu se poništiti. Za dinamičke elemente pozovite `refresh()`. Ne postoji generičko presretanje mrežnih zahtjeva ili kontrola proizvoljnih piksela koje učitava tuđi kod.
+
+## Opcionalni nadzor dinamičkih inertnih elemenata
+
+Konfiguracija `observeDynamicResources: true` uključuje lokalni MutationObserver nakon montiranja bannera. Promjene inertnih oznaka i dodavanje označenih skripti/slika/iframeova grupiraju se u mikro-task provjeru. Standardni aktivni `src` ili `srcset` koji je već pokrenuo zahtjev nije moguće retroaktivno blokirati; označavanje mora biti ispravno prije umetanja. Zadana vrijednost je false radi kompatibilnosti i performansi; ručni `refresh()` ostaje podržan.

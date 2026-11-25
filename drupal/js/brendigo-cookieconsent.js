@@ -188,6 +188,9 @@
   var providers = Object.create(null);
   var providerStates = Object.create(null);
   var transitionActive = false;
+  var dynamicObserver = null;
+  var dynamicRefreshPending = false;
+  var lastGpcSignal = false;
   // Public mutations are synchronous and non-reentrant. A callback cannot
   // overwrite a decision halfway through persistence, notification or gating.
   function withTransition(operation) {
@@ -232,7 +235,10 @@
     return output;
   }
   function hasServiceConsent(id) {
-    return typeof id === 'string' && serviceConsent[id] === true;
+    return typeof id === 'string' && serviceConsent[id] === true &&
+      !(isGpc() && config && config.services.some(function (service) {
+        return service.id === id && service.category === 'marketing';
+      }));
   }
   function getServiceConsent() {
     return Object.assign({}, serviceConsent);
@@ -441,7 +447,12 @@
       if (value !== null) return null;
       value = part.slice(name.length);
     }
-    return decodeSavedRecord(value, config.revision, isGpc(), config.consentDays);
+    var snapshot = decodeSavedRecord(value, config.revision, false, config.consentDays);
+    if (snapshot && isGpc() && snapshot.categories.marketing) {
+      snapshot.categories.marketing = false;
+      snapshot.gpcSuppressed = true;
+    }
+    return snapshot;
   }
   function persist() {
     var maxAge = Math.max(1, Math.min(365, Number(config.consentDays) || 180)) * 86400;
@@ -587,7 +598,8 @@
     }
   }
   function hasConsent(category) {
-    return CATEGORIES.indexOf(category) !== -1 && (category === 'necessary' || !!(consent && consent[category]));
+    return CATEGORIES.indexOf(category) !== -1 && (category === 'necessary' ||
+      (!(category === 'marketing' && isGpc()) && !!(consent && consent[category])));
   }
   function resourceAllowed(category, serviceId) {
     if (!hasConsent(category)) return false;
@@ -643,6 +655,32 @@
    * cross-origin cookies/storage, server-to-server calls and dynamically generated
    * requests cannot be discovered. Never transmits this information externally.
    */
+  function observeDynamicResources() {
+    if (!config.observeDynamicResources || dynamicObserver ||
+        typeof root.MutationObserver !== 'function' || !root.document.documentElement) return;
+    var selector = 'script[type="text/plain"][data-bcc-category],iframe[data-bcc-category][data-bcc-src],img[data-bcc-category][data-bcc-src]';
+    function relevant(node) {
+      return node && node.nodeType === 1 &&
+        ((typeof node.matches === 'function' && node.matches(selector)) ||
+         (typeof node.querySelector === 'function' && node.querySelector(selector)));
+    }
+    dynamicObserver = new root.MutationObserver(function (records) {
+      if (dynamicRefreshPending || !records.some(function (record) {
+        return record.type === 'attributes' ? relevant(record.target) :
+          Array.prototype.some.call(record.addedNodes || [], relevant);
+      })) return;
+      dynamicRefreshPending = true;
+      Promise.resolve().then(function () {
+        dynamicRefreshPending = false;
+        if (!transitionActive) refreshResources();
+      });
+    });
+    // Observe only inert markers, not src or our own activation attribute.
+    dynamicObserver.observe(root.document.documentElement, {
+      childList: true, subtree: true, attributes: true,
+      attributeFilter: ['data-bcc-category','data-bcc-service','data-bcc-src','type']
+    });
+  }
   function auditLocal() {
     if (!root.document) return { cookies: [], localStorage: [], sessionStorage: [], scripts: [], iframes: [] };
     function storageKeys(name) {
@@ -705,15 +743,19 @@
     var snapshot = readSavedSnapshot();
     var next = snapshot ? snapshot.categories : null;
     var nextServices = normalizeServiceChoices(next, snapshot && snapshot.services, true);
+    var signalChanged = lastGpcSignal !== isGpc();
+    lastGpcSignal = isGpc();
     var before = JSON.stringify([previous, previousServices]);
     var after = JSON.stringify([next, nextServices]);
-    if (before === after) {
+    if (before === after && !signalChanged) {
       lastDecisionAt = snapshot ? snapshot.date : null;
+      if (snapshot && snapshot.gpcSuppressed) persist();
       return;
     }
     consent = next;
     serviceConsent = nextServices;
     lastDecisionAt = snapshot ? snapshot.date : null;
+    if (snapshot && snapshot.gpcSuppressed) persist();
     stopDeniedProviders();
     revokeDeniedMedia();
     clearConfiguredCookies(previous, consent, previousServices, serviceConsent);
@@ -786,7 +828,8 @@
     var previous = getConsent();
     var oldServices = getServiceConsent();
     var firstChoice = !previous;
-    consent = normalizeConsent(choice, isGpc());
+    lastGpcSignal = isGpc();
+    consent = normalizeConsent(choice, lastGpcSignal);
     serviceConsent = normalizeServiceChoices(consent, services);
     lastDecisionAt = new Date().toISOString();
     persist();
@@ -1062,6 +1105,7 @@
     nodes.banner = banner;
     showBanner();
     // Subscription already installed during init, before DOM rendering.
+    observeDynamicResources();
     emit('ready'); // Returning consent is propagated before third-party tag activation.
     if (consent) invokeHook('onConsent', getConsentReceipt());
     syncProviders();
@@ -1153,6 +1197,76 @@
    * Passive local resource inventory, never transmits or auto-classifies data.
    * Unknown elements may be first-party essential files: a human must inspect.
    */
+  // A conservative local hint list, not a legal classification or a blocklist.
+  var TRACKER_HINTS = [
+    ['Google Analytics','analytics',['google-analytics.com','analytics.google.com']],
+    ['Google advertising','marketing',['doubleclick.net','googlesyndication.com','googleadservices.com']],
+    ['Google Tag Manager','review',['googletagmanager.com']],
+    ['Meta Pixel','marketing',['connect.facebook.net']],
+    ['Microsoft Clarity','analytics',['clarity.ms']],
+    ['Hotjar','analytics',['hotjar.com','hotjar.io']],
+    ['TikTok advertising','marketing',['analytics.tiktok.com']],
+    ['LinkedIn Insight','marketing',['snap.licdn.com']],
+    ['Mixpanel','analytics',['mixpanel.com']],
+    ['Amplitude','analytics',['amplitude.com']],
+    ['Segment','review',['segment.com','segment.io']],
+    ['YouTube','review',['youtube.com','youtube-nocookie.com']],
+    ['Vimeo','review',['vimeo.com']]
+  ];
+  function classifyResource(raw) {
+    var hostname;
+    try {
+      var url = new root.URL(raw, root.location && root.location.href || 'https://invalid.example/');
+      if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
+      hostname = url.hostname.toLowerCase().replace(/\.$/, '');
+    } catch (_) { return null; }
+    for (var i = 0; i < TRACKER_HINTS.length; i++) {
+      var hint = TRACKER_HINTS[i];
+      if (hint[2].some(function (domain) {
+        return hostname === domain || hostname.endsWith('.' + domain);
+      })) return {provider: hint[0], suggestedCategory: hint[1], basis: 'hostname', reviewRequired: true};
+    }
+    return null;
+  }
+  async function discoverIndexedDB() {
+    // Do not open databases, enumerate stores or return database names.
+    try {
+      if (!root.indexedDB || typeof root.indexedDB.databases !== 'function')
+        return {status:'unsupported', count:null};
+      var databases = await root.indexedDB.databases();
+      return {status:'available', count:databases.length};
+    } catch (_) { return {status:'unavailable', count:null}; }
+  }
+  function getPrivacySignals() {
+    return {globalPrivacyControl: isGpc(), marketingAllowed: hasConsent('marketing')};
+  }
+  function refreshResources() {
+    if (!config) return;
+    return withTransition(function () {
+      var currentSignal = isGpc();
+      var changed = currentSignal !== lastGpcSignal;
+      lastGpcSignal = currentSignal;
+      // A signal is not a new user decision. Do not create a receipt or
+      // update the existing decision timestamp merely because it changed.
+      if (currentSignal && consent && consent.marketing) {
+        var previous = getConsent(), oldServices = getServiceConsent();
+        consent.marketing = false;
+        serviceConsent = normalizeServiceChoices(consent, oldServices, true);
+        persist();
+        stopDeniedProviders();
+        revokeDeniedMedia();
+        clearConfiguredCookies(previous, consent, oldServices, serviceConsent);
+        emit('change');
+        emit('revoked');
+        notifyOtherTabs();
+        closePreferences();
+      } else if (changed) {
+        emit('change');
+      }
+      syncProviders();
+      applyGatedResources();
+    });
+  }
   function scanLocalResources() {
     var snapshot = auditLocal();
     // Never include URL credentials, search parameters, fragments or storage
@@ -1170,7 +1284,7 @@
     function sanitized(items) {
       return items.map(function (entry) {
         return {category: entry.category, enabled: entry.enabled,
-          source: redactUrl(entry.source), marked: entry.marked};
+          source: redactUrl(entry.source), marked: entry.marked, classification: classifyResource(entry.source)};
       });
     }
     var media = [];
@@ -1185,7 +1299,7 @@
           node.getAttribute('href') || node.getAttribute('data') || '';
         var tag = String(node.tagName || '').toLowerCase();
         var controlled = (tag === 'img') && !!category && !!node.getAttribute('data-bcc-src');
-        media.push({tag: tag, origin: redactUrl(raw), marked: !!category,
+        media.push({tag: tag, origin: redactUrl(raw), classification: classifyResource(raw), marked: !!category,
           controlled: controlled, enabled: controlled ? resourceAllowed(category, serviceId) : null,
           hasResponsiveSource: !!node.getAttribute('srcset')});
       });
@@ -1204,7 +1318,7 @@
         external = !!(root.location && new root.URL(url).origin !== root.location.origin);
       } catch (_) { /* Invalid or browser-private URL; leave origin unknown. */ }
       return {url: url, initiator: String(entry.initiatorType || 'other').slice(0, 32),
-        thirdParty: external};
+        thirdParty: external, classification: classifyResource(entry.name)};
     });
     return {
       schema: 'brendigo-local-audit-v2',
@@ -1213,6 +1327,7 @@
       limitations: ['No HttpOnly cookie visibility', 'No cross-origin cookie or storage contents',
         'No server-to-server events', 'No guaranteed coverage of earlier or blocked requests',
         'Resource timing lists origins only, never paths, responses or request payloads',
+        'Hostname classifications are advisory and never authorize or block resources',
         'Unclassified resources are review candidates, not evidence of tracking',
         'Responsive image srcset, picture sources and arbitrary network APIs are not gated'],
       cookies: snapshot.cookies,
@@ -1290,6 +1405,7 @@
       flipButtons: options.flipButtons === true,
       equalWeightButtons: true, // Privacy invariant: legacy false values cannot weaken parity.
       disableAnimations: options.disableAnimations === true,
+      observeDynamicResources: options.observeDynamicResources === true,
       direction: sanitizeDirection(options.direction),
       accentColor: sanitizeColor(options.accentColor, '#4357e8'),
       surfaceColor: sanitizeColor(options.surfaceColor, '#ffffff'),
@@ -1318,6 +1434,8 @@
     consent = snapshot ? snapshot.categories : null;
     serviceConsent = normalizeServiceChoices(consent, snapshot && snapshot.services, true);
     lastDecisionAt = snapshot ? snapshot.date : null;
+    lastGpcSignal = isGpc();
+    if (snapshot && snapshot.gpcSuppressed) persist();
     // Subscribe before mounting the banner: other tabs can make a decision
     // while this tab is still building its UI.
     listenForTabUpdates();
@@ -1333,7 +1451,8 @@
     getServiceConsent: getServiceConsent, hasServiceConsent: hasServiceConsent,
     reset: reset, openPreferences: openPreferences,
     registerProvider: registerProvider,
-    refresh: function () { if (config) return withTransition(applyGatedResources); },
+    refresh: refreshResources,
+    getPrivacySignals: getPrivacySignals, discoverIndexedDB: discoverIndexedDB,
     auditLocal: auditLocal, scanLocalResources: scanLocalResources,
     getCatalog: getCatalog, renderCatalog: renderCatalog,
     utils: {
@@ -1345,7 +1464,7 @@
       normalizeServices: normalizeServices,
       normalizeCleanupRules: normalizeCleanupRules, protectedCookieName: protectedCookieName, parseServiceRecord: parseServiceRecord,
       sanitizeLayoutNumber: sanitizeLayoutNumber,
-      parseConfigurationJSON: parseConfigurationJSON
+      classifyResource: classifyResource, parseConfigurationJSON: parseConfigurationJSON
     }
   };
   return api;

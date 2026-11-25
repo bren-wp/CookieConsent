@@ -64,3 +64,7 @@ Ciljani dodatni profili: TDDDG (Njemačka), francuska nacionalna pravila, Italij
 ### Medijske tehnologije i lokalna inventura
 
 Kontrolirani slikovni pikseli koriste isti konzervativni opt-in kao skripte i iframeovi. Lokalni inventar medija i linkova omogućuje ručnu klasifikaciju, bez otkrivanja URL putanja. Potrebno je posebno provjeriti responsive izvore, CSS, mrežne API-je i server-side obradu. Ove kontrole ne predstavljaju novu regulatornu certifikaciju.
+
+### GPC i klasifikacija hostova
+
+Lokalna klasifikacija daje indikacije za operatera, ne pravnu kategorizaciju ili automatsku dozvolu. GPC se ponovno provjerava pri refreshu, a pozitivni signal potiskuje prethodnu marketinšku odluku. Backend opt-out i obveze prema primjenjivom zakonu ostaju zasebna integracija. [CPPA FAQ](https://cppa.ca.gov/faq) · [GPC implementation](https://globalprivacycontrol.org/implementation) · [Google tag CSP](https://developers.google.com/tag-platform/security/guides/csp).

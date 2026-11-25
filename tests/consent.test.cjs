@@ -256,3 +256,22 @@ test('cleanup never removes protected WordPress, WooCommerce or session cookies'
    assert.equal(consent.utils.protectedCookieName(name,'bcc_consent'),true,name);
  assert.equal(consent.utils.protectedCookieName('_ga','bcc_consent'),false);
 });
+
+test('tracker hints use exact hostname boundaries and are advisory',()=>{
+ const classify=consent.utils.classifyResource;
+ assert.equal(classify('https://www.google-analytics.com/g/collect').provider,'Google Analytics');
+ assert.equal(classify('https://www.googletagmanager.com/gtm.js').suggestedCategory,'review');
+ assert.equal(classify('https://google-analytics.com.evil.example/x'),null);
+ assert.equal(classify('https://fakegoogle-analytics.com/x'),null);
+ assert.equal(classify('data:text/plain,google-analytics.com'),null);
+});
+test('IndexedDB discovery is read-only metadata and excludes database names',async()=>{
+ const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+ const win={indexedDB:{databases:async()=>[{name:'secret-account',version:1}],open(){throw Error('must not open');}},URL};
+ vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../packages/core/brendigo-cookieconsent.js'),'utf8'),{window:win,globalThis:win});
+ const result=await win.BrendigoCookieConsent.discoverIndexedDB();
+ assert.equal(result.status,'available');assert.equal(result.count,1);
+ assert.ok(!JSON.stringify(result).includes('secret-account'));
+ win.indexedDB={databases:async()=>{throw Error('blocked');}};
+ assert.equal((await win.BrendigoCookieConsent.discoverIndexedDB()).status,'unavailable');
+});
