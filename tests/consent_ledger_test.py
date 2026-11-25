@@ -1,6 +1,7 @@
 import importlib.util
 import secrets
 import sqlite3
+import shutil
 import tempfile
 import unittest
 from pathlib import Path
@@ -61,6 +62,23 @@ class LedgerTest(unittest.TestCase):
         self.record(kind="gpc_optout", gpc=True)
         self.assertTrue(self.ledger.history(self.token)[0]["decision"]["gpc"])
         self.assertEqual(self.ledger.purge_expired(), 0)
+
+    def test_independent_checkpoint_detects_rollback_and_deletion(self):
+        anchor_key = secrets.token_bytes(32)
+        self.record()
+        backup = self.path.with_suffix(".backup")
+        shutil.copyfile(self.path, backup)
+        self.record()
+        expected = self.ledger.checkpoint(anchor_key=anchor_key)
+        self.assertTrue(self.ledger.verify_checkpoint(expected, anchor_key=anchor_key))
+        self.assertFalse(self.ledger.verify_checkpoint(expected, anchor_key=secrets.token_bytes(32)))
+        restored = module.ConsentLedger(backup, **self.options)
+        self.assertFalse(restored.verify_checkpoint(expected, anchor_key=anchor_key))
+        with sqlite3.connect(self.path) as db:
+            db.execute("DELETE FROM events WHERE rowid=(SELECT max(rowid) FROM events)")
+        self.assertFalse(self.ledger.verify_checkpoint(expected, anchor_key=anchor_key))
+        with self.assertRaises(ValueError):
+            self.ledger.checkpoint(anchor_key=self.options["key"])
 
 
 if __name__ == "__main__":

@@ -158,3 +158,35 @@ class ConsentLedger:
         """Authorized rights workflow only; operator determines legal retention."""
         with closing(self._connect()) as db, db:
             return db.execute("DELETE FROM events WHERE subject=?", (self._subject(token),)).rowcount
+
+    def checkpoint(self, *, anchor_key):
+        """Export an authenticated snapshot digest for independent custody.
+
+        The caller must retain the newest checkpoint outside this database.
+        This does not establish freshness or automatically guard subsequent writes.
+        """
+        if not isinstance(anchor_key, bytes) or len(anchor_key) < 32 or hmac.compare_digest(anchor_key, self.key):
+            raise ValueError("A separate independent anchor key is required")
+        with closing(self._connect()) as db:
+            db.execute("BEGIN")
+            binding = db.execute("SELECT binding FROM metadata WHERE id=1").fetchone()
+            if not binding or not hmac.compare_digest(binding[0], self._mac(b"binding", canonical([self.scope, self.key_id]))):
+                raise ValueError("Ledger binding integrity failure")
+            digest = hashlib.sha256()
+            count = 0
+            for row in db.execute("SELECT rowid, * FROM events ORDER BY rowid"):
+                self._verified(row[1:])
+                digest.update(canonical(list(row)) + b"\n")
+                count += 1
+            payload = {"schema": 1, "scope": self.scope, "key_id": self.key_id,
+                       "count": count, "digest": digest.hexdigest()}
+            tag = hmac.new(anchor_key, b"bcc-anchor-v1\x00" + canonical(payload), hashlib.sha256).hexdigest()
+            return {"payload": payload, "tag": tag}
+
+    def verify_checkpoint(self, expected, *, anchor_key):
+        """Reject deletion, reordering, addition or rollback against trusted snapshot."""
+        try:
+            actual = self.checkpoint(anchor_key=anchor_key)
+            return hmac.compare_digest(canonical(actual), canonical(expected))
+        except (ValueError, TypeError, sqlite3.Error, KeyError, UnicodeError):
+            return False
