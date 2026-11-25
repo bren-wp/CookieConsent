@@ -26,6 +26,27 @@ async function gotoWithTransientRetry(page,url) {
  try{
    const context=await browser.newContext({viewport:{width:1280,height:800}});
    const page=await context.newPage();
+   const cdnOutage=process.env.BCC_WC_CDN==='1';
+   let blockedCdnRequests=0;
+   if(cdnOutage){
+     await page.route('https://api.brendigo.com/cookieconsent/**',async route=>{
+       blockedCdnRequests++;
+       await route.abort();
+     });
+   }
+   async function verifyConsentRuntime(){
+     await page.locator('.bcc-root').waitFor({state:'attached',timeout:30000});
+     if(cdnOutage){
+       await page.waitForFunction(()=>window.__bccLoaderState==='ready');
+       assert.ok(blockedCdnRequests>0,'CDN outage must actually be exercised');
+     }
+   }
+   async function verifyDenied(){
+     const choice=await page.evaluate(()=>window.BrendigoCookieConsent.getConsent());
+     assert.ok(choice,'explicit rejection must be stored');
+     assert.equal(choice.necessary,true);
+     for(const category of ['preferences','analytics','marketing'])assert.equal(choice[category],false,category);
+   }
    const errors=[];
    page.on('pageerror',error=>errors.push(error.message));
    await gotoWithTransientRetry(page,origin+'/?add-to-cart='+fixture.productId);
@@ -33,12 +54,15 @@ async function gotoWithTransientRetry(page,url) {
    await page.locator('.woocommerce-cart-form').waitFor({timeout:30000});
    assert.match((await page.locator('.woocommerce-cart-form').innerText()).toLowerCase(),
      /automated checkout sample/);
-   assert.ok(await page.locator('.bcc-root').count(),'cookie consent banner must exist on cart');
+   await verifyConsentRuntime();
    const reject=page.locator('.bcc-banner-actions').getByRole('button',{name:/Odbij sve|Reject all/});
-   if(await reject.count()) await reject.click();
+   await reject.waitFor({state:'visible',timeout:15000});
+   await reject.click();
+   await verifyDenied();
    await gotoWithTransientRetry(page,origin+'/?page_id='+fixture.checkoutId);
    await page.locator('form.checkout').waitFor({timeout:30000});
-   assert.ok(await page.locator('.bcc-root').count(),'cookie consent on checkout');
+   await verifyConsentRuntime();
+   await verifyDenied();
    await page.locator('#billing_first_name').fill('Test');
    await page.locator('#billing_last_name').fill('Kupac');
    await page.locator('#billing_email').fill('buyer@example.org');
@@ -72,7 +96,7 @@ async function gotoWithTransientRetry(page,url) {
    }
    assert.match(await page.locator('body').innerText(),/Your order has been received/);
    assert.deepEqual(errors,[], 'checkout must have no JS exceptions');
-   console.log('PASS WooCommerce real browser cart -> checkout -> offline order with CookieConsent denied');
+   console.log('PASS WooCommerce real browser cart -> checkout -> offline order with CookieConsent denied ('+(cdnOutage?'CDN outage/local fallback':'local assets')+')');
    await context.close();
  }finally{await browser.close();}
 })().catch(err=>{console.error(err);process.exitCode=1;});

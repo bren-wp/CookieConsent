@@ -156,6 +156,13 @@ jobs:
           npm install --no-save --no-package-lock playwright@1.56.1
           npx playwright install --with-deps chromium
           BCC_WC_FIXTURE="$RUNNER_TEMP/bcc-wc-fixture.json" node tests/wc-browser.cjs
+      - name: Real WooCommerce checkout with CDN outage and local fallback
+        if: matrix.wordpress == 'latest'
+        run: |
+          wp_cli() { php "$RUNNER_TEMP/bin/wp" --path="$RUNNER_TEMP/wordpress" "$@" --allow-root; }
+          trap 'wp_cli option patch update brendigo_cookieconsent_options asset_source local' EXIT
+          wp_cli option patch update brendigo_cookieconsent_options asset_source cdn
+          BCC_WC_CDN=1 BCC_WC_FIXTURE="$RUNNER_TEMP/bcc-wc-fixture.json" node tests/wc-browser.cjs
       - name: Official Plugin Check report (review aid, not approval)
         if: matrix.wordpress == 'latest'
         run: |
