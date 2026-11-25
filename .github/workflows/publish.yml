@@ -69,6 +69,8 @@ jobs:
             dist/brendigo-cookieconsent-magento.zip \
             dist/brendigo.ocmod.zip \
             dist/brendigocookieconsent-prestashop.zip \
+            dist/release-manifest.json \
+            dist/SHA256SUMS \
             --repo "$GITHUB_REPOSITORY" \
             --target "$VERIFIED_SHA" \
             --title "CookieConsent by Brendigo $RELEASE_TAG" \

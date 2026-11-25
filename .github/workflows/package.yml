@@ -43,4 +43,7 @@ jobs:
             dist/brendigocookieconsent-prestashop.zip
             dist/brendigo-cookieconsent-cdn.zip
             dist/cookieconsent-brendigo-website.zip
+            dist/release-manifest.json
+            dist/SHA256SUMS
+          if-no-files-found: error
           retention-days: 14

@@ -2,7 +2,7 @@
 
 ## Verzije i paketi
 
-Aktualna testna verzija: **0.11.2**. Službeno izdanje koristi GitHub tag `v0.11.2` i sadrži jedanaest ZIP paketa.
+Pripremljena testna verzija: **0.11.8**. Izdanje koristi GitHub tag `v0.11.8` nakon uspješnih provjera i sadrži jedanaest ZIP paketa.
 
 | Paket | Namjena |
 |---|---|
@@ -64,3 +64,7 @@ Službena distribucija prikazuje `by Brendigo` bez konfiguracijskog prekidača. 
 ## Provjera objavljenog weba i CDN-a
 
 Nakon postavljanja HTML i CDN datoteka na stvarni server pokrenite `npm run verify:deployment -- --website https://cookie.brendigo.com`. Skripta **ne objavljuje** datoteke i ne mijenja DNS. [Deployment](DEPLOY.hr.md).
+
+## Integritet svih distribucijskih paketa
+
+Build generira `release-manifest.json` s točno jedanaest ZIP datoteka, njihovim veličinama i SHA-256 vrijednostima te `SHA256SUMS`. `--verify` uspoređuje izvještaje s paketima i reproducira ZIP u privremenom direktoriju bez prepisivanja originala. Nakon preuzimanja svih paketa iz pouzdanog GitHub izdanja pokrenite `sha256sum -c SHA256SUMS` u istom direktoriju. Hash nije digitalni potpis i ne dokazuje autentičnost ako je kompromitiran i izvor kontrolnih vrijednosti.
